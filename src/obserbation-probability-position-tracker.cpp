@@ -40,7 +40,7 @@ const struct gnd_cui_cmd cui_cmd[] = {
 
 
 int main(int argc, char* argv[]) {
-	OPSM::optimizer_basic	*optimizer;			// optimizer class
+	OPSM::optimizer_basic	*optimizer = 0;			// optimizer class
 	void 					*starting = 0;		// optimization starting value
 
 	OPSM::counting_map_t	cnt_map;			// observation probability counting map
@@ -391,6 +391,14 @@ int main(int argc, char* argv[]) {
 
 		// get coordinate convert matrix
 		coordtree.get_convert_matrix(coordid_sns, coordid_rbt, &coordm_sns2rbt);
+
+		{ // ---> set zero
+			move_est.x = 0;
+			move_est.y = 0;
+			move_est.theta = 0;
+			move_est.v = 0;
+			move_est.w = 0;
+		} // <--- set zero
 
 		// ---> memory allocate counting map
 		if( !cnt_map.plane[0].is_allocate() ){

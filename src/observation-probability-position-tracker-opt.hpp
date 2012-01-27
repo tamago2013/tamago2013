@@ -99,7 +99,7 @@ namespace ObservationProbabilityScanMatching {
 				// read configure
 				case 'g':
 				{
-					gnd_conf_fs conf_fs;
+					gnd::Conf::FileStream conf_fs;
 					if( conf_fs.read(optarg) < 0 ){
 						::fprintf(stderr, " ... [\x1b[1m\x1b[31mERROR\x1b[30m\x1b[0m]: -g option, Fail to read configure file\n");
 						return RFail;
