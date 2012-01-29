@@ -66,6 +66,7 @@ namespace ObservationProbabilityScanMatching {
 		const struct option LongOpt[] = {
 				{"help", 						no_argument,		0,	'h'},
 				{"config",						required_argument,	0,	'g'},
+				{"write-config",				required_argument,	0,	'G'},
 				{ConfIni_MapDir.token,			required_argument,	0,	'm'},
 				{ConfIni_SpurAdjustSSMID.token,	required_argument,	0,	'a'},
 				{ConfIni_SokuikiSSMID.token,	required_argument,	0,	's'},
@@ -197,6 +198,11 @@ namespace ObservationProbabilityScanMatching {
 
 					fprintf(stderr, "\t\t\x1b[1m-%c\x1b[0m, \x1b[1m--%s\x1b[0m\n", LongOpt[i].val,  LongOpt[i].name);
 					fprintf(stderr, "\t\t\tread configure file\n");
+					fprintf(stderr, "\n");
+					i++;
+
+					fprintf(stderr, "\t\t\x1b[1m-%c\x1b[0m, \x1b[1m--%s\x1b[0m\n", LongOpt[i].val,  LongOpt[i].name);
+					fprintf(stderr, "\t\t\twirte configure file\n");
 					fprintf(stderr, "\n");
 					i++;
 
