@@ -37,7 +37,7 @@ namespace ObservationProbabilityScanMatching {
 				1,
 		};
 		// decimate threshold
-		static const gnd::Conf::parameter<int> ConfIni_Decimate = {
+		static const gnd::Conf::parameter<double> ConfIni_Decimate = {
 				"decimate",
 				gnd_m2dist( 0.08 ),	// [m]
 		};
