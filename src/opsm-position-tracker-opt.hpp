@@ -16,7 +16,7 @@
 #include <ssmtype/spur-odometry.h>
 #include <ssmtype/pws-motor.h>
 
-#include "observation-probability-position-tracker-conf.hpp"
+#include "opsm-position-tracker-conf.hpp"
 
 #ifndef OPSMPosTrack
 #define OPSMPosTrack ObservationProbabilityScanMatching::PositionTracker

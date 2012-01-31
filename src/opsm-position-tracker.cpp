@@ -13,8 +13,8 @@
 #include "ssm-laser.hpp"
 #include "ssm-ekf.hpp"
 
-#include "observation-probability-position-tracker-opt.hpp"
-#include "observation-probability-position-tracker-view.hpp"
+#include "opsm-position-tracker-opt.hpp"
+#include "opsm-position-tracker-viewer.hpp"
 
 #include "yp-coordinate-manager.hpp"
 #include "yp-matrix-coordinate-convert.hpp"
