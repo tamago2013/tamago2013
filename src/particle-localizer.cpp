@@ -24,8 +24,7 @@
 
 #include "ssm-particles.hpp"
 
-#include "localizer-conf.hpp"
-#include "localizer-opt.hpp"
+#include "particle-localizer-opt.hpp"
 #include "gnd-cui.hpp"
 #include "gnd-util.h"
 
@@ -64,8 +63,8 @@ int main(int argc, char* argv[], char *envp[]) {
 	SSMParticleEvaluation ssm_estimation;
 
 	gnd_cui gcui;
-	Localizer::configure_parameters param;
-	Localizer::particle_localizer_option opt(&param);
+	Localizer::proc_configuration param;
+	Localizer::proc_option opt(&param);
 	yp_matrix_fixed_c<1, PARTICLE_DIM> myu_ini;
 
 	double wheel_mean = 0,
@@ -214,8 +213,8 @@ int main(int argc, char* argv[], char *envp[]) {
 		 // ---> get configure
 		if( !gShutOff ){
 
-			Localizer::configure_sampling_ratio_normalize(&param);
-			Localizer::configure_kinematics_parameter_materialize(&param, wheel_mean, wheel_ratio, tread_ratio);
+			Localizer::proc_conf_sampling_ratio_normalize(&param);
+			Localizer::proc_conf_kinematics_parameter_materialize(&param, wheel_mean, wheel_ratio, tread_ratio);
 
 			{ // ---> initlaize min cov
 				yp_matrix_fixed<3, 3> min_cov;

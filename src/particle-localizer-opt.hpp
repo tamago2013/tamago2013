@@ -16,11 +16,11 @@
 #include <ssmtype/spur-odometry.h>
 #include <ssmtype/pws-motor.h>
 
-#include "localizer-conf.hpp"
+#include "particle-localizer-conf.hpp"
 
 namespace Localizer {
 
-	class particle_localizer_option
+	class proc_option
 	{
 		// ---> declaration
 	public:
@@ -32,19 +32,19 @@ namespace Localizer {
 		operation_mode op_mode;
 		// <--- declaration
 	public:
-		configure_parameters *param;
+		proc_configuration *param;
 
 
 
 		// ---> constructor
 	public:
-		particle_localizer_option(){ init(); }
-		particle_localizer_option(configure_parameters *p) : param(p) { init(); }
-		~particle_localizer_option(){}
+		proc_option(){ init(); }
+		proc_option(proc_configuration *p) : param(p) { init(); }
+		~proc_option(){}
 	private:
 		void init();
 	public:
-		int set(configure_parameters *p){
+		int set(proc_configuration *p){
 			param = p;
 			return 0;
 		}
@@ -58,13 +58,13 @@ namespace Localizer {
 
 
 // alias
-	typedef	particle_localizer_option
+	typedef	proc_option
 			particle_opt;
 
 	const char particle_filter[] = "localizer";
 
 	// default parameter
-	const particle_localizer_option::operation_mode __PARTICLE_OPTION_DEFPARAM__ = {
+	const proc_option::operation_mode __PARTICLE_OPTION_DEFPARAM__ = {
 			false,	// random sampling
 			false,	// start-at
 			false,	// debug
@@ -103,7 +103,7 @@ namespace Localizer {
 			case 'k': ::strcpy(param->kfile.value, optarg); break;
 			case 'g':
 			{
-				gnd_conf_fs conf_fs;
+				gnd::Conf::FileStream conf_fs;
 				if( conf_fs.read(optarg) < 0 ){
 					::fprintf(stderr, " ... [\x1b[1m\x1b[31mERROR\x1b[30m\x1b[0m]: -g option, Fail to read configure file\n");
 					return -1;
