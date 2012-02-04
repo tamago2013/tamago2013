@@ -58,24 +58,21 @@ namespace ObservationProbabilityScanMatching {
 		};
 
 
-		const char proc_name[] = "observation-probability-position-tracker";
-
-
-		const char ShortOpt[] = "hg:G::m:a:s:d:c:SNnq";
+		const char ShortOpt[] = "hg:G::m:n:i:S:s:d:c:lN";
 
 		const struct option LongOpt[] = {
-				{"help", 						no_argument,		0,	'h'},
-				{"config",						required_argument,	0,	'g'},
-				{"write-config",				required_argument,	0,	'G'},
-				{ConfIni_MapDir.token,			required_argument,	0,	'm'},
-				{ConfIni_SpurAdjustSSMID.token,	required_argument,	0,	'a'},
-				{ConfIni_SokuikiSSMID.token,	required_argument,	0,	's'},
-				{ConfIni_Decimate.token,		required_argument,	0,	'd'},
-				{ConfIni_Cycle.token,			required_argument,	0,	'c'},
-				{ConfIni_SLAM.token,			no_argument,		0,	'S'},
-				{OptNewton,						no_argument,		0,	'n'},
-				{OptQMC,						no_argument,		0,	'q'},
-				{ConfIni_NDT.token,				no_argument,		0,	'N'},
+				{"help", 							no_argument,		0,	'h'},
+				{"config",							required_argument,	0,	'g'},
+				{"write-config",					required_argument,	0,	'G'},
+				{ConfIni_MapDir.token,				required_argument,	0,	'm'},
+				{ConfIni_SSMName.token,				required_argument,	0,	'n'},
+				{ConfIni_SSMID.token,				required_argument,	0,	'i'},
+				{ConfIni_LaserScannerSSMName.token,	required_argument,	0,	'S'},
+				{ConfIni_LaserScannerSSMID.token,	required_argument,	0,	's'},
+				{ConfIni_Decimate.token,			required_argument,	0,	'd'},
+				{ConfIni_Cycle.token,				required_argument,	0,	'c'},
+				{ConfIni_SLAM.token,				no_argument,		0,	'l'},
+				{ConfIni_NDT.token,					no_argument,		0,	'N'},
 				{0, 0, 0, 0}	// end of array
 		};
 
@@ -113,16 +110,20 @@ namespace ObservationProbabilityScanMatching {
 
 				// write configure
 				case 'G': {
-					write_configure( optarg ? optarg : "opsm-pos-tracker.conf", param);
+					write_configuration( optarg ? optarg : "opsm-pos-tracker.conf", param);
 					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "opsm-pos-tracker.conf");
 				} return RWriteConf;
 
 				// entry map file directory
 				case 'm': ::strcpy(param->mapdir.value, optarg);			break;
-				// entry adjust position ssm-data id
-				case 'a': param->spuradjust_ssmid.value = ::atoi(optarg);	break;
+				// entry ssm-name
+				case 'n': ::strcpy(param->ssmname.value, optarg);			break;
+				// entry ssm-data id
+				case 'i': param->ssmid.value = ::atoi(optarg);				break;
 				// entry sokuiki ssm-data id
-				case 's': param->sokuiki_ssmid.value = ::atoi(optarg);		break;
+				case 'S': ::strcpy( param->ls_ssmname.value, optarg);		break;
+				// entry sokuiki ssm-data id
+				case 's': param->ls_ssmid.value = ::atoi(optarg);			break;
 
 				// data decimate threshold
 				case 'd': param->decimate.value = ::atoi(optarg);			break;
@@ -137,7 +138,7 @@ namespace ObservationProbabilityScanMatching {
 					}
 					break;
 				}
-				case 'S':
+				case 'l':
 					if(optarg){
 						if( ::strlen(optarg) == ::strlen("true") && ::strncmp(optarg, "true", ::strlen("true")) == 0 )
 							param->slam.value = true;
@@ -153,10 +154,6 @@ namespace ObservationProbabilityScanMatching {
 					}
 				break;
 
-				// optimizer newton method
-				case 'n':	::strcpy( param->optimizer.value, OptNewton);	break;
-				// optimizer quasi-monte-calro
-				case 'q':	::strcpy( param->optimizer.value, OptQMC);		break;
 				// NDT mode
 				case 'N':
 					if(optarg){

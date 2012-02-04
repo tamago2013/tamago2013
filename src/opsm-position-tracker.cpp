@@ -28,7 +28,7 @@
 #include "gnd-bmp.hpp"
 
 
-const struct gnd_cui_cmd cui_cmd[] = {
+const struct gnd::CUI::command cui_cmd[] = {
 		{"Quit",					'Q',	"localizer shut-off"},
 		{"help",					'h',	"show help"},
 		{"show",					's',	"state show mode"},
@@ -44,11 +44,11 @@ static const double ShowCycle = gnd_sec2time(1.0);
 static const double ClockCycle = gnd_sec2time(1.0) / 60.0 ;
 
 int main(int argc, char* argv[]) {
-	OPSM::optimizer_basic	*optimizer = 0;			// optimizer class
+	gnd::OPSM::optimizer_basic	*optimizer = 0;			// optimizer class
 	void 					*starting = 0;		// optimization starting value
 
-	OPSM::counting_map_t	cnt_map;			// observation probability counting map
-	OPSM::map_t				op_map;				// observation probability map
+	gnd::OPSM::counting_map_t	cnt_map;			// observation probability counting map
+	gnd::OPSM::map_t				op_map;				// observation probability map
 
 	SSMScanPoint2D			ssm_sokuikiraw;		// sokuiki raw streaming data
 	SSMApi<Spur_Odometry>	ssm_odm;			// odometry position streaming data
@@ -56,11 +56,11 @@ int main(int argc, char* argv[]) {
 
 	yp_coordinate_manager	coordtree;			// coordinate tree
 	int cid_gl = -1,							// global coordinate node id
-		coordid_rbt = -1,						// robot coordinate node id
-		coordid_sns = -1,						// sensor coordinate node id
-		coordid_odm = -1;							// odometry coordinate node id
+			coordid_rbt = -1,						// robot coordinate node id
+			coordid_sns = -1,						// sensor coordinate node id
+			coordid_odm = -1;							// odometry coordinate node id
 
-	gnd_cui gcui;								// cui class
+	gnd::cui gcui;								// cui class
 
 	OPSMPosTrack::configure_parameters param;	// configuration parameter
 	OPSMPosTrack::options proc_opt(&param);		// process option analyze class
@@ -112,13 +112,12 @@ int main(int argc, char* argv[]) {
 				::fprintf(stderr, " %d. Build %sMap\n", phase++, param.ndt.value ? "NDT " : "");
 			}
 			::fprintf(stderr, " %d. Initailize SSM\n", phase++);
-			::fprintf(stderr, " %d. Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, SSM_NAME_SCAN_POINT_2D);
-			::fprintf(stderr, " %d. Create ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, SNAME_ADJUST);
-			::fprintf(stderr, " %d. Create ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, SNAME_ODOMETRY);
+			::fprintf(stderr, " %d. Create ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, param.ssmname.value);
+			::fprintf(stderr, " %d. Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, param.ls_ssmname.value);
+			::fprintf(stderr, " %d. Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, param.odm_ssmname.value);
 			::fprintf(stderr, " %d. Initialize viewer\n", phase++);
 			::fprintf(stderr, "\n\n");
 		} // <--- show initialize task
-
 
 
 		// ---> set optimizer
@@ -126,17 +125,17 @@ int main(int argc, char* argv[]) {
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => create optimizer class \"%s\"\n", param.optimizer.value);
 			if( !::strcmp(param.optimizer.value, OPSMPosTrack::OptNewton) ){
-				optimizer = new OPSM::newton;
+				optimizer = new gnd::OPSM::newton;
 				optimizer->create_starting_value(&starting);
 				optimizer->set_converge_threshold(param.converge_dist.value,
 						gnd_deg2ang( param.converge_orient.value ) );
 				::fprintf(stderr, " ...\x1b[1mOK\x1b[0m\n");
 			}
 			else if( !::strcmp(param.optimizer.value, OPSMPosTrack::OptQMC)){
-				OPSM::quasi_monte_calro::starting_value *p;
-				optimizer = new OPSM::quasi_monte_calro;
+				gnd::OPSM::quasi_monte_calro::starting_value *p;
+				optimizer = new gnd::OPSM::quasi_monte_calro;
 				optimizer->create_starting_value(&starting);
-				p = static_cast<OPSM::quasi_monte_calro::starting_value*>(starting);
+				p = static_cast<gnd::OPSM::quasi_monte_calro::starting_value*>(starting);
 				p->n = 1;
 				starting = static_cast<void*>(p);
 				optimizer->set_converge_threshold(param.converge_dist.value,
@@ -156,7 +155,7 @@ int main(int argc, char* argv[]) {
 		if( !::is_proc_shutoff() && param.slam.value && *param.mapdir.value ){
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => Map Data Load\n");
-			if( OPSM::read_counting_map(&cnt_map, param.mapdir.value) < 0){
+			if( gnd::OPSM::read_counting_map(&cnt_map, param.mapdir.value) < 0){
 				::proc_shutoff();
 				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to map data\n");
 			}
@@ -172,7 +171,7 @@ int main(int argc, char* argv[]) {
 			::fprintf(stderr, "\n");
 			if( !param.ndt.value){
 				::fprintf(stderr, " => Build Map\n");
-				if( OPSM::build_map(&op_map, &cnt_map, 10, 1, 0.5) < 0) {
+				if( gnd::OPSM::build_map(&op_map, &cnt_map, 10, 1, 0.5) < 0) {
 					::proc_shutoff();
 					::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build scan matching map\n");
 				}
@@ -182,7 +181,7 @@ int main(int argc, char* argv[]) {
 			}
 			else {
 				::fprintf(stderr, " => Build NDT Map\n");
-				if(OPSM::build_ndt_map(&op_map, &cnt_map, 1.2) < 0){
+				if(gnd::OPSM::build_ndt_map(&op_map, &cnt_map, gnd_mm2dist(1)) < 0){
 					::proc_shutoff();
 					::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build scan matching map\n");
 				}
@@ -211,101 +210,15 @@ int main(int argc, char* argv[]) {
 		} // <--- initialize ssm
 
 
-
-		// ---> open ssm sokuiki raw data
-		if(!::is_proc_shutoff()){
-			::fprintf(stderr, "\n");
-			::fprintf(stderr, " => Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", SSM_NAME_SCAN_POINT_2D);
-
-			if( !ssm_sokuikiraw.openWait(SSM_NAME_SCAN_POINT_2D, param.sokuiki_ssmid.value, 0.0) ){
-				::proc_shutoff();
-				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to open ssm-data \"\x1b[4m%s\x1b[0m\"\n",  SSM_NAME_SCAN_POINT_2D);
-			}
-			// get property
-			else if( !ssm_sokuikiraw.getProperty() ){
-				::proc_shutoff();
-				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to get property of \"\x1b[4m%s\x1b[0m\"\n",  SSM_NAME_SCAN_POINT_2D);
-			}
-			else {
-				ssm_sokuikiraw.setBlocking(true);
-
-				// allocate
-				ssm_sokuikiraw.data.alloc(ssm_sokuikiraw.property.numPoints);
-
-				{ // ---> coordinate-tree set sensor coordinate
-					coordid_sns = coordtree.create_node("sensor", "robot", &ssm_sokuikiraw.property.coordm);
-					yp_matrix_show(stdout, &ssm_sokuikiraw.property.coordm);
-//					yp_matrix_fixed<4,4> cc; // coordinate relation matrix
-//					yp_matrix_fixed<4,4> cp, rot;
-//
-//					yp_matrix_set_unit(&cc);
-//
-//					// Rx rotation matrix
-//					yp_matrix_set_unit(&rot);
-//					yp_matrix_set(&rot, 0, 0, 1 );
-//					yp_matrix_set(&rot, 0, 1, 0 );
-//					yp_matrix_set(&rot, 0, 2, 0 );
-//					yp_matrix_set(&rot, 1, 0, 0 );
-//					yp_matrix_set(&rot, 1, 1, cos(ssm_sokuikiraw.property.pos.Rz) );
-//					yp_matrix_set(&rot, 1, 2,-sin(ssm_sokuikiraw.property.pos.Rz) );
-//					yp_matrix_set(&rot, 2, 2, 0 );
-//					yp_matrix_set(&rot, 2, 1, sin(ssm_sokuikiraw.property.pos.Rz) );
-//					yp_matrix_set(&rot, 2, 2, cos(ssm_sokuikiraw.property.pos.Rz) );
-//					yp_matrix_copy(&cp, &cc);
-//					yp_matrix_prod(&cp, &rot, &cc);
-//
-//					// Ry
-//					yp_matrix_set_unit(&rot);
-//					yp_matrix_set(&rot, 0, 0, cos(ssm_sokuikiraw.property.pos.Ry) );
-//					yp_matrix_set(&rot, 0, 1, 0 );
-//					yp_matrix_set(&rot, 0, 2, sin(ssm_sokuikiraw.property.pos.Ry) );
-//					yp_matrix_set(&rot, 1, 0, 0 );
-//					yp_matrix_set(&rot, 1, 1, 1 );
-//					yp_matrix_set(&rot, 1, 2, 0 );
-//					yp_matrix_set(&rot, 2, 0, -sin(ssm_sokuikiraw.property.pos.Ry) );
-//					yp_matrix_set(&rot, 2, 1, 0 );
-//					yp_matrix_set(&rot, 2, 2, cos(ssm_sokuikiraw.property.pos.Ry) );
-//					yp_matrix_copy(&cp, &cc);
-//					yp_matrix_prod(&cp, &rot, &cc);
-//
-//					// Rz
-//					yp_matrix_set_unit(&rot);
-//					yp_matrix_set(&rot, 0, 0, cos(ssm_sokuikiraw.property.pos.Rx) );
-//					yp_matrix_set(&rot, 0, 1,-sin(ssm_sokuikiraw.property.pos.Rx) );
-//					yp_matrix_set(&rot, 0, 2, 0 );
-//					yp_matrix_set(&rot, 1, 0, sin(ssm_sokuikiraw.property.pos.Rx) );
-//					yp_matrix_set(&rot, 1, 1, cos(ssm_sokuikiraw.property.pos.Rx) );
-//					yp_matrix_set(&rot, 1, 2, 0 );
-//					yp_matrix_set(&rot, 2, 0, 0 );
-//					yp_matrix_set(&rot, 2, 1, 0 );
-//					yp_matrix_set(&rot, 1, 2, 1 );
-//					yp_matrix_copy(&cp, &cc);
-//					yp_matrix_prod(&cp, &rot, &cc);
-//
-//					// set transition
-//					yp_matrix_set(&cc, 0, 3, ssm_sokuikiraw.property.pos.Tx);
-//					yp_matrix_set(&cc, 1, 3, ssm_sokuikiraw.property.pos.Ty);
-//					yp_matrix_set(&cc, 2, 3, ssm_sokuikiraw.property.pos.Tz);
-//
-//					coordid_sns = coordtree.create_node("sensor", "robot", &cc);
-				} // <--- coordinate-tree set robot coordinate
-
-				ssm_sokuikiraw.readLast();
-				::fprintf(stderr, " ... \x1b[1mOK\x1b[0m\n");
-			}
-		} // <--- open ssm sokuiki raw data
-
-
-
 		// ---> create ssm adjust
 		if( !::is_proc_shutoff() ){
 			::fprintf(stderr, "\n");
-			::fprintf(stderr, " => Create ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_ADJUST);
-			if(!ssm_pos.create(SNAME_ADJUST, 0, 2.5, 0.005) ){
-				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to ssm open \"\x1b[4m%s\x1b[0m\"\n", SNAME_ADJUST);
+			::fprintf(stderr, " => Create ssm-data \"\x1b[4m%s\x1b[0m\"\n", param.ssmname.value);
+			if(!ssm_pos.create( param.ssmname.value, 0, 2.5, 0.005 ) ){
+				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to ssm open \"\x1b[4m%s\x1b[0m\"\n", param.ssmname.value);
 			}
 			else {
-				::fprintf(stderr, "  [\x1b[1mOK\x1b[0m]: Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_ADJUST);
+				::fprintf(stderr, "  [\x1b[1mOK\x1b[0m]: Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", param.ssmname.value);
 				ssm_pos.readLast();
 				ssm_pos.data.x = 0;
 				ssm_pos.data.y = 0;
@@ -319,12 +232,12 @@ int main(int argc, char* argv[]) {
 		// ---> open ssm odometry
 		if( !::is_proc_shutoff() ){
 			::fprintf(stderr, "\n");
-			::fprintf(stderr, " => Create ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_ODOMETRY);
-			if(!ssm_odm.openWait(SNAME_ODOMETRY, 0, 0.0) ){
-				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to ssm open \"\x1b[4m%s\x1b[0m\"\n", SNAME_ODOMETRY);
+			::fprintf(stderr, " => Create ssm-data \"\x1b[4m%s\x1b[0m\"\n", param.odm_ssmname.value);
+			if(!ssm_odm.openWait( param.odm_ssmname.value, 0, 0.0) ){
+				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to ssm open \"\x1b[4m%s\x1b[0m\"\n", param.odm_ssmname.value);
 			}
 			else {
-				::fprintf(stderr, "  [\x1b[1mOK\x1b[0m]: Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_ODOMETRY);
+				::fprintf(stderr, "  [\x1b[1mOK\x1b[0m]: Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", param.odm_ssmname.value);
 				ssm_odm.readLast();
 
 				{ // ---> set coordinate
@@ -341,22 +254,108 @@ int main(int argc, char* argv[]) {
 		} // <--- open ssm odometry
 
 
+
+		// ---> open ssm sokuiki raw data
+		if(!::is_proc_shutoff()){
+			::fprintf(stderr, "\n");
+			::fprintf(stderr, " => Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", param.ls_ssmname.value);
+
+			if( !ssm_sokuikiraw.openWait( param.ls_ssmname.value, param.ls_ssmid.value, 0.0) ){
+				::proc_shutoff();
+				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to open ssm-data \"\x1b[4m%s\x1b[0m\"\n", param.ls_ssmname.value);
+			}
+			// get property
+			else if( !ssm_sokuikiraw.getProperty() ){
+				::proc_shutoff();
+				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to get property of \"\x1b[4m%s\x1b[0m\"\n",  SSM_NAME_SCAN_POINT_2D);
+			}
+			else {
+				ssm_sokuikiraw.setBlocking(true);
+
+				// allocate
+				ssm_sokuikiraw.data.alloc(ssm_sokuikiraw.property.numPoints);
+
+				{ // ---> coordinate-tree set sensor coordinate
+					coordid_sns = coordtree.create_node("sensor", "robot", &ssm_sokuikiraw.property.coordm);
+					//					yp_matrix_fixed<4,4> cc; // coordinate relation matrix
+					//					yp_matrix_fixed<4,4> cp, rot;
+					//
+					//					yp_matrix_set_unit(&cc);
+					//
+					//					// Rx rotation matrix
+					//					yp_matrix_set_unit(&rot);
+					//					yp_matrix_set(&rot, 0, 0, 1 );
+					//					yp_matrix_set(&rot, 0, 1, 0 );
+					//					yp_matrix_set(&rot, 0, 2, 0 );
+					//					yp_matrix_set(&rot, 1, 0, 0 );
+					//					yp_matrix_set(&rot, 1, 1, cos(ssm_sokuikiraw.property.pos.Rz) );
+					//					yp_matrix_set(&rot, 1, 2,-sin(ssm_sokuikiraw.property.pos.Rz) );
+					//					yp_matrix_set(&rot, 2, 2, 0 );
+					//					yp_matrix_set(&rot, 2, 1, sin(ssm_sokuikiraw.property.pos.Rz) );
+					//					yp_matrix_set(&rot, 2, 2, cos(ssm_sokuikiraw.property.pos.Rz) );
+					//					yp_matrix_copy(&cp, &cc);
+					//					yp_matrix_prod(&cp, &rot, &cc);
+					//
+					//					// Ry
+					//					yp_matrix_set_unit(&rot);
+					//					yp_matrix_set(&rot, 0, 0, cos(ssm_sokuikiraw.property.pos.Ry) );
+					//					yp_matrix_set(&rot, 0, 1, 0 );
+					//					yp_matrix_set(&rot, 0, 2, sin(ssm_sokuikiraw.property.pos.Ry) );
+					//					yp_matrix_set(&rot, 1, 0, 0 );
+					//					yp_matrix_set(&rot, 1, 1, 1 );
+					//					yp_matrix_set(&rot, 1, 2, 0 );
+					//					yp_matrix_set(&rot, 2, 0, -sin(ssm_sokuikiraw.property.pos.Ry) );
+					//					yp_matrix_set(&rot, 2, 1, 0 );
+					//					yp_matrix_set(&rot, 2, 2, cos(ssm_sokuikiraw.property.pos.Ry) );
+					//					yp_matrix_copy(&cp, &cc);
+					//					yp_matrix_prod(&cp, &rot, &cc);
+					//
+					//					// Rz
+					//					yp_matrix_set_unit(&rot);
+					//					yp_matrix_set(&rot, 0, 0, cos(ssm_sokuikiraw.property.pos.Rx) );
+					//					yp_matrix_set(&rot, 0, 1,-sin(ssm_sokuikiraw.property.pos.Rx) );
+					//					yp_matrix_set(&rot, 0, 2, 0 );
+					//					yp_matrix_set(&rot, 1, 0, sin(ssm_sokuikiraw.property.pos.Rx) );
+					//					yp_matrix_set(&rot, 1, 1, cos(ssm_sokuikiraw.property.pos.Rx) );
+					//					yp_matrix_set(&rot, 1, 2, 0 );
+					//					yp_matrix_set(&rot, 2, 0, 0 );
+					//					yp_matrix_set(&rot, 2, 1, 0 );
+					//					yp_matrix_set(&rot, 1, 2, 1 );
+					//					yp_matrix_copy(&cp, &cc);
+					//					yp_matrix_prod(&cp, &rot, &cc);
+					//
+					//					// set transition
+					//					yp_matrix_set(&cc, 0, 3, ssm_sokuikiraw.property.pos.Tx);
+					//					yp_matrix_set(&cc, 1, 3, ssm_sokuikiraw.property.pos.Ty);
+					//					yp_matrix_set(&cc, 2, 3, ssm_sokuikiraw.property.pos.Tz);
+					//
+					//					coordid_sns = coordtree.create_node("sensor", "robot", &cc);
+				} // <--- coordinate-tree set robot coordinate
+
+				ssm_sokuikiraw.readLast();
+				::fprintf(stderr, " ... \x1b[1mOK\x1b[0m\n");
+			}
+		} // <--- open ssm sokuiki raw data
+
+
+
+
 		{ // ---> viewer initialization
-			gnd_gl::initialize(&argc, argv);
+			gnd::gl::initialize(&argc, argv);
 
-			gnd_gl::window.m = GLUT_DEPTH | GLUT_RGBA | GLUT_DOUBLE;
-			gnd_gl::window.w = 400;
-			gnd_gl::window.h = 300;
+			gnd::gl::window.m = GLUT_DEPTH | GLUT_RGBA | GLUT_DOUBLE;
+			gnd::gl::window.w = 400;
+			gnd::gl::window.h = 300;
 
-			gnd_gl::window.field = 10;
-			::strcpy( gnd_gl::window.name, "viewer" );
+			gnd::gl::window.field = 10;
+			::strcpy( gnd::gl::window.name, "viewer" );
 
-			gnd_gl::window.df = OPSMPosTrack::Viewer::display;
-			gnd_gl::window.idle = OPSMPosTrack::Viewer::idle;
-			gnd_gl::window.mf = OPSMPosTrack::Viewer::mouse;
-			gnd_gl::window.reshf = OPSMPosTrack::Viewer::reshape;
+			gnd::gl::window.df = OPSMPosTrack::Viewer::display;
+			gnd::gl::window.idle = OPSMPosTrack::Viewer::idle;
+			gnd::gl::window.mf = OPSMPosTrack::Viewer::mouse;
+			gnd::gl::window.reshf = OPSMPosTrack::Viewer::reshape;
 
-			gnd_gl::begin();
+			gnd::gl::begin();
 		} // <--- viewer initialization
 
 
@@ -398,9 +397,9 @@ int main(int argc, char* argv[]) {
 
 		Spur_Odometry pos_premap = ssm_pos.data;		// odometry position streaming data
 		ssmTimeT time_premap = 							// previous map update time
-					ssm_sokuikiraw.time - param.rest_cycle.value;
+				0;
 		double sqdist_mapup =							// distance threshold of map update
-					gnd_square( param.rest_dist.value );
+				gnd_square( param.rest_dist.value );
 
 		yp_matrix_fixed<4,4> coordm_sns2rbt;			// coordinate convert matrix from sensor to robot
 		yp_matrix_fixed<4,4> coordm_sns2gl;				// coordinate convert matrix from sensor to global
@@ -411,6 +410,8 @@ int main(int argc, char* argv[]) {
 		gnd::Time::IntervalTimer timer_clock;			// clock
 		gnd::Time::IntervalTimer timer_operate;			// time operation timer
 		gnd::Time::IntervalTimer timer_show;			// time operation timer
+
+		bool map_update;
 
 		// get coordinate convert matrix
 		coordtree.get_convert_matrix(coordid_sns, coordid_rbt, &coordm_sns2rbt);
@@ -425,7 +426,7 @@ int main(int argc, char* argv[]) {
 
 		// ---> memory allocate counting map
 		if( !cnt_map.plane[0].is_allocate() ){
-			OPSM::init_counting_map(&cnt_map, 0.5, 10);
+			gnd::OPSM::init_counting_map(&cnt_map, 0.5, 10);
 		} // <--- memory allocate counting map
 
 
@@ -505,13 +506,13 @@ int main(int argc, char* argv[]) {
 						} break;
 
 						case 'v': {
-							if( gnd_gl::is_free() ){
-								gnd_gl::begin();
-								fprintf(stdout, "   ... create\n");
+							if( gnd::gl::is_free() ){
+								gnd::gl::begin();
+								fprintf(stderr, "   ... create\n");
 							}
 							else {
-								gnd_gl::end();
-								fprintf(stdout, "   ... delete\n");
+								gnd::gl::end();
+								fprintf(stderr, "   ... delete\n");
 							}
 						} break;
 						}
@@ -538,6 +539,8 @@ int main(int argc, char* argv[]) {
 					::fprintf(stderr, "   move est : %4.03lf[m], %4.03lf[m], %4.02lf[deg]\n",
 							move_est.x, move_est.y, gnd_ang2deg( move_est.theta ) );
 					::fprintf(stderr, "      cycle : %.03lf\n", timer_operate.cycle() );
+					::fprintf(stderr, "  optimizer : %s\n", ret == 0 ? "success" : "failure" );
+					::fprintf(stderr, " map update : %s\n", map_update ? "true" : "false" );
 					::fprintf(stderr, "\n");
 					::fprintf(stderr, " Push \x1b[1mEnter\x1b[0m to change CUI Mode\n");
 				} // <--- update
@@ -623,55 +626,58 @@ int main(int argc, char* argv[]) {
 					double left_timer = 1.0;
 					yp_matrix_fixed<3,1> delta;
 					yp_matrix_fixed<2,1> reflect_prevent;
+
+					// clear previous entered sensor reading
+					yp_matrix_set_zero(&reflect_prevent);
+
+					// ---> scanning loop for sokuikiraw-data
+					for(size_t i = 0; i < ssm_sokuikiraw.data.numPoints(); i++){
+						// ---> entry laser scanner reflection
+						yp_matrix_fixed<4,1> reflect_csns, reflect_crbt;
+						yp_matrix_fixed<3,1> ws3x1;
+						yp_matrix_fixed<3,3> ws3x3;
+
+						// if range data is null because of no reflection
+						if(ssm_sokuikiraw.data[i].status == ssm::laser::STATUS_NO_REFLECTION)	continue;
+						// ignore error data
+						else if(ssm_sokuikiraw.data[i].isError()) 	continue;
+						else if(ssm_sokuikiraw.data[i].r < ssm_sokuikiraw.property.distMin * 1.1)	continue;
+						else if(ssm_sokuikiraw.data[i].r > ssm_sokuikiraw.property.distMax * 0.9)	continue;
+
+						{ // ---> compute laser scanner reading position on robot coordinate
+							// set search position on sensor-coordinate
+							reflect_csns[0][0] = ssm_sokuikiraw.data[i].r * ::cos(ssm_sokuikiraw.data[i].th);
+							reflect_csns[1][0] = ssm_sokuikiraw.data[i].r * ::sin(ssm_sokuikiraw.data[i].th);
+							reflect_csns[2][0] = 0;
+							reflect_csns[3][0] = 1;
+
+
+							// data decimation with distance threshold
+							if( gnd_square(reflect_csns[0][0] - reflect_prevent[0][0]) + gnd_square(reflect_csns[1][0] - reflect_prevent[1][0]) < decimate_sqdist ){
+								continue;
+							}
+							else {
+								// update previous entered data
+								yp_matrix_copy(&reflect_prevent, &reflect_csns);
+							}
+
+							// convert from sensor coordinate to robot coordinate
+							yp_matrix_prod(&coordm_sns2rbt, &reflect_csns, &reflect_crbt);
+						} // <--- compute laser scanner reading position on robot coordinate
+
+						// data entry
+						optimizer->entry( reflect_crbt[0][0] , reflect_crbt[1][0] );
+						// <--- entry laser scanner reflection
+					} // <--- scanning loop for sokuikiraw-data
+
 					// zero reset likelihood
 					lkl = 0;
 					// zero reset optimization iteration counter
 					cnt = 0;
+					yp_matrix_set_zero(&move_opt);
 					do{
 						// store previous optimization position likelihood
 						lkl_prev_opt = lkl;
-
-						// clear previous entered sensor reading
-						yp_matrix_set_zero(&reflect_prevent);
-
-						// ---> scanning loop for sokuikiraw-data
-						// entry of sensor reading
-						for(size_t i = 0; i < ssm_sokuikiraw.data.numPoints(); i++){
-							yp_matrix_fixed<4,1> reflect_csns, reflect_crbt;
-							double ws1x1;
-							yp_matrix_fixed<3,1> ws3x1;
-							yp_matrix_fixed<3,3> ws3x3;
-
-							// if range data is null because of no reflection
-							if(ssm_sokuikiraw.data[i].status == ssm::laser::STATUS_NO_REFLECTION)	continue;
-							// ignore error data
-							else if(ssm_sokuikiraw.data[i].isError()) 	continue;
-							else if(ssm_sokuikiraw.data[i].r < ssm_sokuikiraw.property.distMin * 1.1)	continue;
-							else if(ssm_sokuikiraw.data[i].r > ssm_sokuikiraw.property.distMax * 0.9)	continue;
-
-							{ // ---> compute laser scanner reading position on robot coordinate
-								// set search position on sensor-coordinate
-								yp_matrix_set(&reflect_csns, 0, 0, ssm_sokuikiraw.data[i].r * ::cos(ssm_sokuikiraw.data[i].th));
-								yp_matrix_set(&reflect_csns, 1, 0, ssm_sokuikiraw.data[i].r * ::sin(ssm_sokuikiraw.data[i].th));
-								yp_matrix_set(&reflect_csns, 2, 0, 0);
-								yp_matrix_set(&reflect_csns, 3, 0, 1);
-
-								// data decimation with distance threshold
-								if( gnd_square(reflect_csns[0][0] - reflect_prevent[0][0]) + gnd_square(reflect_csns[1][0] - reflect_prevent[1][0]) < decimate_sqdist ){
-									continue;
-								}
-								else {
-									// update previous entered data
-									yp_matrix_copy(&reflect_prevent, &reflect_csns);
-								}
-
-								// convert from sensor coordinate to robot coordinate
-								yp_matrix_prod(&coordm_sns2rbt, &reflect_csns, &reflect_crbt);
-							} // <--- compute laser scanner reading position on robot coordinate
-
-							// data entry
-							optimizer->entry( yp_matrix_value(&reflect_crbt, 0, 0) ,yp_matrix_value(&reflect_crbt, 1, 0), &ws1x1);
-						} // <--- scanning loop for sokuikiraw-data
 
 						{ // ---> step iteration of optimization
 							yp_matrix_fixed<3,1> ws3x1;
@@ -696,21 +702,21 @@ int main(int argc, char* argv[]) {
 				} // ---> 3. optimization iteration by matching laser scanner reading to map(likelihood field)
 
 
+
 				// ---> 4. optimization error test and write position ssm-data
 				// check --- 1st. function error, 2nd. distance, 3rd. orient difference
 				if( ret >= 0 &&
-					gnd_square( ssm_pos.data.x - pos_opt.x ) + gnd_square( ssm_pos.data.y - pos_opt.y ) < gnd_square( 1 ) &&
-					::fabs( ssm_pos.data.theta - pos_opt.theta ) < gnd_deg2ang(10) ) {
-						ssm_pos.data.x = pos_opt.x;
-						ssm_pos.data.y = pos_opt.y;
-						ssm_pos.data.theta = pos_opt.theta;
+						gnd_square( ssm_pos.data.x - pos_opt.x ) + gnd_square( ssm_pos.data.y - pos_opt.y ) < gnd_square( 1 ) &&
+						::fabs( ssm_pos.data.theta - pos_opt.theta ) < gnd_deg2ang(10) ) {
+					ssm_pos.data.x = pos_opt.x;
+					ssm_pos.data.y = pos_opt.y;
+					ssm_pos.data.theta = pos_opt.theta;
 
-						ssm_pos.write(ssm_sokuikiraw.time);
+					ssm_pos.write(ssm_sokuikiraw.time);
 				}
 				else {
 					ssm_pos.write(ssm_sokuikiraw.time);
-				}
-				// <--- 4. optimization error test and write position ssm-data
+				} // <--- 4. optimization error test and write position ssm-data
 
 
 				{ // ---> 5. update robot position coordinate and odometory position coordinate
@@ -738,11 +744,12 @@ int main(int argc, char* argv[]) {
 
 				{ // ---> 6. update map and view data
 					// map update check, 1st. time, 2nd. position, 3rd. orient
-					bool map_update = ssm_sokuikiraw.time - time_premap > param.rest_cycle.value ||
-									  gnd_square( ssm_pos.data.x - pos_premap.x) + gnd_square( ssm_pos.data.y - pos_premap.y) > sqdist_mapup ||
-									  ::fabs( ssm_pos.data.theta - pos_premap.theta ) > param.rest_orient.value;
+					map_update = ssm_sokuikiraw.time - time_premap > param.rest_cycle.value ||
+							gnd_square( ssm_pos.data.x - pos_premap.x) + gnd_square( ssm_pos.data.y - pos_premap.y) > sqdist_mapup ||
+							::fabs( ssm_pos.data.theta - pos_premap.theta ) > param.rest_orient.value;
+
 					if( map_update && !param.slam.value ){ // ---> clear
-						OPSM::clear_counting_map(&cnt_map);
+						gnd::OPSM::clear_counting_map(&cnt_map);
 					} // <--- clear
 
 					{// ---> scanning loop for sokuikiraw-data
@@ -769,7 +776,7 @@ int main(int argc, char* argv[]) {
 						for(size_t i = 0; i < ssm_sokuikiraw.data.numPoints(); i++){
 							yp_matrix_fixed<3,1> ws3x1;
 							yp_matrix_fixed<3,3> ws3x3;
-							gnd_gl::point p;
+							gnd::gl::point p;
 
 							// if range data is null because of no reflection
 							if(ssm_sokuikiraw.data[i].status == ssm::laser::STATUS_NO_REFLECTION)	continue;
@@ -801,11 +808,14 @@ int main(int argc, char* argv[]) {
 							// ---> enter laser scanner reading to map
 							if( map_update) {
 								if( param.slam.value ){
-									OPSM::update_map(&cnt_map, &op_map, reflect_cgl[0][0], reflect_cgl[1][0], gnd_m2dist(10), gnd_mm2dist(1), 5);
+									gnd::OPSM::update_map(&cnt_map, &op_map, reflect_cgl[0][0], reflect_cgl[1][0], gnd_m2dist(10), gnd_mm2dist(1), 0.5);
 								}
 								else {
-									OPSM::counting_map(&cnt_map, reflect_cgl[0][0], reflect_cgl[1][0]);
+									gnd::OPSM::counting_map(&cnt_map, reflect_cgl[0][0], reflect_cgl[1][0]);
 								}
+								// update
+								time_premap = ssm_sokuikiraw.time;
+								pos_premap = ssm_pos.data;
 							} // <--- enter laser scanner reading to map
 
 							// enter viewer data
@@ -816,9 +826,6 @@ int main(int argc, char* argv[]) {
 						} // <--- scanning loop of laser scanner reading
 						OPSMPosTrack::Viewer::scan_cur.post();
 
-						// update
-						time_premap = ssm_sokuikiraw.time;
-						pos_premap = ssm_pos.data;
 					} // <--- scanning loop for sokuikiraw-data
 
 
@@ -828,12 +835,12 @@ int main(int argc, char* argv[]) {
 						}
 						else {
 							if( param.ndt.value ){
-								if( OPSM::build_map(&op_map, &cnt_map, 10, 1.0e-3, 0) < 0 ){
+								if( gnd::OPSM::build_map(&op_map, &cnt_map, 10, 1.0e-3, 0) < 0 ){
 									::fprintf(stderr, "\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: invalid map property\n");
 								}
 							}
 							else{
-								if( OPSM::build_ndt_map(&op_map, &cnt_map, 1.0e-3) < 0 ){
+								if( gnd::OPSM::build_ndt_map(&op_map, &cnt_map, 1.0e-3) < 0 ){
 									::fprintf(stderr, "\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: invalid map property\n");
 								}
 							}
@@ -860,15 +867,15 @@ int main(int argc, char* argv[]) {
 
 		// slam
 		if( param.slam.value ) {
-			OPSM::bmp_t bmp;
+			gnd::bmp_gray_t bmp;
 
-			OPSM::build_map(&op_map, &cnt_map, gnd_m2dist(10), gnd_mm2dist(1), 5);
+			gnd::OPSM::build_map(&op_map, &cnt_map, gnd_m2dist(10), gnd_mm2dist(1), 5);
 
 			// ---> write intermediate file
 			{
 				::fprintf(stderr, " => write intermediate file\n");
 
-				if( OPSM::write_counting_map(&cnt_map, "map") ) {
+				if( gnd::OPSM::write_counting_map(&cnt_map, "map") ) {
 					::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open\n");
 				}
 				else {
@@ -879,7 +886,7 @@ int main(int argc, char* argv[]) {
 
 			// bmp file building
 			::fprintf(stderr, " => bmp map building\n");
-			OPSM::buid_bmp(&bmp, &op_map, gnd_m2dist( 1.0 / 8) );
+			gnd::OPSM::buid_bmp(&bmp, &op_map, gnd_m2dist( 1.0 / 8) );
 
 			{ // ---> file out
 				{ // ---> bmp
@@ -888,7 +895,7 @@ int main(int argc, char* argv[]) {
 
 					::sprintf(fname, "%s.%s", "out", "bmp" );
 
-					if( gnd_bmp_write_gray(fname, &bmp) < 0) {
+					if( gnd::bmp::write_gray(fname, &bmp) < 0) {
 						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", fname);
 					}
 					else {

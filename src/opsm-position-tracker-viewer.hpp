@@ -18,26 +18,26 @@
 namespace ObservationProbabilityScanMatching {
 	namespace PositionTracker {
 		namespace Viewer {
-			gnd_semvariable< gnd_queue< gnd_gl::point > > scan_2prev;	///< previous point
-			gnd_semvariable< gnd_queue< gnd_gl::point > > scan_prev;	///< previous point
-			gnd_semvariable< gnd_queue< gnd_gl::point > > scan_cur;		///< current point
+			gnd_semvariable< gnd::queue< gnd::gl::point > > scan_2prev;	///< previous point
+			gnd_semvariable< gnd::queue< gnd::gl::point > > scan_prev;	///< previous point
+			gnd_semvariable< gnd::queue< gnd::gl::point > > scan_cur;	///< current point
 
 			inline
 			void display() {
 				::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT| GL_STENCIL_BUFFER_BIT);
 
-				gnd_gl::project();
+				gnd::gl::project();
 
 				scan_2prev.wait();
-				gnd_gl::draw_points( scan_2prev.var.begin(), scan_2prev.var.size(), 2, 1.0, 1.0, 1.0);
+				gnd::gl::draw_points( scan_2prev.var.begin(), scan_2prev.var.size(), 2, 1.0, 1.0, 1.0);
 				scan_2prev.post();
 
 				scan_prev.wait();
-				gnd_gl::draw_points( scan_prev.var.begin(), scan_prev.var.size(), 2, 1.0,  0, 0);
+				gnd::gl::draw_points( scan_prev.var.begin(), scan_prev.var.size(), 2, 1.0,  0, 0);
 				scan_prev.post();
 
 				scan_cur.wait();
-				gnd_gl::draw_points( scan_cur.var.begin(), scan_cur.var.size(), 2, 0, 1.0, 0);
+				gnd::gl::draw_points( scan_cur.var.begin(), scan_cur.var.size(), 2, 0, 1.0, 0);
 				scan_cur.post();
 
 				::glFlush();
@@ -54,14 +54,14 @@ namespace ObservationProbabilityScanMatching {
 				double f,tmp;
 				switch(b){
 				case 3:
-					gnd_gl::get_field(&f);
+					gnd::gl::get_field(&f);
 					tmp = f / 1.1;
 					f = tmp < 1.0  ? 1.0 : tmp;
-					gnd_gl::set_field(f);
+					gnd::gl::set_field(f);
 					break;
 				case 4:
-					gnd_gl::get_field(&f);
-					gnd_gl::set_field(f*1.1);
+					gnd::gl::get_field(&f);
+					gnd::gl::set_field(f*1.1);
 					break;
 				}
 			}

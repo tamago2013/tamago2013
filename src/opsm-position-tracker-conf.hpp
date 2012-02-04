@@ -8,6 +8,9 @@
 #ifndef OBSERVATION_PROBABILITY_POSITION_TRACKER_CONF_HPP_
 #define OBSERVATION_PROBABILITY_POSITION_TRACKER_CONF_HPP_
 
+#include <ssmtype/spur-odometry.h>
+#include "ssm-laser.hpp"
+
 #include "gnd-observation-probability.hpp"
 #include "gnd-configuration.hpp"
 #include "yp-lib-error.h"
@@ -21,45 +24,71 @@
 
 namespace ObservationProbabilityScanMatching {
 	namespace PositionTracker {
+		static const char proc_name[] = "opsm-position-tracker";
+
 		// map-file
 		static const gnd::Conf::parameter_array<char, 512> ConfIni_MapDir = {
 				"map-dir",
 				"",		// map file directory
 		};
-		// sokuiki id
-		static const gnd::Conf::parameter<int> ConfIni_SpurAdjustSSMID = {
-				"spur-adjust-ssm-id",
+		// ssm-name
+		static const gnd::Conf::parameter_array<char, 512> ConfIni_SSMName = {
+				"ssm-name",
+				SNAME_ADJUST,
+		};
+		// ssm-id
+		static const gnd::Conf::parameter<int> ConfIni_SSMID = {
+				"ssm-id",
 				0,		// [s]
 		};
-		// sokuiki id
-		static const gnd::Conf::parameter<int> ConfIni_SokuikiSSMID = {
-				"sokuiki-raw-ssm-id",
-				1,
+
+		// ssm-name
+		static const gnd::Conf::parameter_array<char, 512> ConfIni_OdometrySSMName = {
+				"odm-ssm-name",
+				SNAME_ODOMETRY,
+		};
+		// ssm-id
+		static const gnd::Conf::parameter<int> ConfIni_OdometrySSMID = {
+				"odm-ssm-id",
+				0,		// [s]
+		};
+
+		// laser scanner ssm-name
+		static const gnd::Conf::parameter_array<char, 512> ConfIni_LaserScannerSSMName = {
+				"laser-scanner-ssm-name",
+				SSM_NAME_SCAN_POINT_2D,
+		};
+		// laser scanner ssm-id
+		static const gnd::Conf::parameter<int> ConfIni_LaserScannerSSMID = {
+				"laser-scanner-ssm-id",
+				0,
 		};
 		// decimate threshold
 		static const gnd::Conf::parameter<double> ConfIni_Decimate = {
 				"decimate",
 				gnd_m2dist( 0.08 ),	// [m]
 		};
+
 		// cycle
 		static const gnd::Conf::parameter<double> ConfIni_Cycle = {
 				"cycle",
 				gnd_sec2time(0.2),	// [s]
 		};
+
 		// rest-cycle
 		static const gnd::Conf::parameter<double> ConfIni_RestCycle = {
 				"rest-cycle",
-				gnd_sec2time(3.0),	// [s]
+				gnd_sec2time(10.0),	// [s]
 		};
 		// rest-threshold-distance
 		static const gnd::Conf::parameter<double> ConfIni_RestDist = {
 				"rest-threshold-distance",
-				gnd_m2dist(0.15),	// [m]
+				gnd_m2dist(0.05),	// [m]
 		};
 		// rest-threshold-orientation
 		static const gnd::Conf::parameter<double> ConfIni_RestOrient = {
 				"rest-threshold-orientation",
-				10,	// [deg]
+				2.5,	// [deg]
 		};
 
 		// rest-threshold-orientation
@@ -85,6 +114,7 @@ namespace ObservationProbabilityScanMatching {
 				"converge-orient",
 				0.5,	// [deg]
 		};
+
 		// rest-threshold-orientation
 		static const gnd::Conf::parameter<bool> ConfIni_NDT = {
 				"ndt",
@@ -98,19 +128,23 @@ namespace ObservationProbabilityScanMatching {
 		struct configure_parameters {
 			configure_parameters();
 
-			gnd::Conf::parameter_array<char, 512>	mapdir;
-			gnd::Conf::parameter<int>				spuradjust_ssmid;
-			gnd::Conf::parameter<int>				sokuiki_ssmid;
-			gnd::Conf::parameter<double>			decimate;
-			gnd::Conf::parameter<double>			cycle;
-			gnd::Conf::parameter<double>			rest_cycle;
-			gnd::Conf::parameter<double>			rest_dist;
-			gnd::Conf::parameter<double>			rest_orient;
-			gnd::Conf::parameter<bool>				slam;
-			gnd::Conf::parameter_array<char, 512>	optimizer;
-			gnd::Conf::parameter<double>			converge_dist;
-			gnd::Conf::parameter<double>			converge_orient;
-			gnd::Conf::parameter<bool>				ndt;
+			gnd::Conf::parameter_array<char, 512>	mapdir;				///< map data directory
+			gnd::Conf::parameter_array<char, 512>	ssmname;			///< output(potision estimate) ssm-name
+			gnd::Conf::parameter<int>				ssmid;				///< output(potision estimate) ssm-id
+			gnd::Conf::parameter_array<char, 512>	odm_ssmname;		///< odometry position estimation ssm-name
+			gnd::Conf::parameter<int>				odm_ssmid;			///< odometry position estimation ssm-id
+			gnd::Conf::parameter_array<char, 512>	ls_ssmname;			///< laser scanner data ssm-name
+			gnd::Conf::parameter<int>				ls_ssmid;			///< laser scanner data ssm-id
+			gnd::Conf::parameter<double>			decimate;			///< laser scanner data decimate parameter [m]
+			gnd::Conf::parameter<double>			cycle;				///< operation cycle
+			gnd::Conf::parameter<double>			rest_cycle;			///< resting mode cycle
+			gnd::Conf::parameter<double>			rest_dist;			///< resting threshold (position distance) [m]
+			gnd::Conf::parameter<double>			rest_orient;		///< resting threshold (position orientation) [deg]
+			gnd::Conf::parameter<bool>				slam;				///< slam mode flag
+			gnd::Conf::parameter_array<char, 512>	optimizer;			///< kind of optimizer
+			gnd::Conf::parameter<double>			converge_dist;		///< convergence test threshold (position distance) [m]
+			gnd::Conf::parameter<double>			converge_orient;	///< convergence test threshold (position orientation) [deg]
+			gnd::Conf::parameter<bool>				ndt;				///< ndt mode
 		};
 		typedef struct configure_parameters configure_parameters;
 
@@ -139,19 +173,23 @@ namespace ObservationProbabilityScanMatching {
 		int configure_initialize(configure_parameters *conf){
 			yp_assert(!conf, -1, "invalid null pointer");
 
-			::memcpy(&conf->mapdir,				&ConfIni_MapDir,			sizeof(ConfIni_MapDir) );
-			::memcpy(&conf->sokuiki_ssmid,		&ConfIni_SokuikiSSMID,		sizeof(ConfIni_SokuikiSSMID) );
-			::memcpy(&conf->spuradjust_ssmid,	&ConfIni_SpurAdjustSSMID,	sizeof(ConfIni_SpurAdjustSSMID) );
-			::memcpy(&conf->decimate,			&ConfIni_Decimate,			sizeof(ConfIni_Decimate) );
-			::memcpy(&conf->cycle,				&ConfIni_Cycle,				sizeof(ConfIni_Cycle) );
-			::memcpy(&conf->rest_cycle,			&ConfIni_RestCycle,			sizeof(ConfIni_RestCycle) );
-			::memcpy(&conf->rest_dist,			&ConfIni_RestDist,			sizeof(ConfIni_RestDist) );
-			::memcpy(&conf->rest_orient,		&ConfIni_RestOrient,		sizeof(ConfIni_RestOrient) );
-			::memcpy(&conf->slam,				&ConfIni_SLAM,				sizeof(ConfIni_SLAM) );
-			::memcpy(&conf->optimizer,			&ConfIni_Optimizer,			sizeof(ConfIni_Optimizer) );
-			::memcpy(&conf->converge_dist,		&ConfIni_ConvergeDist,		sizeof(ConfIni_ConvergeDist) );
-			::memcpy(&conf->converge_orient,	&ConfIni_ConvergeOrient,	sizeof(ConfIni_ConvergeOrient) );
-			::memcpy(&conf->ndt,				&ConfIni_NDT,				sizeof(ConfIni_NDT) );
+			::memcpy(&conf->mapdir,				&ConfIni_MapDir,				sizeof(ConfIni_MapDir) );
+			::memcpy(&conf->ssmname,			&ConfIni_SSMName,				sizeof(ConfIni_SSMName) );
+			::memcpy(&conf->ssmid,				&ConfIni_SSMID,					sizeof(ConfIni_SSMID) );
+			::memcpy(&conf->odm_ssmname,		&ConfIni_OdometrySSMName,		sizeof(ConfIni_OdometrySSMName) );
+			::memcpy(&conf->odm_ssmid,			&ConfIni_OdometrySSMID,			sizeof(ConfIni_OdometrySSMID) );
+			::memcpy(&conf->ls_ssmname,			&ConfIni_LaserScannerSSMName,	sizeof(ConfIni_LaserScannerSSMName) );
+			::memcpy(&conf->ls_ssmid,			&ConfIni_LaserScannerSSMID,		sizeof(ConfIni_LaserScannerSSMID) );
+			::memcpy(&conf->decimate,			&ConfIni_Decimate,				sizeof(ConfIni_Decimate) );
+			::memcpy(&conf->cycle,				&ConfIni_Cycle,					sizeof(ConfIni_Cycle) );
+			::memcpy(&conf->rest_cycle,			&ConfIni_RestCycle,				sizeof(ConfIni_RestCycle) );
+			::memcpy(&conf->rest_dist,			&ConfIni_RestDist,				sizeof(ConfIni_RestDist) );
+			::memcpy(&conf->rest_orient,		&ConfIni_RestOrient,			sizeof(ConfIni_RestOrient) );
+			::memcpy(&conf->slam,				&ConfIni_SLAM,					sizeof(ConfIni_SLAM) );
+			::memcpy(&conf->optimizer,			&ConfIni_Optimizer,				sizeof(ConfIni_Optimizer) );
+			::memcpy(&conf->converge_dist,		&ConfIni_ConvergeDist,			sizeof(ConfIni_ConvergeDist) );
+			::memcpy(&conf->converge_orient,	&ConfIni_ConvergeOrient,		sizeof(ConfIni_ConvergeOrient) );
+			::memcpy(&conf->ndt,				&ConfIni_NDT,					sizeof(ConfIni_NDT) );
 
 			return 0;
 		}
@@ -166,8 +204,12 @@ namespace ObservationProbabilityScanMatching {
 			yp_assert(!confp, -1, "invalid null pointer");
 
 			gnd::Conf::get_parameter(conf, &confp->mapdir);
-			gnd::Conf::get_parameter(conf, &confp->sokuiki_ssmid);
-			gnd::Conf::get_parameter(conf, &confp->spuradjust_ssmid);
+			gnd::Conf::get_parameter(conf, &confp->ssmname);
+			gnd::Conf::get_parameter(conf, &confp->ssmid);
+			gnd::Conf::get_parameter(conf, &confp->odm_ssmname);
+			gnd::Conf::get_parameter(conf, &confp->odm_ssmid);
+			gnd::Conf::get_parameter(conf, &confp->ls_ssmname);
+			gnd::Conf::get_parameter(conf, &confp->ls_ssmid);
 			gnd::Conf::get_parameter(conf, &confp->decimate);
 			gnd::Conf::get_parameter(conf, &confp->cycle);
 			gnd::Conf::get_parameter(conf, &confp->rest_cycle);
@@ -187,7 +229,7 @@ namespace ObservationProbabilityScanMatching {
 		 * @brief file out  configure file
 		 */
 		inline
-		int write_configure( const char* fname, configure_parameters *confp ){
+		int write_configuration( const char* fname, configure_parameters *confp ){
 
 			yp_assert(!fname, -1, "invalid null pointer");
 			yp_assert(!confp, -1, "invalid null pointer");
@@ -195,8 +237,12 @@ namespace ObservationProbabilityScanMatching {
 			{ // ---> operation
 				gnd::Conf::FileStream conf;
 				gnd::Conf::set_parameter(&conf, &confp->mapdir);
-				gnd::Conf::set_parameter(&conf, &confp->sokuiki_ssmid);
-				gnd::Conf::set_parameter(&conf, &confp->spuradjust_ssmid);
+				gnd::Conf::set_parameter(&conf, &confp->ssmname);
+				gnd::Conf::set_parameter(&conf, &confp->ssmid);
+				gnd::Conf::set_parameter(&conf, &confp->odm_ssmname);
+				gnd::Conf::set_parameter(&conf, &confp->odm_ssmid);
+				gnd::Conf::set_parameter(&conf, &confp->ls_ssmname);
+				gnd::Conf::set_parameter(&conf, &confp->ls_ssmid);
 				gnd::Conf::set_parameter(&conf, &confp->decimate);
 				gnd::Conf::set_parameter(&conf, &confp->cycle);
 				gnd::Conf::set_parameter(&conf, &confp->rest_cycle);
