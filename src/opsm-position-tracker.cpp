@@ -44,11 +44,11 @@ static const double ShowCycle = gnd_sec2time(1.0);
 static const double ClockCycle = gnd_sec2time(1.0) / 60.0 ;
 
 int main(int argc, char* argv[]) {
-	gnd::OPSM::optimizer_basic	*optimizer = 0;			// optimizer class
-	void 					*starting = 0;		// optimization starting value
+	gnd::OPSM::optimizer_basic	*optimizer = 0;	// optimizer class
+	void 						*starting = 0;	// optimization starting value
 
-	gnd::OPSM::counting_map_t	cnt_map;			// observation probability counting map
-	gnd::OPSM::map_t				op_map;				// observation probability map
+	gnd::OPSM::counting_map_t	cnt_map;		// observation probability counting map
+	gnd::OPSM::map_t			op_map;			// observation probability map
 
 	SSMScanPoint2D			ssm_sokuikiraw;		// sokuiki raw streaming data
 	SSMApi<Spur_Odometry>	ssm_odm;			// odometry position streaming data
@@ -56,14 +56,20 @@ int main(int argc, char* argv[]) {
 
 	yp_coordinate_manager	coordtree;			// coordinate tree
 	int cid_gl = -1,							// global coordinate node id
-			coordid_rbt = -1,						// robot coordinate node id
-			coordid_sns = -1,						// sensor coordinate node id
-			coordid_odm = -1;							// odometry coordinate node id
+			coordid_rbt = -1,					// robot coordinate node id
+			coordid_sns = -1,					// sensor coordinate node id
+			coordid_odm = -1;					// odometry coordinate node id
 
 	gnd::cui gcui;								// cui class
 
 	OPSMPosTrack::configure_parameters param;	// configuration parameter
 	OPSMPosTrack::options proc_opt(&param);		// process option analyze class
+
+
+	{
+		gnd::OPSM::debug_set_level(1);
+		gnd::OPSM::debug_set_fstream("debug.log");
+	}
 
 
 	{ // ---> initialization
@@ -129,18 +135,29 @@ int main(int argc, char* argv[]) {
 				optimizer->create_starting_value(&starting);
 				optimizer->set_converge_threshold(param.converge_dist.value,
 						gnd_deg2ang( param.converge_orient.value ) );
-				::fprintf(stderr, " ...\x1b[1mOK\x1b[0m\n");
+				::fprintf(stderr, " ... newton's method \x1b[1mOK\x1b[0m\n");
 			}
 			else if( !::strcmp(param.optimizer.value, OPSMPosTrack::OptQMC)){
-				gnd::OPSM::quasi_monte_calro::starting_value *p;
-				optimizer = new gnd::OPSM::quasi_monte_calro;
+				gnd::OPSM::qmc::starting_value *p;
+				optimizer = new gnd::OPSM::qmc;
 				optimizer->create_starting_value(&starting);
-				p = static_cast<gnd::OPSM::quasi_monte_calro::starting_value*>(starting);
-				p->n = 1;
+				p = static_cast<gnd::OPSM::qmc::starting_value*>(starting);
+				p->n = 2;
 				starting = static_cast<void*>(p);
 				optimizer->set_converge_threshold(param.converge_dist.value,
 						gnd_deg2ang( param.converge_orient.value ) );
-				::fprintf(stderr, " ...\x1b[1mOK\x1b[0m\n");
+				::fprintf(stderr, " ... quasi monte calro method \x1b[1mOK\x1b[0m\n");
+			}
+			else if( !::strcmp(param.optimizer.value, OPSMPosTrack::OptQMC2Newton)){
+				gnd::OPSM::hybrid_q2n::starting_value *p;
+				optimizer = new gnd::OPSM::hybrid_q2n;
+				optimizer->create_starting_value(&starting);
+				p = static_cast<gnd::OPSM::hybrid_q2n::starting_value*>(starting);
+				p->n = 2;
+				starting = static_cast<void*>(p);
+				optimizer->set_converge_threshold(param.converge_dist.value,
+						gnd_deg2ang( param.converge_orient.value ) );
+				::fprintf(stderr, " ... quasi monte calro and newton hybrid \x1b[1mOK\x1b[0m\n");
 			}
 			else {
 				::proc_shutoff();
@@ -277,59 +294,6 @@ int main(int argc, char* argv[]) {
 
 				{ // ---> coordinate-tree set sensor coordinate
 					coordid_sns = coordtree.create_node("sensor", "robot", &ssm_sokuikiraw.property.coordm);
-					//					yp_matrix_fixed<4,4> cc; // coordinate relation matrix
-					//					yp_matrix_fixed<4,4> cp, rot;
-					//
-					//					yp_matrix_set_unit(&cc);
-					//
-					//					// Rx rotation matrix
-					//					yp_matrix_set_unit(&rot);
-					//					yp_matrix_set(&rot, 0, 0, 1 );
-					//					yp_matrix_set(&rot, 0, 1, 0 );
-					//					yp_matrix_set(&rot, 0, 2, 0 );
-					//					yp_matrix_set(&rot, 1, 0, 0 );
-					//					yp_matrix_set(&rot, 1, 1, cos(ssm_sokuikiraw.property.pos.Rz) );
-					//					yp_matrix_set(&rot, 1, 2,-sin(ssm_sokuikiraw.property.pos.Rz) );
-					//					yp_matrix_set(&rot, 2, 2, 0 );
-					//					yp_matrix_set(&rot, 2, 1, sin(ssm_sokuikiraw.property.pos.Rz) );
-					//					yp_matrix_set(&rot, 2, 2, cos(ssm_sokuikiraw.property.pos.Rz) );
-					//					yp_matrix_copy(&cp, &cc);
-					//					yp_matrix_prod(&cp, &rot, &cc);
-					//
-					//					// Ry
-					//					yp_matrix_set_unit(&rot);
-					//					yp_matrix_set(&rot, 0, 0, cos(ssm_sokuikiraw.property.pos.Ry) );
-					//					yp_matrix_set(&rot, 0, 1, 0 );
-					//					yp_matrix_set(&rot, 0, 2, sin(ssm_sokuikiraw.property.pos.Ry) );
-					//					yp_matrix_set(&rot, 1, 0, 0 );
-					//					yp_matrix_set(&rot, 1, 1, 1 );
-					//					yp_matrix_set(&rot, 1, 2, 0 );
-					//					yp_matrix_set(&rot, 2, 0, -sin(ssm_sokuikiraw.property.pos.Ry) );
-					//					yp_matrix_set(&rot, 2, 1, 0 );
-					//					yp_matrix_set(&rot, 2, 2, cos(ssm_sokuikiraw.property.pos.Ry) );
-					//					yp_matrix_copy(&cp, &cc);
-					//					yp_matrix_prod(&cp, &rot, &cc);
-					//
-					//					// Rz
-					//					yp_matrix_set_unit(&rot);
-					//					yp_matrix_set(&rot, 0, 0, cos(ssm_sokuikiraw.property.pos.Rx) );
-					//					yp_matrix_set(&rot, 0, 1,-sin(ssm_sokuikiraw.property.pos.Rx) );
-					//					yp_matrix_set(&rot, 0, 2, 0 );
-					//					yp_matrix_set(&rot, 1, 0, sin(ssm_sokuikiraw.property.pos.Rx) );
-					//					yp_matrix_set(&rot, 1, 1, cos(ssm_sokuikiraw.property.pos.Rx) );
-					//					yp_matrix_set(&rot, 1, 2, 0 );
-					//					yp_matrix_set(&rot, 2, 0, 0 );
-					//					yp_matrix_set(&rot, 2, 1, 0 );
-					//					yp_matrix_set(&rot, 1, 2, 1 );
-					//					yp_matrix_copy(&cp, &cc);
-					//					yp_matrix_prod(&cp, &rot, &cc);
-					//
-					//					// set transition
-					//					yp_matrix_set(&cc, 0, 3, ssm_sokuikiraw.property.pos.Tx);
-					//					yp_matrix_set(&cc, 1, 3, ssm_sokuikiraw.property.pos.Ty);
-					//					yp_matrix_set(&cc, 2, 3, ssm_sokuikiraw.property.pos.Tz);
-					//
-					//					coordid_sns = coordtree.create_node("sensor", "robot", &cc);
 				} // <--- coordinate-tree set robot coordinate
 
 				ssm_sokuikiraw.readLast();
@@ -681,8 +645,8 @@ int main(int argc, char* argv[]) {
 
 						{ // ---> step iteration of optimization
 							yp_matrix_fixed<3,1> ws3x1;
-
 							if( (ret = optimizer->iterate(&delta, &ws3x1, 0, &lkl)) < 0 ){
+								::fprintf(stdout, "Fial\n" );
 								break;
 							}
 

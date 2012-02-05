@@ -19,8 +19,9 @@
 #define OPSMPosTrack ObservationProbabilityScanMatching::PositionTracker
 #endif
 
-#define __OPTIMIZER_NEWTON__ "newton"
-#define __OPTIMIZER_QMC__	 "qmc"
+#define __OPTIMIZER_NEWTON__		"newton"
+#define __OPTIMIZER_QMC__	 		"qmc"
+#define __OPTIMIZER_QMC2NEWTON__	"qmc2newton"
 
 namespace ObservationProbabilityScanMatching {
 	namespace PositionTracker {
@@ -98,8 +99,9 @@ namespace ObservationProbabilityScanMatching {
 		};
 		// optimizer
 
-		const char OptNewton[] = __OPTIMIZER_NEWTON__;
-		const char OptQMC[] = __OPTIMIZER_QMC__;
+		static const char OptNewton[]		= __OPTIMIZER_NEWTON__;
+		static const char OptQMC[]			= __OPTIMIZER_QMC__;
+		static const char OptQMC2Newton[]	= __OPTIMIZER_QMC2NEWTON__;
 		static const gnd::Conf::parameter_array<char, 512> ConfIni_Optimizer = {
 				"optimizer",
 				__OPTIMIZER_NEWTON__,		// map file directory
@@ -263,5 +265,6 @@ namespace ObservationProbabilityScanMatching {
 
 #undef __OPTIMIZER_NEWTON__
 #undef __OPTIMIZER_QMC__
+#undef __OPTIMIZER_QMC2NEWTON__
 
 #endif /* OBSERVATION_PROBABILITY_POSITION_TRACKER_CONF_HPP_ */
