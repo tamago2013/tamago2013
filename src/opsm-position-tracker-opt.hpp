@@ -84,7 +84,7 @@ namespace ObservationProbabilityScanMatching {
 
 		inline bool options::get_option(int aArgc, char **aArgv)
 		{
-			yp_assert(!param, -1, "parameter storage is null.");
+			gnd_assert(!param, -1, "parameter storage is null.");
 
 			while(1){
 				int opt;

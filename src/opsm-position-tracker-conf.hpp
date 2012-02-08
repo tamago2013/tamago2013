@@ -13,7 +13,7 @@
 
 #include "gnd-observation-probability.hpp"
 #include "gnd-configuration.hpp"
-#include "yp-lib-error.h"
+#include "gnd-lib-error.h"
 
 #ifndef OPSMPosTrack
 #define OPSMPosTrack ObservationProbabilityScanMatching::PositionTracker
@@ -117,14 +117,32 @@ namespace ObservationProbabilityScanMatching {
 				0.5,	// [deg]
 		};
 
+		// number of scan data for first map building
+		static const gnd::Conf::parameter<int> ConfIni_IniMapCnt = {
+				"ini-map-cnt",
+				1,	// [deg]
+		};
+
 		// rest-threshold-orientation
 		static const gnd::Conf::parameter<bool> ConfIni_NDT = {
 				"ndt",
 				false,
 		};
 
+		// number of scan data for first map building
+		static const gnd::Conf::parameter<bool> ConfIni_DebugViewer = {
+				"debug-viewer",
+				true,
+		};
 
-		/*
+		// number of scan data for first map building
+		static const gnd::Conf::parameter<bool> ConfIni_DebugShowMode = {
+				"debug-show-mode",
+				true,
+		};
+
+
+		/**
 		 * \brief particle localizer configure
 		 */
 		struct configure_parameters {
@@ -146,7 +164,10 @@ namespace ObservationProbabilityScanMatching {
 			gnd::Conf::parameter_array<char, 512>	optimizer;			///< kind of optimizer
 			gnd::Conf::parameter<double>			converge_dist;		///< convergence test threshold (position distance) [m]
 			gnd::Conf::parameter<double>			converge_orient;	///< convergence test threshold (position orientation) [deg]
+			gnd::Conf::parameter<int>				ini_map_cnt;		///< number of scan data for first map building
 			gnd::Conf::parameter<bool>				ndt;				///< ndt mode
+			gnd::Conf::parameter<bool>				debug_viewer;		///< debug viewer
+			gnd::Conf::parameter<bool>				debug_show;		///< debug show mode
 		};
 		typedef struct configure_parameters configure_parameters;
 
@@ -168,12 +189,12 @@ namespace ObservationProbabilityScanMatching {
 			configure_initialize(this);
 		}
 
-		/*!
+		/**
 		 * @brief initialize configure
 		 */
 		inline
 		int configure_initialize(configure_parameters *conf){
-			yp_assert(!conf, -1, "invalid null pointer");
+			gnd_assert(!conf, -1, "invalid null pointer");
 
 			::memcpy(&conf->mapdir,				&ConfIni_MapDir,				sizeof(ConfIni_MapDir) );
 			::memcpy(&conf->ssmname,			&ConfIni_SSMName,				sizeof(ConfIni_SSMName) );
@@ -191,37 +212,43 @@ namespace ObservationProbabilityScanMatching {
 			::memcpy(&conf->optimizer,			&ConfIni_Optimizer,				sizeof(ConfIni_Optimizer) );
 			::memcpy(&conf->converge_dist,		&ConfIni_ConvergeDist,			sizeof(ConfIni_ConvergeDist) );
 			::memcpy(&conf->converge_orient,	&ConfIni_ConvergeOrient,		sizeof(ConfIni_ConvergeOrient) );
+			::memcpy(&conf->ini_map_cnt,		&ConfIni_IniMapCnt,				sizeof(ConfIni_IniMapCnt) );
 			::memcpy(&conf->ndt,				&ConfIni_NDT,					sizeof(ConfIni_NDT) );
+			::memcpy(&conf->debug_viewer,		&ConfIni_DebugViewer,			sizeof(ConfIni_DebugViewer) );
+			::memcpy(&conf->debug_show,			&ConfIni_DebugShowMode,			sizeof(ConfIni_DebugShowMode) );
 
 			return 0;
 		}
 
-		/*
+		/**
 		 * @brief analyze
 		 */
 		inline
 		int get_config_param(gnd::Conf::Configuration *conf, configure_parameters *confp)
 		{
-			yp_assert(!conf, -1, "invalid null pointer");
-			yp_assert(!confp, -1, "invalid null pointer");
+			gnd_assert(!conf, -1, "invalid null pointer");
+			gnd_assert(!confp, -1, "invalid null pointer");
 
-			gnd::Conf::get_parameter(conf, &confp->mapdir);
-			gnd::Conf::get_parameter(conf, &confp->ssmname);
-			gnd::Conf::get_parameter(conf, &confp->ssmid);
-			gnd::Conf::get_parameter(conf, &confp->odm_ssmname);
-			gnd::Conf::get_parameter(conf, &confp->odm_ssmid);
-			gnd::Conf::get_parameter(conf, &confp->ls_ssmname);
-			gnd::Conf::get_parameter(conf, &confp->ls_ssmid);
-			gnd::Conf::get_parameter(conf, &confp->decimate);
-			gnd::Conf::get_parameter(conf, &confp->cycle);
-			gnd::Conf::get_parameter(conf, &confp->rest_cycle);
-			gnd::Conf::get_parameter(conf, &confp->rest_dist);
-			gnd::Conf::get_parameter(conf, &confp->rest_orient);
-			gnd::Conf::get_parameter(conf, &confp->slam);
-			gnd::Conf::get_parameter(conf, &confp->optimizer);
-			gnd::Conf::get_parameter(conf, &confp->converge_dist);
-			gnd::Conf::get_parameter(conf, &confp->converge_orient);
-			gnd::Conf::get_parameter(conf, &confp->ndt);
+			gnd::Conf::get_parameter( conf, &confp->mapdir );
+			gnd::Conf::get_parameter( conf, &confp->ssmname );
+			gnd::Conf::get_parameter( conf, &confp->ssmid );
+			gnd::Conf::get_parameter( conf, &confp->odm_ssmname );
+			gnd::Conf::get_parameter( conf, &confp->odm_ssmid );
+			gnd::Conf::get_parameter( conf, &confp->ls_ssmname );
+			gnd::Conf::get_parameter( conf, &confp->ls_ssmid );
+			gnd::Conf::get_parameter( conf, &confp->decimate );
+			gnd::Conf::get_parameter( conf, &confp->cycle );
+			gnd::Conf::get_parameter( conf, &confp->rest_cycle );
+			gnd::Conf::get_parameter( conf, &confp->rest_dist );
+			gnd::Conf::get_parameter( conf, &confp->rest_orient );
+			gnd::Conf::get_parameter( conf, &confp->slam );
+			gnd::Conf::get_parameter( conf, &confp->optimizer );
+			gnd::Conf::get_parameter( conf, &confp->converge_dist );
+			gnd::Conf::get_parameter( conf, &confp->converge_orient );
+			gnd::Conf::get_parameter( conf, &confp->ini_map_cnt );
+			gnd::Conf::get_parameter( conf, &confp->ndt );
+			gnd::Conf::get_parameter( conf, &confp->debug_viewer );
+			gnd::Conf::get_parameter( conf, &confp->debug_show );
 
 			confp->rest_orient.value = gnd_deg2rad(confp->rest_orient.value);
 			return 0;
@@ -233,8 +260,8 @@ namespace ObservationProbabilityScanMatching {
 		inline
 		int write_configuration( const char* fname, configure_parameters *confp ){
 
-			yp_assert(!fname, -1, "invalid null pointer");
-			yp_assert(!confp, -1, "invalid null pointer");
+			gnd_assert(!fname, -1, "invalid null pointer");
+			gnd_assert(!confp, -1, "invalid null pointer");
 
 			{ // ---> operation
 				gnd::Conf::FileStream conf;
@@ -254,7 +281,10 @@ namespace ObservationProbabilityScanMatching {
 				gnd::Conf::set_parameter(&conf, &confp->optimizer);
 				gnd::Conf::set_parameter(&conf, &confp->converge_dist);
 				gnd::Conf::set_parameter(&conf, &confp->converge_orient);
+				gnd::Conf::set_parameter(&conf, &confp->ini_map_cnt );
 				gnd::Conf::set_parameter(&conf, &confp->ndt);
+				gnd::Conf::set_parameter(&conf, &confp->debug_viewer );
+				gnd::Conf::set_parameter(&conf, &confp->debug_show );
 
 				return conf.wirte(fname);
 			} // <--- operation
