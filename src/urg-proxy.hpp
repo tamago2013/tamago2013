@@ -11,22 +11,13 @@
 #include <scip2awd.h>
 #include "ssm-laser.hpp"
 
+#include "gnd-matrix-base.hpp"
+
 #define GND_DEBUG_LOG	URGProxy
 #include "gnd-debug-log.hpp"
 #undef	GND_DEBUG_LOG
 
-#ifndef NDEBUG
-#define fLog_Debug(f, ...) _debug_log_(Log_Debug, f, __VA_ARGS__)
-#define fLog_Verbose(f, ...) _debug_log_(Log_Verbose, f, __VA_ARGS__)
-#define Log_Debug(s) _debug_log_(Log_Debug, s)
-#define Log_Verbose(s) _debug_log_(Log_Verbose, s)
-#else
-#define fLog_Debug(f, ...)
-#define fLog_Verbose(f, ...)
-#define Log_Debug(s)
-#define Log_Verbose(s)
-#endif
-
+#include "gnd-debug-log-util-def.h"
 
 // ---> constant value definition
 namespace URGProxy {
@@ -107,12 +98,12 @@ namespace URGProxy {
 
 	struct ssm_property {
 		int id;
-		yp_matrix_fixed<4,4> coord;		///<! relation from parent coordinate(robot coordinate)
+		gnd::coord_matrix coord;		///<! relation from parent coordinate(robot coordinate)
 		ssm_property();
 	};
 
 	ssm_property::ssm_property() {
-		yp_matrix_set_unit(&coord);
+		gnd::matrix::set_unit(&coord);
 	}
 
 } // <--- type definition
@@ -205,14 +196,14 @@ namespace URGProxy {
 
 	inline
 	int timeadjust(	TimeAdjustProperty* pr, TimeAdjust *t, struct timeval *d, struct timeval *h ) {
-		yp_assert(!pr, -1, "invalid null argument");
-		yp_assert(!t, -1, "invalid null argument");
-		yp_assert(!d, -1, "invalid null argument");
-		yp_assert(!h, -1, "invalid null argument");
-		yp_error(pr->min_poll == 0, -1, "invalid property");
-		yp_error(pr->min_poll > pr->max_poll, -1, "invalid property");
+		gnd_assert(!pr, -1, "invalid null argument");
+		gnd_assert(!t, -1, "invalid null argument");
+		gnd_assert(!d, -1, "invalid null argument");
+		gnd_assert(!h, -1, "invalid null argument");
+		gnd_error(pr->min_poll == 0, -1, "invalid property");
+		gnd_error(pr->min_poll > pr->max_poll, -1, "invalid property");
 
-		fLog_Debug("Begin:int timeadjust(%p, %p, %p, %p)\n", pr, t, d, h);
+		fLogDebug("Begin:int timeadjust(%p, %p, %p, %p)\n", pr, t, d, h);
 
 		{ // ---> operation
 			double dtime_d, htime_d;
@@ -233,7 +224,7 @@ namespace URGProxy {
 				else if( diff > pr->delta ) {
 					if(t->poll > pr->max_poll)	t->poll--;
 				}
-				fLog_Debug("     : poll %d\n", t->poll );
+				fLogDebug("     : poll %d\n", t->poll );
 			} // <--- set poll
 
 			{ // --->  drift
@@ -248,7 +239,7 @@ namespace URGProxy {
 				if( ::fabs( 1.0 - drift ) > DriftError )	t->drift = 1.0;
 				else	t->drift += (drift - t->drift) * ( 1 - pr->inv_z);
 
-				fLog_Debug("     : drift %lf\n", t->drift );
+				fLogDebug("     : drift %lf\n", t->drift );
 			} // <--- drift
 			// host
 			t->host = htime_d;
@@ -256,7 +247,7 @@ namespace URGProxy {
 			t->device = dtime_d;
 		} // <--- operation
 
-		fLog_Debug("  End:int timeadjust(%p, %p, %p, %p)\n", pr, t, d, h);
+		fLogDebug("  End:int timeadjust(%p, %p, %p, %p)\n", pr, t, d, h);
 		return 0;
 	}
 
@@ -274,7 +265,7 @@ namespace URGProxy {
 
 	inline
 	int show_version(FILE* fp, S2Ver_t *v) {
-		yp_assert(!v, -1, "invalid null argument");
+		gnd_assert(!v, -1, "invalid null argument");
 
 		if(fp){
 			::fprintf(fp, "VEND:%s\n", v->vender);
@@ -283,18 +274,18 @@ namespace URGProxy {
 			::fprintf(fp, "PROT:%s\n", v->protocol);
 			::fprintf(fp, "SERI:%s\n", v->serialno);
 		}
-		fLog_Debug("VEND:%s\n", v->vender);
-		fLog_Debug("PROD:%s\n", v->product);
-		fLog_Debug("FIRM:%s\n", v->firmware);
-		fLog_Debug("PROT:%s\n", v->protocol);
-		fLog_Debug("SERI:%s\n", v->serialno);
+		fLogDebug("VEND:%s\n", v->vender);
+		fLogDebug("PROD:%s\n", v->product);
+		fLogDebug("FIRM:%s\n", v->firmware);
+		fLogDebug("PROT:%s\n", v->protocol);
+		fLogDebug("SERI:%s\n", v->serialno);
 
 		return 0;
 	}
 
 	inline
 	int show_parameter(FILE* fp, S2Param_t *p) {
-		yp_assert(!p, -1, "invalid null argument");
+		gnd_assert(!p, -1, "invalid null argument");
 
 		if(fp){
 			::fprintf(fp, "MODL:%s\n", p->model);
@@ -306,26 +297,19 @@ namespace URGProxy {
 			::fprintf(fp, "AFRT:%d\n", p->step_front);
 			::fprintf(fp, "SCAN:%d\n", p->step_resolution);
 		}
-		fLog_Debug("MODL:%s\n", p->model);
-		fLog_Debug("DMIN:%d\n", p->dist_min);
-		fLog_Debug("DMAX:%d\n", p->dist_max);
-		fLog_Debug("ARES:%d\n", p->revolution);
-		fLog_Debug("AMIN:%d\n", p->step_min);
-		fLog_Debug("AMAX:%d\n", p->step_max);
-		fLog_Debug("AFRT:%d\n", p->step_front);
-		fLog_Debug("SCAN:%d\n", p->step_resolution);
+		fLogDebug("MODL:%s\n", p->model);
+		fLogDebug("DMIN:%d\n", p->dist_min);
+		fLogDebug("DMAX:%d\n", p->dist_max);
+		fLogDebug("ARES:%d\n", p->revolution);
+		fLogDebug("AMIN:%d\n", p->step_min);
+		fLogDebug("AMAX:%d\n", p->step_max);
+		fLogDebug("AFRT:%d\n", p->step_front);
+		fLogDebug("SCAN:%d\n", p->step_resolution);
 
 		return 0;
 	}
 
 } // <--- function definition
-
-
-
-#undef fLog_Debug
-#undef fLog_Verbose
-#undef Log_Debug
-#undef Log_Verbose
-
+#include "gnd-debug-log-util-undef.h"
 
 #endif /* URG_HANDLER_HPP_ */

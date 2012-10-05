@@ -71,7 +71,7 @@ namespace gnd {
 
 		inline bool options::get_option(int aArgc, char **aArgv)
 		{
-			yp_assert(!param, -1, "parameter storage is null.");
+			gnd_assert(!param, -1, "parameter storage is null.");
 
 			while(1){
 				int opt;
@@ -97,8 +97,8 @@ namespace gnd {
 
 				// write configure
 				case 'G': {
-					write_configure( optarg ? optarg : "opsm-pos-tracker.conf", param);
-					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "opsm-pos-tracker.conf");
+					write_configure( optarg ? optarg : "urg-proxy.conf", param);
+					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "urg-proxy.conf");
 				} return RWriteConf;
 
 				// entry device port path

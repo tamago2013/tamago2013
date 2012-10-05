@@ -19,8 +19,8 @@
 #include "gnd-time.hpp"
 #include "gnd-configuration.hpp"
 #include "gnd-util.h"
-#include "yp-matrix-coordinate-convert.hpp"
-#include "yp-matrix-base.hpp"
+#include "gnd-matrix-coordinate.hpp"
+#include "gnd-matrix-base.hpp"
 
 #include "urg-proxy.hpp"
 #include "urg-proxy-opt.hpp"
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 
 	URGProxy::TimeAdjust tmadj;
 	URGProxy::TimeAdjustProperty tmadj_prop;
-	double cb_time;
+	double recv_time;
 
 	S2Port* port = 0;
 	S2Sdd_t buffer;
@@ -133,11 +133,11 @@ int main(int argc, char* argv[]) {
 		// ---> open device port
 		if( !::is_proc_shutoff() ){
 			::fprintf(stderr, "\n");
-			::fprintf(stderr, " => open device port\n");
+			::fprintf(stderr, " => open device port \"%s\"\n", proc_conf.dev_port.value);
 
 			// initialize
 			::S2Sdd_Init( &buffer );
-			::S2Sdd_setCallback(&buffer, callback, &cb_time);
+			::S2Sdd_setCallback(&buffer, callback, &recv_time);
 
 			// port open
 			if( !(port = ::Scip2_Open(proc_conf.dev_port.value, bitrate) ) ){
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
 					::fprintf(stdout, " ... ssm-id is %d\n", ssm_prop.id);
 
 					{ // ---> coordinate matrix
-						yp_matrix_coordinate_converter(&ssm_prop.coord,
+						gnd::matrix::coordinate_converter(&ssm_prop.coord,
 								conf_device.position.value[0], conf_device.position.value[1], conf_device.position.value[2],
 								conf_device.orient.value[0], conf_device.orient.value[1], conf_device.orient.value[2],
 								conf_device.upside.value[0], conf_device.upside.value[1], conf_device.upside.value[2]);
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
 					scan_ssm.property.angMax =  ( scan_prop.step.max - param.step_front ) * param.revolution;
 					scan_ssm.property.angResolution =  param.revolution;
 					scan_ssm.property.cycle = 1.0/ ( (double)(param.revolution) / 60.0 );
-					yp_matrix_copy( &scan_ssm.property.coordm, &ssm_prop.coord);
+					gnd::matrix::copy( &scan_ssm.property.coordm, &ssm_prop.coord);
 
 					strncpy( scan_ssm.property.sensorInfo.firmware, version.firmware, ssm::ScanPoint2DProperty::LENGTH_MAX );
 					strncpy( scan_ssm.property.sensorInfo.product, version.product, ssm::ScanPoint2DProperty::LENGTH_MAX );
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
 		if(!::is_proc_shutoff()){
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => Initailize SSM\n");
-			if( !::initSSM() ){
+			if( !::initSSM() ) {
 				::proc_shutoff();
 				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to initialize \x1b[4mssm\x1b[0m\n");
 			}
@@ -286,13 +286,14 @@ int main(int argc, char* argv[]) {
 	if(!::is_proc_shutoff()){
 		S2Scan_t *scan_data;
 		double scan_htime = 0;
-		gnd::Time::inttimer timer_scan;
+		double recv_htime = 0;
+		gnd::inttimer timer_scan;
 
-		gnd::Time::inttimer timer_tmadj;
+		gnd::inttimer timer_tmadj;
 		double left_tmadj = 0.0;
 		bool flg_tmadj = false;
 
-		gnd::Time::inttimer timer_show(CLOCK_REALTIME, 1.0);
+		gnd::inttimer timer_show(CLOCK_REALTIME, 1.0);
 		bool show_st = true;
 
 		int total = 0;
@@ -305,7 +306,7 @@ int main(int argc, char* argv[]) {
 		} // <--- scan cycle
 
 		// ---> time adjust
-		if( tmadj_prop.min_poll ) {
+		if( tmadj_prop.min_poll > 0 ) {
 			double tmadj_next;
 			struct timeval dtime, htime;
 
@@ -331,7 +332,7 @@ int main(int argc, char* argv[]) {
 				total += scan_psec;
 				::fprintf(stderr, "\x1b[0;0H\x1b[2J");	// display clear
 				::fprintf(stderr, "-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", "urg-proxy");
-				::fprintf(stderr, "         product : %s\n", version.product );
+				::fprintf(stderr, "          serial : %s\n", version.serialno );
 				::fprintf(stderr, "      total scan : %d\n", total );
 				::fprintf(stderr, "    scan / frame : %d\n", scan_psec );
 				::fprintf(stderr, "  number of read : %d\n", npoints );
@@ -342,7 +343,7 @@ int main(int argc, char* argv[]) {
 				::fprintf(stderr, "                 :   host %.06lf, device %.06lf\n", tmadj.host, tmadj.device );
 				::fprintf(stderr, "                 :  drift %.012lf\n", tmadj.drift );
 				::fprintf(stderr, "                 :   next %.03lf, poll %d\n", left_tmadj, tmadj.poll );
-				::fprintf(stderr, "                 :   diff %.03lf\n", cb_time - scan_htime );
+				::fprintf(stderr, "                 :   diff %.03lf\n", recv_htime - scan_htime );
 				::fprintf(stderr, "\n");
 				::fprintf(stderr, " Push \x1b[1mEnter\x1b[0m to change CUI Mode\n");
 				scan_psec = 0;
@@ -350,7 +351,7 @@ int main(int argc, char* argv[]) {
 
 
 			// ---> time adjust.
-			if( tmadj_prop.min_poll && timer_tmadj.clock(&left_tmadj) > 0 ){
+			if( tmadj_prop.min_poll > 0 && timer_tmadj.clock(&left_tmadj) > 0 ){
 				double tmadj_next;
 				struct timeval dtime, htime;
 				// stop ms
@@ -363,7 +364,7 @@ int main(int argc, char* argv[]) {
 				else {
 					// restart scan
 					::S2Sdd_Init( &buffer );
-					::S2Sdd_setCallback(&buffer, callback, &cb_time);
+					::S2Sdd_setCallback(&buffer, callback, &recv_time);
 					if( !URGProxy::scanning_begin(port, &scan_prop, &buffer) < 0) {
 						::proc_shutoff();
 					}
@@ -379,16 +380,17 @@ int main(int argc, char* argv[]) {
 
 			// ---> sensor reading
 			if( S2Sdd_Begin(&buffer, &scan_data) > 0){
+				recv_htime = recv_time;
 				npoints = URGProxy::scanning_reading(scan_data, &scan_prop, &scan_ssm.data);
 				scan_ssm.data.timeStamp( scan_data->time );
 
 				{ // ---> time stamp
-					if( tmadj_prop.min_poll ) {
+					if( tmadj_prop.min_poll > 0 ) {
 						URGProxy::timeadjust_device2host(gnd_msec2time(scan_data->time), &tmadj, &scan_htime );
 						flg_tmadj = true;
 					}
 					else {
-						scan_htime = cb_time;
+						scan_htime = recv_htime;
 						flg_tmadj = false;
 					}
 					scan_ssm.write(scan_htime);

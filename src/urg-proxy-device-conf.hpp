@@ -10,7 +10,7 @@
 
 
 #include <time.h>
-#include "yp-matrix-base.hpp"
+#include "gnd-matrix-base.hpp"
 #include "gnd-configuration.hpp"
 
 // ---> constant value definition
@@ -116,7 +116,7 @@ namespace URGProxy {
 	 */
 	inline
 	int initialize_configuration(device_configuration *conf){
-		yp_assert(!conf, -1, "invalid null pointer");
+		gnd_assert(!conf, -1, "invalid null pointer");
 
 		::memcpy(&conf->id,				&ConfIni_ID,			sizeof(ConfIni_ID) );
 		::memcpy(&conf->timeadjust,		&ConfIni_TimeAdjust,	sizeof(ConfIni_TimeAdjust) );
@@ -134,8 +134,8 @@ namespace URGProxy {
 	inline
 	int get_configuration_parameter(gnd::Conf::Configuration *conf, device_configuration *confp)
 	{
-		yp_assert(!conf, -1, "invalid null pointer");
-		yp_assert(!confp, -1, "invalid null pointer");
+		gnd_assert(!conf, -1, "invalid null pointer");
+		gnd_assert(!confp, -1, "invalid null pointer");
 
 		gnd::Conf::get_parameter(conf, &confp->id);
 		gnd::Conf::get_parameter(conf, &confp->timeadjust);
@@ -153,8 +153,8 @@ namespace URGProxy {
 	inline
 	int write_configuration_parameter( const char* fname, device_configuration *confp ){
 
-		yp_assert(!fname, -1, "invalid null pointer");
-		yp_assert(!confp, -1, "invalid null pointer");
+		gnd_assert(!fname, -1, "invalid null pointer");
+		gnd_assert(!confp, -1, "invalid null pointer");
 
 		{ // ---> operation
 			gnd::Conf::FileStream conf;
@@ -166,7 +166,7 @@ namespace URGProxy {
 			gnd::Conf::set_parameter(&conf, &confp->orient);
 			gnd::Conf::set_parameter(&conf, &confp->upside);
 
-			return conf.wirte(fname);
+			return conf.write(fname);
 		} // <--- operation
 	}
 

@@ -95,7 +95,7 @@ namespace gnd {
 		 */
 		inline
 		int configure_initialize(configuration *conf){
-			yp_assert(!conf, -1, "invalid null pointer");
+			gnd_assert(!conf, -1, "invalid null pointer");
 
 			::memcpy(&conf->dev_port,	&ConfIni_DevicePort,	sizeof(ConfIni_DevicePort) );
 			::memcpy(&conf->dev_conf,	&ConfIni_DeviceConf,	sizeof(ConfIni_DeviceConf) );
@@ -109,8 +109,8 @@ namespace gnd {
 		inline
 		int get_config_param(gnd::Conf::Configuration *conf, configuration *confp)
 		{
-			yp_assert(!conf, -1, "invalid null pointer");
-			yp_assert(!confp, -1, "invalid null pointer");
+			gnd_assert(!conf, -1, "invalid null pointer");
+			gnd_assert(!confp, -1, "invalid null pointer");
 
 			gnd::Conf::get_parameter(conf, &confp->dev_port);
 			gnd::Conf::get_parameter(conf, &confp->dev_conf);
@@ -123,15 +123,15 @@ namespace gnd {
 		inline
 		int write_configure( const char* fname, configuration *confp ){
 
-			yp_assert(!fname, -1, "invalid null pointer");
-			yp_assert(!confp, -1, "invalid null pointer");
+			gnd_assert(!fname, -1, "invalid null pointer");
+			gnd_assert(!confp, -1, "invalid null pointer");
 
 			{ // ---> operation
 				gnd::Conf::FileStream conf;
 				gnd::Conf::set_parameter(&conf, &confp->dev_port);
 				gnd::Conf::set_parameter(&conf, &confp->dev_conf);
 
-				return conf.wirte(fname);
+				return conf.write(fname);
 			} // <--- operation
 		}
 
