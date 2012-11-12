@@ -28,7 +28,7 @@
 
 struct Scanning {
 	SSMScanPoint2D ssm;
-	URGProxy::ScanningProperty prop;
+	gnd::urg_proxy::ScanningProperty prop;
 	S2Param_t param;
 };
 typedef struct Scanning Scanning;
@@ -54,12 +54,12 @@ int callback( S2Scan_t *s, void *u)
 
 int main(int argc, char* argv[]) {
 	SSMScanPoint2D scan_ssm;						// laser scanner reading ssm
-	URGProxy::ScanningProperty scan_prop;			// scan property
-	URGProxy::ssm_property ssm_prop;			// laser scanner configuration
-	URGProxy::device_configuration conf_device;
+	gnd::urg_proxy::ScanningProperty scan_prop;			// scan property
+	gnd::urg_proxy::ssm_property ssm_prop;				// laser scanner configuration
+	gnd::urg_proxy::device_configuration dev_conf;	// device configuration
 
-	URGProxy::TimeAdjust tmadj;
-	URGProxy::TimeAdjustProperty tmadj_prop;
+	gnd::urg_proxy::TimeAdjust tmadj;
+	gnd::urg_proxy::TimeAdjustProperty tmadj_prop;
 	double recv_time;
 
 	S2Port* port = 0;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 	S2Ver_t version;
 	S2Param_t param;
 
-	gnd::urg_proxy::configuration proc_conf;
+	gnd::urg_proxy::proc_configuration proc_conf;
 	gnd::urg_proxy::options proc_opt(&proc_conf);
 
 	{ // ---> gnd-configuration debug
@@ -81,8 +81,8 @@ int main(int argc, char* argv[]) {
 	{ // ---> urg-proxy debug
 		FILE *fp;
 		fp = fopen("urg-proxy.log", "w");
-		URGProxy::debug_set_level(2);
-		URGProxy::debug_set_fstream(fp);
+		gnd::urg_proxy::debug_set_level(2);
+		gnd::urg_proxy::debug_set_fstream(fp);
 	} // <--- urg-proxy debug
 
 
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
 
 				// get device version infomation
 				::Scip2CMD_VV(port, &version);
-				URGProxy::show_version(stderr, &version);
+				gnd::urg_proxy::show_version(stderr, &version);
 
 				// get device parameter infomation
 				::Scip2CMD_PP(port, &param);
@@ -164,23 +164,23 @@ int main(int argc, char* argv[]) {
 				}
 				else {
 					// get configuration parameter
-					URGProxy::get_configuration_parameter(pconf, &conf_device);
+					gnd::urg_proxy::dev_conf_get(pconf, &dev_conf);
 
 					// ssm-id
-					ssm_prop.id = conf_device.id.value;
+					ssm_prop.id = dev_conf.id.value;
 					::fprintf(stdout, " ... ssm-id is %d\n", ssm_prop.id);
 
 					{ // ---> coordinate matrix
 						gnd::matrix::coordinate_converter(&ssm_prop.coord,
-								conf_device.position.value[0], conf_device.position.value[1], conf_device.position.value[2],
-								conf_device.orient.value[0], conf_device.orient.value[1], conf_device.orient.value[2],
-								conf_device.upside.value[0], conf_device.upside.value[1], conf_device.upside.value[2]);
+								dev_conf.position.value[0], dev_conf.position.value[1], dev_conf.position.value[2],
+								dev_conf.orient.value[0], dev_conf.orient.value[1], dev_conf.orient.value[2],
+								dev_conf.upside.value[0], dev_conf.upside.value[1], dev_conf.upside.value[2]);
 						::fprintf(stderr, " ... coordinate matrix is following ...\n");
 					} // <--- coordinate matrix
 
 					// ---> time adjust
-					tmadj_prop.min_poll = conf_device.timeadjust.value[0] > conf_device.timeadjust.value[1] ? 0: conf_device.timeadjust.value[0];
-					tmadj_prop.max_poll = conf_device.timeadjust.value[1];
+					tmadj_prop.min_poll = dev_conf.timeadjust.value[0] > dev_conf.timeadjust.value[1] ? 0: dev_conf.timeadjust.value[0];
+					tmadj_prop.max_poll = dev_conf.timeadjust.value[1];
 					if( tmadj_prop.min_poll > 0 ){
 						struct timeval htime;
 						unsigned long dtime;
@@ -190,23 +190,23 @@ int main(int argc, char* argv[]) {
 							::proc_shutoff();
 						}
 						else {
-							URGProxy::timeadjust_initialize( &tmadj_prop, &tmadj, &dtime, &htime );
+							gnd::urg_proxy::timeadjust_initialize( &tmadj_prop, &tmadj, &dtime, &htime );
 						}
 					} // <--- time adjust
 
 					{ // ---> scanning property
 						// step min, max
 						scan_prop.step.min = param.step_front
-								+ ((double) conf_device.angle_range.value[0] / (360.0 / param.step_resolution));
+								+ ((double) dev_conf.angle_range.value[0] / (360.0 / param.step_resolution));
 						scan_prop.step.min = scan_prop.step.min > param.step_min ? scan_prop.step.min : param.step_min;
 						scan_prop.step.max = param.step_front
-								+ (conf_device.angle_range.value[1] / (360.0 / param.step_resolution));
+								+ (dev_conf.angle_range.value[1] / (360.0 / param.step_resolution));
 						scan_prop.step.max = scan_prop.step.max < param.step_max ? scan_prop.step.max : param.step_max;
 						::fprintf(stderr, " ... scanning range is from %d to %d\n", scan_prop.step.min, scan_prop.step.max);
-						conf_device.angle_range.value[0] = (double) 360.0 * (scan_prop.step.min - param.step_front) / param.step_resolution;
-						conf_device.angle_range.value[1] = (double) 360.0 * (scan_prop.step.max - param.step_front) / param.step_resolution;
+						dev_conf.angle_range.value[0] = (double) 360.0 * (scan_prop.step.min - param.step_front) / param.step_resolution;
+						dev_conf.angle_range.value[1] = (double) 360.0 * (scan_prop.step.max - param.step_front) / param.step_resolution;
 						// reflect
-						scan_prop.intensity = conf_device.reflect.value;
+						scan_prop.intensity = dev_conf.reflect.value;
 						::fprintf(stderr, " ... get intensity \"%s\"\n", scan_prop.intensity ? "on" : "off");
 					} // <--- scanning property
 
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
 		gnd::inttimer timer_tmadj;
 		double left_tmadj = 0.0;
 		bool flg_tmadj = false;
-		URGProxy::TimeAdjust prev_tmadj = tmadj;
+		gnd::urg_proxy::TimeAdjust prev_tmadj = tmadj;
 
 		gnd::inttimer timer_show(CLOCK_REALTIME, 1.0);
 		bool show_st = true;
@@ -314,16 +314,16 @@ int main(int argc, char* argv[]) {
 			unsigned long dclock;
 
 			if( !::Scip2CMD_TM_GetSyncTime(port, &dclock, &htime) )		::proc_shutoff();
-			else URGProxy::timeadjust( &tmadj_prop, &tmadj, &dclock, &htime );
+			else gnd::urg_proxy::timeadjust( &tmadj_prop, &tmadj, &dclock, &htime );
 
-			tmadj_next = URGProxy::timeadjust_polltime( &tmadj );
+			tmadj_next = gnd::urg_proxy::timeadjust_polltime( &tmadj );
 			timer_tmadj.begin(CLOCK_REALTIME, tmadj_next);
 		} // <--- time adjust
 
 
 
 		// start scan
-		if( !URGProxy::scanning_begin(port, &scan_prop, &buffer) < 0) {
+		if( !gnd::urg_proxy::scanning_begin(port, &scan_prop, &buffer) < 0) {
 			::proc_shutoff();
 		}
 		while( !::is_proc_shutoff() ) {
@@ -339,7 +339,7 @@ int main(int argc, char* argv[]) {
 				::fprintf(stderr, "      total scan : %d\n", total );
 				::fprintf(stderr, "    scan / frame : %d\n", scan_psec );
 				::fprintf(stderr, "  number of read : %d\n", npoints );
-				::fprintf(stderr, "   angular field : %lf to %lf\n", conf_device.angle_range.value[0], conf_device.angle_range.value[1] );
+				::fprintf(stderr, "   angular field : %lf to %lf\n", dev_conf.angle_range.value[0], dev_conf.angle_range.value[1] );
 				::fprintf(stderr, "      time-stamp : %lf\n", scan_htime );
 
 				::fprintf(stderr, "     time-adjust : %s\n", flg_tmadj ? "on" : "off" );
@@ -374,13 +374,13 @@ int main(int argc, char* argv[]) {
 					// restart scan
 					::S2Sdd_Init( &buffer );
 					::S2Sdd_setCallback(&buffer, callback, &recv_time);
-					if( !URGProxy::scanning_begin(port, &scan_prop, &buffer) < 0) {
+					if( !gnd::urg_proxy::scanning_begin(port, &scan_prop, &buffer) < 0) {
 						::proc_shutoff();
 					}
 
 					// set clock
-					URGProxy::timeadjust( &tmadj_prop, &tmadj, &dclock, &htime );
-					tmadj_next = URGProxy::timeadjust_polltime( &tmadj );
+					gnd::urg_proxy::timeadjust( &tmadj_prop, &tmadj, &dclock, &htime );
+					tmadj_next = gnd::urg_proxy::timeadjust_polltime( &tmadj );
 					timer_tmadj.begin(CLOCK_REALTIME, tmadj_next);
 				}
 			} // <--- time adjust
@@ -390,12 +390,12 @@ int main(int argc, char* argv[]) {
 			// ---> sensor reading
 			if( S2Sdd_Begin(&buffer, &scan_data) > 0){
 				recv_htime = recv_time;
-				npoints = URGProxy::scanning_reading(scan_data, &scan_prop, &scan_ssm.data);
+				npoints = gnd::urg_proxy::scanning_reading(scan_data, &scan_prop, &scan_ssm.data);
 				scan_ssm.data.timeStamp( scan_data->time );
 
 				{ // ---> time stamp
 					if( tmadj_prop.min_poll > 0 ) {
-						URGProxy::timeadjust_device2host(gnd_msec2time(scan_data->time), &tmadj, &scan_htime );
+						gnd::urg_proxy::timeadjust_device2host(gnd_msec2time(scan_data->time), &tmadj, &scan_htime );
 						flg_tmadj = true;
 					}
 					else {

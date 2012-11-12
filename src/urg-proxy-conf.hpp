@@ -13,8 +13,8 @@
 // ---> type declaration
 namespace gnd {
 	namespace urg_proxy {
-		struct configuration;
-		typedef struct configuration configuration;
+		struct proc_configuration;
+		typedef struct proc_configuration configuration;
 	}
 } // <--- type declaration
 
@@ -45,17 +45,17 @@ namespace gnd {
 		/**
 		 * @brief initialize configure to default parameter
 		 */
-		int configure_initialize(configuration *conf);
+		int proc_conf_initialize(proc_configuration *conf);
 
 		/**
 		 * @brief analyze configure file
 		 */
-		int analyze_configure(gnd::Conf::Configuration *fconf, configuration *confp);
+		int analyze_configure(gnd::Conf::Configuration *fconf, proc_configuration *confp);
 
 		/**
 		 * @brief file out  configure file
 		 */
-		int write_configure( const char* fname, configuration *confp );
+		int proc_conf_write( const char* fname, proc_configuration *confp );
 	}
 } // <--- function declaration
 
@@ -67,19 +67,21 @@ namespace gnd {
 		/**
 		 * \brief particle localizer configure
 		 */
-		struct configuration {
-			configuration();
+		struct proc_configuration {
+			proc_configuration();
 
 			gnd::Conf::parameter_array<char, 512>	dev_port;
 			gnd::Conf::parameter_array<char, 512>	dev_conf;
 		};
 
+		typedef struct proc_configuration proc_configuration;
+
 		/**
 		 * @brief constructor
 		 */
 		inline
-		configuration::configuration(){
-			configure_initialize(this);
+		proc_configuration::proc_configuration(){
+			proc_conf_initialize(this);
 		}
 	}
 } // <--- type definition
@@ -94,7 +96,7 @@ namespace gnd {
 		 * @brief initialize configure
 		 */
 		inline
-		int configure_initialize(configuration *conf){
+		int proc_conf_initialize(proc_configuration *conf){
 			gnd_assert(!conf, -1, "invalid null pointer");
 
 			::memcpy(&conf->dev_port,	&ConfIni_DevicePort,	sizeof(ConfIni_DevicePort) );
@@ -107,31 +109,66 @@ namespace gnd {
 		 * @brief analyze
 		 */
 		inline
-		int get_config_param(gnd::Conf::Configuration *conf, configuration *confp)
+		int proc_conf_get(gnd::Conf::Configuration *src, proc_configuration *dest)
 		{
-			gnd_assert(!conf, -1, "invalid null pointer");
-			gnd_assert(!confp, -1, "invalid null pointer");
+			gnd_assert(!src, -1, "invalid null pointer");
+			gnd_assert(!dest, -1, "invalid null pointer");
 
-			gnd::Conf::get_parameter(conf, &confp->dev_port);
-			gnd::Conf::get_parameter(conf, &confp->dev_conf);
+			gnd::Conf::get_parameter(src, &dest->dev_port);
+			gnd::Conf::get_parameter(src, &dest->dev_conf);
 			return 0;
+		}
+
+
+		/*
+		 * @brief set configuration parameter
+		 */
+		inline
+		int proc_conf_set(gnd::Conf::Configuration *dest, proc_configuration *src)
+		{
+			gnd_assert(!dest, -1, "invalid null pointer");
+			gnd_assert(!src, -1, "invalid null pointer");
+
+			gnd::Conf::set_parameter(dest, &src->dev_port);
+			gnd::Conf::set_parameter(dest, &src->dev_conf);
+			return 0;
+		}
+
+
+		/**
+		 * @brief read configuration parameter file
+		 * @param [in]  f    : configuration file name
+		 * @param [out] dest : configuration parameter
+		 */
+		inline
+		int proc_conf_read(const char* f, proc_configuration* dest) {
+			gnd_assert(!f, -1, "invalid null pointer");
+			gnd_assert(!dest, -1, "invalid null pointer");
+
+			{ // ---> operation
+				int ret;
+				gnd::Conf::FileStream fs;
+				// configuration file read
+				if( (ret = fs.read(f)) < 0 )    return ret;
+
+				return proc_conf_get(&fs, dest);
+			} // <--- operation
 		}
 
 		/**
 		 * @brief file out  configure file
 		 */
 		inline
-		int write_configure( const char* fname, configuration *confp ){
-
-			gnd_assert(!fname, -1, "invalid null pointer");
-			gnd_assert(!confp, -1, "invalid null pointer");
+		int proc_conf_write( const char* f, proc_configuration *src ){
+			gnd_assert(!f, -1, "invalid null pointer");
+			gnd_assert(!src, -1, "invalid null pointer");
 
 			{ // ---> operation
-				gnd::Conf::FileStream conf;
-				gnd::Conf::set_parameter(&conf, &confp->dev_port);
-				gnd::Conf::set_parameter(&conf, &confp->dev_conf);
+				int ret;
+				gnd::Conf::FileStream fs;
+				if( (ret = proc_conf_set(&fs, src)) < 0 )	return ret;
 
-				return conf.write(fname);
+				return fs.write(f);
 			} // <--- operation
 		}
 

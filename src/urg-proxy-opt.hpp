@@ -13,6 +13,7 @@
 #include <getopt.h>
 
 #include "urg-proxy-conf.hpp"
+#include "urg-proxy-device-conf.hpp"
 
 namespace gnd {
 	namespace urg_proxy {
@@ -28,15 +29,15 @@ namespace gnd {
 		// ---> constructor
 		public:
 			options(): param(0) { init(); }
-			options(configuration *p) : param(p) { init(); }
+			options(proc_configuration *p) : param(p) { init(); }
 			~options(){}
 		private:
 			void init();
 		public:
-			configuration *param;
+			proc_configuration *param;
 
 		public:
-			int set(configuration *p){
+			int set(proc_configuration *p){
 				param = p;
 				return 0;
 			}
@@ -52,14 +53,15 @@ namespace gnd {
 		const char proc_name[] = "urg-proxy";
 
 
-		const char ShortOpt[] = "hg:G::p:d:";
+		const char ShortOpt[] = "hg:G::p:d:D::";
 
 		const struct option LongOpt[] = {
 				{"help", 						no_argument,		0,	'h'},
 				{"config",						required_argument,	0,	'g'},
-				{"write-config",				required_argument,	0,	'G'},
+				{"write-config",				optional_argument,	0,	'G'},
 				{ConfIni_DevicePort.token,		required_argument,	0,	'p'},
 				{ConfIni_DeviceConf.token,		required_argument,	0,	'd'},
+				{"write-dev-conf",				optional_argument,	0,	'D'},
 				{0, 0, 0, 0}	// end of array
 		};
 
@@ -89,7 +91,7 @@ namespace gnd {
 						::fprintf(stderr, " ... [\x1b[1m\x1b[31mERROR\x1b[30m\x1b[0m]: -g option, Fail to read configure file\n");
 						return RFail;
 					}
-					if( get_config_param(&conf_fs, param) < 0){
+					if( proc_conf_get(&conf_fs, param) < 0){
 						::fprintf(stderr, " ... [\x1b[1m\x1b[31mERROR\x1b[30m\x1b[0m]: -g option, configure file syntax error\n");
 						return RFail;
 					}
@@ -97,14 +99,22 @@ namespace gnd {
 
 				// write configure
 				case 'G': {
-					write_configure( optarg ? optarg : "urg-proxy.conf", param);
+					proc_conf_write( optarg ? optarg : "urg-proxy.conf", param);
 					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "urg-proxy.conf");
 				} return RWriteConf;
+				// write configure
+
 
 				// entry device port path
 				case 'p': ::strcpy(param->dev_port.value, optarg);			break;
 				// entry device configuration file
 				case 'd': ::strcpy(param->dev_conf.value, optarg);			break;
+
+				case 'D': {
+					device_configuration devparam;
+					dev_conf_write( optarg ? optarg : "urg-dev.conf", &devparam);
+					::fprintf(stdout, " ... output device configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "urg-dev.conf");
+				} return RWriteConf;
 
 				// show help
 				case 'h':
