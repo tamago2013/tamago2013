@@ -102,6 +102,7 @@ namespace gnd {
 		}
 
 		struct ssm_property {
+			char name[64];
 			int id;
 			gnd::coord_matrix coord;		///<! relation from parent coordinate(robot coordinate)
 			ssm_property();

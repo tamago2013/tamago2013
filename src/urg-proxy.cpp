@@ -168,6 +168,7 @@ int main(int argc, char* argv[]) {
 
 					// ssm-id
 					ssm_prop.id = dev_conf.id.value;
+					::strcpy(ssm_prop.name, dev_conf.name.value);
 					::fprintf(stdout, " ... ssm-id is %d\n", ssm_prop.id);
 
 					{ // ---> coordinate matrix
@@ -261,18 +262,18 @@ int main(int argc, char* argv[]) {
 		// ---> create sokuiki-data ssm
 		if( !::is_proc_shutoff() ){
 			::fprintf(stderr, "\n");
-			::fprintf(stderr, " => Create ssm-data \"\x1b[4m%s\x1b[0m\"\n", SSM_NAME_SCAN_POINT_2D);
-			if(!scan_ssm.create(SSM_NAME_SCAN_POINT_2D, ssm_prop.id, 5.0, scan_ssm.property.cycle) ){
+			::fprintf(stderr, " => Create ssm-data \"\x1b[4m%s\x1b[0m\"\n", ssm_prop.name);
+			if(!scan_ssm.create(ssm_prop.name, ssm_prop.id, 5.0, scan_ssm.property.cycle) ){
 				::proc_shutoff();
-				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to ssm open \"\x1b[4m%s\x1b[0m\"\n", SSM_NAME_SCAN_POINT_2D);
+				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to ssm open \"\x1b[4m%s\x1b[0m\"\n", ssm_prop.name);
 			}
 			else {
 				if(!scan_ssm.setProperty()) {
 					::proc_shutoff();
-					::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to ssm open \"\x1b[4m%s\x1b[0m\"\n", SSM_NAME_SCAN_POINT_2D);
+					::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to ssm open \"\x1b[4m%s\x1b[0m\"\n", ssm_prop.name);
 				}
 				else {
-					::fprintf(stderr, "  [\x1b[1mOK\x1b[0m]: Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", SSM_NAME_SCAN_POINT_2D);
+					::fprintf(stderr, "  [\x1b[1mOK\x1b[0m]: Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", ssm_prop.name);
 				}
 			}
 		} // <--- create sokuiki-data ssm

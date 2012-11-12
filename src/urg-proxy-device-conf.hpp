@@ -19,9 +19,14 @@ namespace gnd {
 	namespace urg_proxy {
 
 		const char Token_Serial[] = "<Serial>";
-		// id
-		static const gnd::Conf::param_int ConfIni_ID = {
-				"id",
+		// ssm-name
+		static const gnd::Conf::parameter_array<char, 64> ConfIni_SSMName = {
+				"ssm-name",
+				"scan-data2d",
+		};
+		// ssm-id
+		static const gnd::Conf::param_int ConfIni_SSMID = {
+				"ssm-id",
 				10,
 		};
 		// time-adjust
@@ -102,6 +107,7 @@ namespace gnd {
 		 */
 		struct device_configuration {
 			char									serial[64];
+			gnd::Conf::parameter_array<char, 64>	name;
 			gnd::Conf::param_int					id;
 			gnd::Conf::param_bool					reflect;
 			gnd::Conf::parameter_array<int, 2>		timeadjust;
@@ -134,7 +140,8 @@ namespace gnd {
 			::memset(conf->serial,			0,						sizeof(conf->serial));
 			::strcpy(conf->serial,			Token_Serial);
 
-			::memcpy(&conf->id,				&ConfIni_ID,			sizeof(ConfIni_ID) );
+			::memcpy(&conf->name,			&ConfIni_SSMName,		sizeof(ConfIni_SSMName) );
+			::memcpy(&conf->id,				&ConfIni_SSMID,			sizeof(ConfIni_SSMID) );
 			::memcpy(&conf->timeadjust,		&ConfIni_TimeAdjust,	sizeof(ConfIni_TimeAdjust) );
 			::memcpy(&conf->reflect,		&ConfIni_Reflect,		sizeof(ConfIni_Reflect) );
 			::memcpy(&conf->angle_range,	&ConfIni_AngleRange,	sizeof(ConfIni_AngleRange) );
@@ -153,6 +160,7 @@ namespace gnd {
 			gnd_assert(!src, -1, "invalid null pointer");
 			gnd_assert(!dest, -1, "invalid null pointer");
 
+			gnd::Conf::get_parameter(src, &dest->name);
 			gnd::Conf::get_parameter(src, &dest->id);
 			gnd::Conf::get_parameter(src, &dest->timeadjust);
 			gnd::Conf::get_parameter(src, &dest->reflect);
@@ -176,6 +184,7 @@ namespace gnd {
 			dest->child_push_back(src->serial, 0, 0);
 			if( (ch = dest->child_find(src->serial) ) ) {
 
+				gnd::Conf::set_parameter(ch, &src->name);
 				gnd::Conf::set_parameter(ch, &src->id);
 				gnd::Conf::set_parameter(ch, &src->timeadjust);
 				gnd::Conf::set_parameter(ch, &src->reflect);
