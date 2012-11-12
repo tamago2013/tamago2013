@@ -182,10 +182,11 @@ int main(int argc, char* argv[]) {
 					tmadj_prop.min_poll = conf_device.timeadjust.value[0] > conf_device.timeadjust.value[1] ? 0: conf_device.timeadjust.value[0];
 					tmadj_prop.max_poll = conf_device.timeadjust.value[1];
 					if( tmadj_prop.min_poll > 0 ){
-						struct timeval htime, dtime;
+						struct timeval htime;
+						unsigned long dtime;
 
 						::fprintf(stdout, " ... time adjust initialize.\n");
-						if( !::Scip2CMD_TM2(port, &dtime, &htime) ) {
+						if( !::Scip2CMD_TM_GetSyncTime(port, &dtime, &htime) ) {
 							::proc_shutoff();
 						}
 						else {
@@ -292,6 +293,7 @@ int main(int argc, char* argv[]) {
 		gnd::inttimer timer_tmadj;
 		double left_tmadj = 0.0;
 		bool flg_tmadj = false;
+		URGProxy::TimeAdjust prev_tmadj = tmadj;
 
 		gnd::inttimer timer_show(CLOCK_REALTIME, 1.0);
 		bool show_st = true;
@@ -308,10 +310,11 @@ int main(int argc, char* argv[]) {
 		// ---> time adjust
 		if( tmadj_prop.min_poll > 0 ) {
 			double tmadj_next;
-			struct timeval dtime, htime;
+			struct timeval htime;
+			unsigned long dclock;
 
-			if( !::Scip2CMD_TM2(port, &dtime, &htime) )		::proc_shutoff();
-			else URGProxy::timeadjust( &tmadj_prop, &tmadj, &dtime, &htime );
+			if( !::Scip2CMD_TM_GetSyncTime(port, &dclock, &htime) )		::proc_shutoff();
+			else URGProxy::timeadjust( &tmadj_prop, &tmadj, &dclock, &htime );
 
 			tmadj_next = URGProxy::timeadjust_polltime( &tmadj );
 			timer_tmadj.begin(CLOCK_REALTIME, tmadj_next);
@@ -340,10 +343,12 @@ int main(int argc, char* argv[]) {
 				::fprintf(stderr, "      time-stamp : %lf\n", scan_htime );
 
 				::fprintf(stderr, "     time-adjust : %s\n", flg_tmadj ? "on" : "off" );
-				::fprintf(stderr, "                 :   host %.06lf, device %.06lf\n", tmadj.host, tmadj.device );
-				::fprintf(stderr, "                 :  drift %.012lf\n", tmadj.drift );
-				::fprintf(stderr, "                 :   next %.03lf, poll %d\n", left_tmadj, tmadj.poll );
-				::fprintf(stderr, "                 :   diff %.03lf\n", recv_htime - scan_htime );
+				::fprintf(stderr, "                 :        host %.06lf, device %.06lf\n", tmadj.host, tmadj.device );
+				::fprintf(stderr, "                 :   prev host %.06lf, device %.06lf\n", prev_tmadj.host, prev_tmadj.device );
+				::fprintf(stderr, "                 :transit host %.06lf, device %.06lf\n", tmadj.host - prev_tmadj.host, tmadj.device - prev_tmadj.device );
+				::fprintf(stderr, "                 :       drift %.06lf\n", tmadj.drift );
+				::fprintf(stderr, "                 :        next %.03lf, poll %d\n", left_tmadj, tmadj.poll );
+				::fprintf(stderr, "                 :        diff %.03lf\n", recv_htime - scan_htime );
 				::fprintf(stderr, "\n");
 				::fprintf(stderr, " Push \x1b[1mEnter\x1b[0m to change CUI Mode\n");
 				scan_psec = 0;
@@ -353,12 +358,16 @@ int main(int argc, char* argv[]) {
 			// ---> time adjust.
 			if( tmadj_prop.min_poll > 0 && timer_tmadj.clock(&left_tmadj) > 0 ){
 				double tmadj_next;
-				struct timeval dtime, htime;
+				struct timeval htime;
+				unsigned long dclock;
+
+				prev_tmadj = tmadj;
+
 				// stop ms
 				if( !::Scip2CMD_StopMS(port, &buffer) ){
 					::proc_shutoff();
 				}
-				else if( !::Scip2CMD_TM2(port, &dtime, &htime) ) {
+				else if( !::Scip2CMD_TM_GetSyncTime(port, &dclock, &htime) ) {
 					::proc_shutoff();
 				}
 				else {
@@ -370,7 +379,7 @@ int main(int argc, char* argv[]) {
 					}
 
 					// set clock
-					URGProxy::timeadjust( &tmadj_prop, &tmadj, &dtime, &htime );
+					URGProxy::timeadjust( &tmadj_prop, &tmadj, &dclock, &htime );
 					tmadj_next = URGProxy::timeadjust_polltime( &tmadj );
 					timer_tmadj.begin(CLOCK_REALTIME, tmadj_next);
 				}
@@ -408,7 +417,6 @@ int main(int argc, char* argv[]) {
 			}
 		}
 	} // <--- operation
-
 
 
 

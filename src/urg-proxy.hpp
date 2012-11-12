@@ -27,7 +27,7 @@ namespace URGProxy {
 
 // ---> type definition
 namespace URGProxy {
-	static const int DriftError = 1.0e-3;
+	static const double DriftError = 5.0e-3;
 
 	/**
 	 * @biref time-adjsut
@@ -182,7 +182,7 @@ namespace URGProxy {
 
 
 	inline
-	int timeadjust_initialize( TimeAdjustProperty *pr, TimeAdjust *t, struct timeval *d, struct timeval *h ) {
+	int timeadjust_initialize( TimeAdjustProperty *pr, TimeAdjust *t, unsigned long *d, struct timeval *h ) {
 		t->loop = 0;
 		t->poll = pr->min_poll;
 		// drift
@@ -190,12 +190,12 @@ namespace URGProxy {
 		// host
 		t->host = gnd_timeval2time(h);
 		// device
-		t->device = gnd_timeval2time(d);
+		t->device = gnd_msec2time(*d);
 		return 0;
 	}
 
 	inline
-	int timeadjust(	TimeAdjustProperty* pr, TimeAdjust *t, struct timeval *d, struct timeval *h ) {
+	int timeadjust(	TimeAdjustProperty* pr, TimeAdjust *t, unsigned long *d, struct timeval *h ) {
 		gnd_assert(!pr, -1, "invalid null argument");
 		gnd_assert(!t, -1, "invalid null argument");
 		gnd_assert(!d, -1, "invalid null argument");
@@ -211,7 +211,7 @@ namespace URGProxy {
 			// delta on host time
 			htime_d = gnd_timeval2time(h);
 			// delta on device time
-			dtime_d = gnd_timeval2time(d);
+			dtime_d = gnd_msec2time(*d);
 
 			{ // ---> set poll
 				double d2h, diff;
@@ -227,7 +227,7 @@ namespace URGProxy {
 				fLogDebug("     : poll %d\n", t->poll );
 			} // <--- set poll
 
-			{ // --->  drift
+			{ // --->
 				double ddelta, hdelta, drift;
 				hdelta = htime_d - t->host;
 				ddelta = dtime_d - t->device;
@@ -237,7 +237,7 @@ namespace URGProxy {
 				}
 				drift = (hdelta / ddelta);
 				if( ::fabs( 1.0 - drift ) > DriftError )	t->drift = 1.0;
-				else	t->drift += (drift - t->drift) * ( 1 - pr->inv_z);
+				else 										t->drift += (drift * ( 1 - pr->inv_z )) - (t->drift * ( 1 - pr->inv_z ));
 
 				fLogDebug("     : drift %lf\n", t->drift );
 			} // <--- drift
