@@ -1,4 +1,4 @@
 
-_OBJS_		:=$(patsubst %.cpp,%.o,$(SRCS))
+OBJS		:=$(patsubst %.cpp,%.o,$(SRCS))
 
 LIB_LIST	:=ssm scip2awd

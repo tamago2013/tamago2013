@@ -8,6 +8,7 @@ SRCS	:=$(TARGET).cpp
 
 -include mk/subdir.mk
 -include mk/objects.mk
+-include mk/launcher.mk
 
 ifeq ($(MAKECMDGOALS),debug)
 -include mk/debug.mk
@@ -19,6 +20,9 @@ else
 endif
 endif
 
+CFLAGS		:=$(_OPT_OPTION_) $(_WRN_OPTION_) $(_DBG_OPTION_) $(_HDIR_OPTION_)
+LDFLAGS		:=$(_LNK_OPTION_) $(_LDIR_OPTION_)
+
 
 # vpath
 vpath
@@ -27,24 +31,27 @@ vpath %.o 	$(RELEASE_DIR)
 
 
 .SUFFIXES: .o .cpp
-
 all:build
 
-build:$(RELEASE_DIR) $(_OBJS_)
-	$(GCC) -o"$(RELEASE_DIR)$(TARGET)" $(patsubst %,$(RELEASE_DIR)%,$(_OBJS_)) $(_l_OPTION_)
+build:$(RELEASE_DIR) $(OBJS)
+	$(GCC) -o"$(RELEASE_DIR)$(TARGET)" $(patsubst %,$(RELEASE_DIR)%,$(OBJS)) $(LDFLAGS)
+	@echo "#!$(SHELL_INTRP)" > $(LAUNCHER)
+	@echo "$(LAUNCH_CMD)" >> $(LAUNCHER)
+	@chmod +x $(LAUNCHER)
+	@echo "create launcher"
 
 rebuild:clean build
 
 debug:rebuild
 
 clean:
-	$(REMOVE) $(patsubst %,$(RELEASE_DIR)%,$(_OBJS_)) $(RELEASE_DIR)$(TARGET)
+	$(REMOVE) $(patsubst %,$(RELEASE_DIR)%,$(OBJS)) $(RELEASE_DIR)$(TARGET) $(LAUNCHER)
 
 clean-debug:
 	echo "$(REMOVE) $(RELEASE_DIR)"
 
 .cpp.o:
-	g++ $(_I_OPTION_) $(_g_OPTION_) $(_O_OPTION_) $(_W_OPTION_) -c $< -o $(RELEASE_DIR)$@
+	g++ $(CFLAGS) -c $< -o $(RELEASE_DIR)$@
 
 $(RELEASE_DIR):
 	@echo "make directory \"$(RELEASE_DIR)\""
