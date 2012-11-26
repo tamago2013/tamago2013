@@ -72,7 +72,7 @@ namespace gnd {
 			min_poll = 0;
 			max_poll = 0;
 			delta = gnd_msec2sec(3);
-			inv_z = 0.5;
+			inv_z = 0.8;
 		}
 
 		/**
@@ -83,10 +83,10 @@ namespace gnd {
 			struct {
 				int min;
 				int max;
-			} step;			///< step
-			int decimate;	///< scanning data decimate
-			int sheaf;		///< leaser sheaf
-			bool intensity;	///< intensity
+			} step;						///< step
+			int decimate;				///< scanning data decimate
+			int sheaf;					///< leaser sheaf
+			bool intensity;				///< intensity
 			int step_front;				///< device front step
 			double angle_resolution;	///< resolution of angle
 		};
@@ -123,7 +123,7 @@ namespace gnd {
 
 		int timeadjust_initialize( TimeAdjustProperty *pr, TimeAdjust *t, struct timeval *h, struct timeval *d );
 		int timeadjust( TimeAdjustProperty *pr, TimeAdjust *t, struct timeval *h, struct timeval *d );
-		double timeadjust_polltime( TimeAdjust *t );
+		double timeadjust_waittime( TimeAdjust *t );
 		int timeadjust_device2host( double d, TimeAdjust *t, double *h );
 
 		int show_version(FILE* fp, S2Ver_t *v);
@@ -162,7 +162,7 @@ namespace gnd {
 			for( int i = 0; i < d->size; i += stepcnt ){
 				ssm::MeasuredPoint2DPolar comp;
 				// set range
-				comp.r = d->data[i] * 1.0e-3;
+				comp.r = gnd_mm2dist( d->data[i] );
 				// set direction
 				comp.th = p->angle_resolution * ( i * d->group / stepcnt + offset );
 
@@ -261,13 +261,13 @@ namespace gnd {
 		}
 
 		inline
-		double timeadjust_polltime( TimeAdjust *t ) {
+		double timeadjust_waittime( TimeAdjust *t ) {
 			return (double) ( 1 << t->poll );
 		}
 
 		inline
 		int timeadjust_device2host( double d, TimeAdjust *t, double *h ) {
-			*h =  t->host + ((d - t->device) * t->drift);
+			*h = t->host + ((d - t->device) * t->drift);
 			return 0;
 		}
 

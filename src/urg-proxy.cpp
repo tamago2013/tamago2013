@@ -53,14 +53,14 @@ int callback( S2Scan_t *s, void *u)
 
 
 int main(int argc, char* argv[]) {
-	SSMScanPoint2D scan_ssm;						// laser scanner reading ssm
-	gnd::urg_proxy::ScanningProperty scan_prop;			// scan property
-	gnd::urg_proxy::ssm_property ssm_prop;				// laser scanner configuration
-	gnd::urg_proxy::device_configuration dev_conf;	// device configuration
+	SSMScanPoint2D							scan_ssm;	// laser scanner reading ssm
+	gnd::urg_proxy::ScanningProperty		scan_prop;	// scan property
+	gnd::urg_proxy::ssm_property			ssm_prop;	// laser scanner configuration
+	gnd::urg_proxy::device_configuration	dev_conf;	// device configuration
 
-	gnd::urg_proxy::TimeAdjust tmadj;
-	gnd::urg_proxy::TimeAdjustProperty tmadj_prop;
-	double recv_time;
+	gnd::urg_proxy::TimeAdjust				tmadj;		// time adjust variables
+	gnd::urg_proxy::TimeAdjustProperty		tmadj_prop;	// time adjust properties
+	double									recv_time;
 
 	S2Port* port = 0;
 	S2Sdd_t buffer;
@@ -68,27 +68,11 @@ int main(int argc, char* argv[]) {
 	S2Ver_t version;
 	S2Param_t param;
 
-	gnd::urg_proxy::proc_configuration proc_conf;
-	gnd::urg_proxy::options proc_opt(&proc_conf);
-
-	{ // ---> gnd-configuration debug
-		FILE *fp;
-		fp = fopen("gnd-conf.log", "w");
-		gnd::Conf::debug_set_level(0);
-		gnd::Conf::debug_set_fstream(fp);
-	} // <--- gnd-configuration debug
-
-	{ // ---> urg-proxy debug
-		FILE *fp;
-		fp = fopen("urg-proxy.log", "w");
-		gnd::urg_proxy::debug_set_level(2);
-		gnd::urg_proxy::debug_set_fstream(fp);
-	} // <--- urg-proxy debug
-
+	gnd::urg_proxy::proc_configuration 		proc_conf;	// process configuration parameter
+	gnd::urg_proxy::options 				proc_opt(&proc_conf);	// option reader
 
 	{ // ---> initialize
 		int ret;
-		int phase = 1;
 		gnd::Conf::FileStream fst_conf;			// device configuration file
 
 		// ---> read process options
@@ -98,11 +82,12 @@ int main(int argc, char* argv[]) {
 
 
 		{ // ---> show task
+			int phase = 1;
 			::fprintf(stderr, "========== Initialize ==========\n");
 			::fprintf(stderr, " %d. read device configuration file\n", phase++);
 			::fprintf(stderr, " %d. open device port\n", phase++);
-			::fprintf(stderr, " %d. initailize SSM\n", phase++);
-			::fprintf(stderr, " %d. craete ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, SSM_NAME_SCAN_POINT_2D);
+			::fprintf(stderr, " %d. initialize SSM\n", phase++);
+			::fprintf(stderr, " %d. create ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, SSM_NAME_SCAN_POINT_2D);
 			::fprintf(stderr, "\n");
 		} // <--- show task
 
@@ -160,7 +145,7 @@ int main(int argc, char* argv[]) {
 
 				// ---> find device configuration
 				if( ( pconf = fst_conf.child_find(version.serialno, 0) ) == 0) {
-					::fprintf(stdout, "     \x1b[1mWarnning\x1b[0m:missing device configuration\n");
+					::fprintf(stderr, "     \x1b[1mWarnning\x1b[0m:missing device configuration\n");
 				}
 				else {
 					// get configuration parameter
@@ -169,7 +154,7 @@ int main(int argc, char* argv[]) {
 					// ssm-id
 					ssm_prop.id = dev_conf.id.value;
 					::strcpy(ssm_prop.name, dev_conf.name.value);
-					::fprintf(stdout, " ... ssm-id is %d\n", ssm_prop.id);
+					::fprintf(stderr, " ... ssm-id is %d\n", ssm_prop.id);
 
 					{ // ---> coordinate matrix
 						gnd::matrix::coordinate_converter(&ssm_prop.coord,
@@ -177,6 +162,7 @@ int main(int argc, char* argv[]) {
 								dev_conf.orient.value[0], dev_conf.orient.value[1], dev_conf.orient.value[2],
 								dev_conf.upside.value[0], dev_conf.upside.value[1], dev_conf.upside.value[2]);
 						::fprintf(stderr, " ... coordinate matrix is following ...\n");
+						gnd::matrix::show(stderr, &ssm_prop.coord, "%.03lf", "     ");
 					} // <--- coordinate matrix
 
 					// ---> time adjust
@@ -186,7 +172,7 @@ int main(int argc, char* argv[]) {
 						struct timeval htime;
 						unsigned long dtime;
 
-						::fprintf(stdout, " ... time adjust initialize.\n");
+						::fprintf(stderr, " ... time adjust initialize.\n");
 						if( !::Scip2CMD_TM_GetSyncTime(port, &dtime, &htime) ) {
 							::proc_shutoff();
 						}
@@ -220,10 +206,9 @@ int main(int argc, char* argv[]) {
 				// ---> find device configuration
 
 				{ // ---> ssm-property
-
 					scan_ssm.property.numPoints = ( scan_prop.step.max - scan_prop.step.min + 1 );
-					scan_ssm.property.distMin = param.dist_min / 1000.0;// mm -> m
-					scan_ssm.property.distMax = param.dist_max / 1000.0;// mm -> m
+					scan_ssm.property.distMin = gnd_mm2dist(param.dist_min);// mm -> m
+					scan_ssm.property.distMax = gnd_mm2dist(param.dist_max);// mm -> m
 					scan_ssm.property.angMin =  ( scan_prop.step.min - param.step_front ) * param.revolution;
 					scan_ssm.property.angMax =  ( scan_prop.step.max - param.step_front ) * param.revolution;
 					scan_ssm.property.angResolution =  param.revolution;
@@ -231,14 +216,16 @@ int main(int argc, char* argv[]) {
 					gnd::matrix::copy( &scan_ssm.property.coordm, &ssm_prop.coord);
 
 					strncpy( scan_ssm.property.sensorInfo.firmware, version.firmware, ssm::ScanPoint2DProperty::LENGTH_MAX );
-					strncpy( scan_ssm.property.sensorInfo.product, version.product, ssm::ScanPoint2DProperty::LENGTH_MAX );
+					strncpy( scan_ssm.property.sensorInfo.product,  version.product,  ssm::ScanPoint2DProperty::LENGTH_MAX );
 					strncpy( scan_ssm.property.sensorInfo.protocol, version.protocol, ssm::ScanPoint2DProperty::LENGTH_MAX );
-					strncpy( scan_ssm.property.sensorInfo.id, version.serialno, ssm::ScanPoint2DProperty::LENGTH_MAX );
-					strncpy( scan_ssm.property.sensorInfo.vendor, version.vender, ssm::ScanPoint2DProperty::LENGTH_MAX );
-
-					scan_ssm.data.alloc( scan_ssm.property.numPoints );
+					strncpy( scan_ssm.property.sensorInfo.id,       version.serialno, ssm::ScanPoint2DProperty::LENGTH_MAX );
+					strncpy( scan_ssm.property.sensorInfo.vendor,   version.vender,   ssm::ScanPoint2DProperty::LENGTH_MAX );
 
 				} // <--- ssm-property
+
+				// allocate data buffer
+				scan_ssm.data.alloc( scan_ssm.property.numPoints );
+
 				::fprintf(stderr, " ...\x1b[1mOK\x1b[0m\n");
 			}
 		} // <--- open device port
@@ -277,6 +264,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		} // <--- create sokuiki-data ssm
+		::fprintf(stderr, "\n\n");
 
 	} // <--- initialize
 
@@ -299,6 +287,8 @@ int main(int argc, char* argv[]) {
 		gnd::inttimer timer_show(CLOCK_REALTIME, 1.0);
 		bool show_st = true;
 
+		int nline_show = 0;
+
 		int total = 0;
 		int scan_psec = 0;
 		int npoints = 0;
@@ -317,7 +307,7 @@ int main(int argc, char* argv[]) {
 			if( !::Scip2CMD_TM_GetSyncTime(port, &dclock, &htime) )		::proc_shutoff();
 			else gnd::urg_proxy::timeadjust( &tmadj_prop, &tmadj, &dclock, &htime );
 
-			tmadj_next = gnd::urg_proxy::timeadjust_polltime( &tmadj );
+			tmadj_next = gnd::urg_proxy::timeadjust_waittime( &tmadj );
 			timer_tmadj.begin(CLOCK_REALTIME, tmadj_next);
 		} // <--- time adjust
 
@@ -333,25 +323,30 @@ int main(int argc, char* argv[]) {
 
 			// ---> show status
 			if( timer_show.clock() && show_st ){
-				total += scan_psec;
-				::fprintf(stderr, "\x1b[0;0H\x1b[2J");	// display clear
-				::fprintf(stderr, "-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", "urg-proxy");
-				::fprintf(stderr, "          serial : %s\n", version.serialno );
-				::fprintf(stderr, "      total scan : %d\n", total );
-				::fprintf(stderr, "    scan / frame : %d\n", scan_psec );
-				::fprintf(stderr, "  number of read : %d\n", npoints );
-				::fprintf(stderr, "   angular field : %lf to %lf\n", dev_conf.angle_range.value[0], dev_conf.angle_range.value[1] );
-				::fprintf(stderr, "      time-stamp : %lf\n", scan_htime );
+				// back cursor
+				if( nline_show ) {
+					::fprintf(stderr, "\x1b[%02dA", nline_show);
+					nline_show = 0;
+				}
 
-				::fprintf(stderr, "     time-adjust : %s\n", flg_tmadj ? "on" : "off" );
-				::fprintf(stderr, "                 :        host %.06lf, device %.06lf\n", tmadj.host, tmadj.device );
-				::fprintf(stderr, "                 :   prev host %.06lf, device %.06lf\n", prev_tmadj.host, prev_tmadj.device );
-				::fprintf(stderr, "                 :transit host %.06lf, device %.06lf\n", tmadj.host - prev_tmadj.host, tmadj.device - prev_tmadj.device );
-				::fprintf(stderr, "                 :       drift %.06lf\n", tmadj.drift );
-				::fprintf(stderr, "                 :        next %.03lf, poll %d\n", left_tmadj, tmadj.poll );
-				::fprintf(stderr, "                 :        diff %.03lf\n", recv_htime - scan_htime );
-				::fprintf(stderr, "\n");
-				::fprintf(stderr, " Push \x1b[1mEnter\x1b[0m to change CUI Mode\n");
+				total += scan_psec;
+				nline_show++; ::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", "urg-proxy");
+				nline_show++; ::fprintf(stderr, "\x1b[K          serial : %s\n", version.serialno );
+				nline_show++; ::fprintf(stderr, "\x1b[K      total scan : %d\n", total );
+				nline_show++; ::fprintf(stderr, "\x1b[K    scan / frame : %d\n", scan_psec );
+				nline_show++; ::fprintf(stderr, "\x1b[K  number of read : %d\n", npoints );
+				nline_show++; ::fprintf(stderr, "\x1b[K   angular field : %lf to %lf\n", dev_conf.angle_range.value[0], dev_conf.angle_range.value[1] );
+				nline_show++; ::fprintf(stderr, "\x1b[K      time-stamp : %lf\n", scan_htime );
+
+				nline_show++; ::fprintf(stderr, "\x1b[K     time-adjust : %s\n", flg_tmadj ? "on" : "off" );
+				nline_show++; ::fprintf(stderr, "\x1b[K                 :        host %.06lf, device %.06lf\n", tmadj.host, tmadj.device );
+				nline_show++; ::fprintf(stderr, "\x1b[K                 :   prev host %.06lf, device %.06lf\n", prev_tmadj.host, prev_tmadj.device );
+				nline_show++; ::fprintf(stderr, "\x1b[K                 :transit host %.06lf, device %.06lf\n", tmadj.host - prev_tmadj.host, tmadj.device - prev_tmadj.device );
+				nline_show++; ::fprintf(stderr, "\x1b[K                 :       drift %.06lf\n", tmadj.drift );
+				nline_show++; ::fprintf(stderr, "\x1b[K                 :        next %.03lf, poll %d\n", left_tmadj, tmadj.poll );
+				nline_show++; ::fprintf(stderr, "\x1b[K                 :        diff %.03lf\n", recv_htime - scan_htime );
+				nline_show++; ::fprintf(stderr, "\x1b[K\n");
+				nline_show++; ::fprintf(stderr, "\x1b[K Push \x1b[1mEnter\x1b[0m to change CUI Mode\n");
 				scan_psec = 0;
 			} // <--- show status
 
@@ -381,7 +376,7 @@ int main(int argc, char* argv[]) {
 
 					// set clock
 					gnd::urg_proxy::timeadjust( &tmadj_prop, &tmadj, &dclock, &htime );
-					tmadj_next = gnd::urg_proxy::timeadjust_polltime( &tmadj );
+					tmadj_next = gnd::urg_proxy::timeadjust_waittime( &tmadj );
 					timer_tmadj.begin(CLOCK_REALTIME, tmadj_next);
 				}
 			} // <--- time adjust
