@@ -31,7 +31,9 @@ vpath %.o 	$(RELEASE_DIR)
 
 
 .SUFFIXES: .o .cpp
-all:build
+
+all:rebuild
+
 
 build:$(RELEASE_DIR) $(OBJS)
 	$(GCC) -o"$(RELEASE_DIR)$(TARGET)" $(patsubst %,$(RELEASE_DIR)%,$(OBJS)) $(LDFLAGS)
