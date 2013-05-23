@@ -63,9 +63,10 @@ int main(int argc, char* argv[]) {
 
 	FILE *tlog_fp = 0;
 	FILE *llog_fp = 0;
+	FILE *t4re_fp = 0;
 
 	{
-		gnd::opsm::debug_set_level(2);
+		gnd::opsm::debug_set_level(0);
 		gnd::opsm::debug_set_fstream("debug.log");
 	}
 
@@ -323,7 +324,7 @@ int main(int argc, char* argv[]) {
 					::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to get property of \"\x1b[4m%s\x1b[0m\"\n", pconf.ls_name.value);
 				}
 				else {
-//					ssm_sokuikiraw.setBlocking(true);
+					//					ssm_sokuikiraw.setBlocking(true);
 
 					// allocate
 					ssm_sokuikiraw.data.alloc(ssm_sokuikiraw.property.numPoints);
@@ -360,14 +361,48 @@ int main(int argc, char* argv[]) {
 		} // <--- viewer initialization
 
 
+		// ---> make output directory
+		if( !::is_proc_shutoff() && *pconf.output_dir.value ) {
+			::fprintf(stderr, "\n");
+			::fprintf(stderr, " => make output directory \"\x1b[4m%s\x1b[0m\"\n", pconf.output_dir.value);
+
+			errno = 0;
+			if( mkdir(pconf.output_dir.value, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH ) < 0) {
+				if( errno != EEXIST ) {
+					::proc_shutoff();
+					::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to make output directory \"\x1b[4m%s\x1b[0m\"\n", pconf.output_dir.value);
+				}
+				else {
+					struct stat st;
+					::stat(pconf.output_dir.value, &st);
+
+					if( S_ISDIR(st.st_mode)) {
+						::fprintf(stderr, " ...\x1b[1mOK\x1b[0m: output directory \"\x1b[4m%s\x1b[0m\" is already exist\n", pconf.output_dir.value);
+					}
+					else {
+						::proc_shutoff();
+						::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: \"\x1b[4m%s\x1b[0m\" is already exist and it is not directory\n", pconf.output_dir.value);
+					}
+				}
+			}
+			else {
+				::fprintf(stderr, " ...\x1b[1mOK\x1b[0m: make output directory \"\x1b[4m%s\x1b[0m\"\n", pconf.output_dir.value);
+			}
+		} // <--- make output directory
+
 
 		if ( !::is_proc_shutoff() && *pconf.trajectory_log.value) {
+			char fname[512];
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => open trajectory log file\n");
 
-			if( !(tlog_fp = fopen( pconf.trajectory_log.value, "w" )) ) {
+			if( ::snprintf(fname, sizeof(fname), "%s/%s", *pconf.output_dir.value ? pconf.output_dir.value : "./", pconf.trajectory_log.value) == sizeof(fname) ){
 				::proc_shutoff();
-				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", pconf.trajectory_log.value);
+				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: file path is too long\n");
+			}
+			else if( !(tlog_fp = fopen( fname, "w" )) ) {
+				::proc_shutoff();
+				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", fname);
 			}
 			else {
 				::fprintf(tlog_fp, "# 1.[time, s] 2.[x] 3.[y] 4.[theta] 5.[v] 6.[w]. 7.[adjust-x] 8.[adjust-y] 9.[adjust-theta] 10.[adjust-v] 11.[adjust-w].\n");
@@ -376,12 +411,35 @@ int main(int argc, char* argv[]) {
 		}
 
 		if ( !::is_proc_shutoff() && *pconf.laserpoint_log.value) {
+			char fname[512];
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => open laser point log file\n");
 
-			if( !(llog_fp = fopen( pconf.laserpoint_log.value, "w" )) ) {
+			if( ::snprintf(fname, sizeof(fname), "%s/%s", *pconf.output_dir.value ? pconf.output_dir.value : "./", pconf.laserpoint_log.value) == sizeof(fname) ){
 				::proc_shutoff();
-				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", pconf.laserpoint_log.value);
+				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: file path is too long\n");
+			}
+			else if( !(llog_fp = fopen( fname, "w" )) ) {
+				::proc_shutoff();
+				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", fname);
+			}
+			else {
+				::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m\n");
+			}
+		}
+
+		if ( !::is_proc_shutoff() && *pconf.trajectory4route.value) {
+			char fname[512];
+			::fprintf(stderr, "\n");
+			::fprintf(stderr, " => open trajectory file for route edit\n");
+
+			if( ::snprintf(fname, sizeof(fname), "%s/%s", *pconf.output_dir.value ? pconf.output_dir.value : "./", pconf.trajectory4route.value) == sizeof(fname) ){
+				::proc_shutoff();
+				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: file path is too long\n");
+			}
+			else if( !(t4re_fp = fopen( fname, "w" )) ) {
+				::proc_shutoff();
+				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", fname);
 			}
 			else {
 				::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m\n");
@@ -1006,6 +1064,11 @@ int main(int argc, char* argv[]) {
 								ssm_position_write.data.v, ssm_position_write.data.w );
 					}
 
+					if( t4re_fp ) {
+						::fprintf(t4re_fp, "A %lf %lf\n",
+								ssm_position_write.data.x, ssm_position_write.data.y );
+					}
+
 					change_dist = 0;
 				}
 				else {
@@ -1170,9 +1233,9 @@ int main(int argc, char* argv[]) {
 
 
 	{ // ---> finalization
-
 		if(tlog_fp) ::fclose(tlog_fp);
 		if(llog_fp) ::fclose(llog_fp);
+		if(t4re_fp) ::fclose(t4re_fp);
 
 		ssm_odometry.close();
 		ssm_position_write.close();
@@ -1196,9 +1259,31 @@ int main(int argc, char* argv[]) {
 			} // <--- build map
 
 			{ // ---> write intermediate file
-				::fprintf(stderr, " => write intermediate file\n");
+				char dname[512];
 
-				if( gnd::opsm::write_counting_map(&cnt_smmap, "smmap") ) {
+				::fprintf(stderr, " => write intermediate file\n");
+				::sprintf(dname, "%s/%s/", *pconf.output_dir.value ? pconf.output_dir.value : "./", "smmap");
+
+				errno = 0;
+				if( mkdir(dname, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH ) < 0) {
+					if( errno != EEXIST ) {
+						::proc_shutoff();
+						::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to make output directory \"\x1b[4m%s\x1b[0m\"\n", dname);
+					}
+					else {
+						struct stat st;
+						::stat(pconf.output_dir.value, &st);
+
+						if( S_ISDIR(st.st_mode)) {
+							::fprintf(stderr, " ...\x1b[1mOK\x1b[0m: output directory \"\x1b[4m%s\x1b[0m\" is already exist\n", dname);
+						}
+						else {
+							::proc_shutoff();
+							::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: \"\x1b[4m%s\x1b[0m\" is already exist and it is not directory\n", dname);
+						}
+					}
+				}
+				else if( gnd::opsm::write_counting_map(&cnt_smmap, dname) ) {
 					::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open\n");
 				}
 				else {
@@ -1212,12 +1297,13 @@ int main(int argc, char* argv[]) {
 
 			{ // ---> file out
 				{ // ---> bmp
-					char fname[128];
+					char fname[512];
 					::fprintf(stderr, " => start map file out \n");
 
-					::sprintf(fname, "%s.%s", "out", "bmp" );
-
-					if( gnd::bmp::write32(fname, &bmp) < 0) {
+					if( ::snprintf(fname, sizeof(fname), "%s/%s.%s", pconf.output_dir.value, "out", "bmp" ) == sizeof(fname) ){
+						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open. file name is too long\n");
+					}
+					else if( gnd::bmp::write32(fname, &bmp) < 0) {
 						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", fname);
 					}
 					else {
@@ -1226,13 +1312,16 @@ int main(int argc, char* argv[]) {
 				} // <--- bmp
 
 				{ // ---> origin
-					char fname[128];
-					FILE *fp;
+					char fname[512];
+					FILE *fp = 0;
 					double x, y;
 
-					::sprintf(fname, "%s.%s", "out", "origin.txt" );
-
-					fp = fopen(fname, "w");
+					if( ::snprintf(fname, sizeof(fname), "%s/%s.%s", pconf.output_dir.value, "out", "origin.txt"  ) == sizeof(fname) ){
+						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open. file name is too long\n");
+					}
+					else if( !(fp = fopen(fname, "w")) ) {
+						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", fname);
+					}
 
 					bmp.pget_origin(&x, &y);
 					fprintf(fp, "%lf %lf\n", x, y);
@@ -1247,12 +1336,13 @@ int main(int argc, char* argv[]) {
 
 			{ // ---> file out
 				{ // ---> bmp
-					char fname[128];
+					char fname[512];
 					::fprintf(stderr, " => start map file out \n");
 
-					::sprintf(fname, "%s.%s", "out8", "bmp" );
-
-					if( gnd::bmp::write8(fname, &bmp8) < 0) {
+					if( ::snprintf(fname, sizeof(fname), "%s/%s.%s", pconf.output_dir.value, "out8", "bmp" ) == sizeof(fname) ){
+						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open. file name is too long\n");
+					}
+					else if( gnd::bmp::write8(fname, &bmp8) < 0) {
 						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", fname);
 					}
 					else {
@@ -1261,14 +1351,16 @@ int main(int argc, char* argv[]) {
 				} // <--- bmp
 
 				{ // ---> origin
-					char fname[128];
-					FILE *fp;
+					char fname[512];
+					FILE *fp = 0;
 					double x, y;
 
-					::sprintf(fname, "%s.%s", "out8", "origin.txt" );
-
-					fp = fopen(fname, "w");
-
+					if( ::snprintf(fname, sizeof(fname), "%s/%s.%s", pconf.output_dir.value, "out8", "origin.txt"  ) == sizeof(fname) ){
+						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open. file name is too long\n");
+					}
+					else if( !(fp = fopen(fname, "w")) ) {
+						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", fname);
+					}
 					bmp.pget_origin(&x, &y);
 					fprintf(fp, "%lf %lf\n", x, y);
 					fclose(fp);
