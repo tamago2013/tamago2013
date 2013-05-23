@@ -30,21 +30,21 @@ namespace ObservationProbabilityScanMatching {
 		static const char proc_name[] = "opsm-position-tracker";
 
 		// map-file
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_ScanMatchingMapDir = {
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_ScanMatchingMapDir = {
 				"scan-matching-map",
 				"",		// map file directory
 				"scan matching map directory path (optional argument)"
 		};
 
 		// map-file
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_CorrectionMapPath = {
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_CorrectionMapPath = {
 				"correction-map",
 				"",		// map path
 				"correction map file path (optional argument)"
 		};
 
 		// ssm-name
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_OdometrySSMName = {
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_OdometrySSMName = {
 				"odometry-ssm-name",
 				"spur_odometry",
 				"odometry ssm name"
@@ -58,7 +58,7 @@ namespace ObservationProbabilityScanMatching {
 		};
 
 		// laser scanner ssm-name
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_LaserScannerSSMName = {
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_LaserScannerSSMName = {
 				"laser-scanner-ssm-name",
 				"scan_data2d",
 				"laser scanner ssm name"
@@ -72,7 +72,7 @@ namespace ObservationProbabilityScanMatching {
 		};
 
 		// laser scanner ssm-name
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_CorrectedPosSSMName = {
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_CorrectedPosSSMName = {
 				"corrected-pos-ssm-name",
 				"spur_adjust",
 				"laser scanner ssm name"
@@ -186,7 +186,7 @@ namespace ObservationProbabilityScanMatching {
 		static const char OptNewton[]		= __OPTIMIZER_NEWTON__;
 		static const char OptQMC[]			= __OPTIMIZER_QMC__;
 		static const char OptQMC2Newton[]	= __OPTIMIZER_QMC2NEWTON__;
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_Optimizer = {
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_Optimizer = {
 				"optimizer",
 				__OPTIMIZER_NEWTON__,		// map file directory
 				"optimize method (newton or qmc or qmc2newton)"
@@ -260,17 +260,34 @@ namespace ObservationProbabilityScanMatching {
 		};
 
 		// trajectory log
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_TrajectoryLog = {
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_TrajectoryLog = {
 				"trajectory-txtlog",
 				"",		// file name
+				"log file name (text) (trajectory)"
+		};
+
+		// trajectory log
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_Trajectory4Route = {
+				"trajectory-for-route-edit",
+				"spurgl.dat",		// file name
+				"name of log file for route edit"
 		};
 
 		// laser point log
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_LaserPointLog = {
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_LaserPointLog = {
 				"laser-point-txtlog",
 				"",		// file name
-
+				"log file name (text) (laser point)"
 		};
+
+
+		// laser point log
+		static const gnd::Conf::parameter_array<char, 256> ConfIni_OutputDir = {
+				"file-output-directory",
+				"./",		// file name
+				"file output directory"
+		};
+
 	} // <--- namespace ObservationProbabilityScanMatching
 } // <--- namespace PositionTracker
 // <--- constant definition
@@ -327,13 +344,13 @@ namespace ObservationProbabilityScanMatching {
 		struct proc_configuration {
 			proc_configuration();
 
-			gnd::Conf::parameter_array<char, 512>	smmapdir;			///< scan matching map directory path
-			gnd::Conf::parameter_array<char, 512>	cmap;				///< correction map path
-			gnd::Conf::parameter_array<char, 512>	odm_name;			///< odometry position estimation log file name
+			gnd::Conf::parameter_array<char, 256>	smmapdir;			///< scan matching map directory path
+			gnd::Conf::parameter_array<char, 256>	cmap;				///< correction map path
+			gnd::Conf::parameter_array<char, 256>	odm_name;			///< odometry position estimation log file name
 			gnd::Conf::parameter<int>				odm_id;				///< corrected position log id
-			gnd::Conf::parameter_array<char, 512>	ls_name;			///< laser scanner log file name
+			gnd::Conf::parameter_array<char, 256>	ls_name;			///< laser scanner log file name
 			gnd::Conf::parameter<int>				ls_id;				///< corrected position log id
-			gnd::Conf::parameter_array<char, 512>	corrected_name;		///< laser scanner log file name
+			gnd::Conf::parameter_array<char, 256>	corrected_name;		///< laser scanner log file name
 			gnd::Conf::parameter<int>				corrected_id;		///< corrected position log id
 			gnd::Conf::parameter<double>			culling;			///< laser scanner data decimate parameter [m]
 			gnd::Conf::parameter<double>			cycle;				///< operation cycle
@@ -351,7 +368,7 @@ namespace ObservationProbabilityScanMatching {
 			gnd::Conf::parameter<double>			mapupdate_orient;	///< map update parameter (orient threshold)
 
 
-			gnd::Conf::parameter_array<char, 512>	optimizer;			///< kind of optimizer
+			gnd::Conf::parameter_array<char, 256>	optimizer;			///< kind of optimizer
 			gnd::Conf::parameter<double>			converge_dist;		///< convergence test threshold (position distance) [m]
 			gnd::Conf::parameter<double>			converge_orient;	///< convergence test threshold (position orientation) [deg]
 			gnd::Conf::parameter<int>				ini_map_cnt;		///< number of scan data for first map building
@@ -364,8 +381,11 @@ namespace ObservationProbabilityScanMatching {
 			gnd::Conf::parameter<double>			pos_gridsizey;		///< road map position size
 			gnd::Conf::parameter<int>				ang_rsl;			///< road map angular resolution
 
-			gnd::Conf::parameter_array<char, 512>	trajectory_log;		///< trajectory log
-			gnd::Conf::parameter_array<char, 512>	laserpoint_log;		///< laser point log
+			gnd::Conf::parameter_array<char, 256>	trajectory_log;		///< trajectory log
+			gnd::Conf::parameter_array<char, 256>	trajectory4route;	///< trajectory for route edit
+			gnd::Conf::parameter_array<char, 256>	laserpoint_log;		///< laser point log
+
+			gnd::Conf::parameter_array<char, 256>	output_dir;			///< file output directory
 		};
 
 		/**
@@ -429,7 +449,9 @@ namespace ObservationProbabilityScanMatching {
 			::memcpy(&conf->ang_rsl,			&ConfIni_AngReslution,			sizeof(ConfIni_AngReslution) );
 
 			::memcpy(&conf->trajectory_log,		&ConfIni_TrajectoryLog,			sizeof(ConfIni_TrajectoryLog) );
+			::memcpy(&conf->trajectory4route,	&ConfIni_Trajectory4Route,		sizeof(ConfIni_Trajectory4Route) );
 			::memcpy(&conf->laserpoint_log,		&ConfIni_LaserPointLog,			sizeof(ConfIni_LaserPointLog) );
+			::memcpy(&conf->output_dir,			&ConfIni_OutputDir,				sizeof(ConfIni_OutputDir) );
 
 			return 0;
 		}
@@ -485,7 +507,9 @@ namespace ObservationProbabilityScanMatching {
 			gnd::Conf::get_parameter( src, &dest->corrected_id );
 
 			gnd::Conf::get_parameter( src, &dest->trajectory_log );
+			gnd::Conf::get_parameter( src, &dest->trajectory4route );
 			gnd::Conf::get_parameter( src, &dest->laserpoint_log );
+			gnd::Conf::get_parameter( src, &dest->output_dir );
 
 			return 0;
 		}
@@ -549,7 +573,9 @@ namespace ObservationProbabilityScanMatching {
 				gnd::Conf::set_parameter(dest, &src->corrected_id);
 
 				gnd::Conf::get_parameter(dest, &src->trajectory_log );
+				gnd::Conf::get_parameter(dest, &src->trajectory4route );
 				gnd::Conf::get_parameter(dest, &src->laserpoint_log );
+				gnd::Conf::get_parameter(dest, &src->output_dir );
 				return 0;
 			} // <--- operation
 		}
