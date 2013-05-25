@@ -258,7 +258,12 @@ int main(int argc, char* argv[]) {
 				::proc_shutoff();
 				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: fail to create ssm-data \"\x1b[4m%s\x1b[0m\" id %d\n", pconf.corrected_name.value, pconf.corrected_id.value);
 			}
-
+			else {
+				::fprintf(stderr, "   ...\x1b[1mOK\x1b[0m: Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", pconf.corrected_name.value);
+				ssm_position_write.data.x = 0;
+				ssm_position_write.data.y = 0;
+				ssm_position_write.data.theta = 0;
+			}
 		} // <--- create corrected position ssmdata
 
 
@@ -283,7 +288,6 @@ int main(int argc, char* argv[]) {
 				}
 				else {
 					::fprintf(stderr, "   ...\x1b[1mOK\x1b[0m: Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", pconf.odm_name.value);
-
 					{ // ---> set coordinate
 						gnd::matrix::fixed<4,4> pos_cc;
 
@@ -295,6 +299,7 @@ int main(int argc, char* argv[]) {
 						coordtree.set_coordinate(coordid_odm, &pos_cc);
 					} // ---> set coordinate
 					ssm_odometry.setBlocking(true);
+					ssm_odometry.readLast();
 				}
 			}
 		} // <--- open ssm odometry
@@ -527,7 +532,7 @@ int main(int argc, char* argv[]) {
 
 		// ---> memory allocate counting map
 		if( !cnt_smmap.plane[0].is_allocate() ){
-			gnd::opsm::init_counting_map(&cnt_smmap, 0.5, 10);
+			gnd::opsm::init_counting_map(&cnt_smmap, 0.4, 10);
 		} // <--- memory allocate counting map
 
 
@@ -1260,6 +1265,7 @@ int main(int argc, char* argv[]) {
 
 			{ // ---> write intermediate file
 				char dname[512];
+				bool flg = false;
 
 				::fprintf(stderr, " => write intermediate file\n");
 				::sprintf(dname, "%s/%s/", *pconf.output_dir.value ? pconf.output_dir.value : "./", "smmap");
@@ -1276,6 +1282,7 @@ int main(int argc, char* argv[]) {
 
 						if( S_ISDIR(st.st_mode)) {
 							::fprintf(stderr, " ...\x1b[1mOK\x1b[0m: output directory \"\x1b[4m%s\x1b[0m\" is already exist\n", dname);
+							flg = true;
 						}
 						else {
 							::proc_shutoff();
@@ -1283,7 +1290,13 @@ int main(int argc, char* argv[]) {
 						}
 					}
 				}
-				else if( gnd::opsm::write_counting_map(&cnt_smmap, dname) ) {
+				else {
+					::fprintf(stderr, "  ... make output directory \"\x1b[4m%s\x1b[0m\"\n", dname);
+					flg = true;
+				}
+
+
+				if( flg && gnd::opsm::write_counting_map(&cnt_smmap, dname) ) {
 					::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open\n");
 				}
 				else {
@@ -1293,7 +1306,7 @@ int main(int argc, char* argv[]) {
 			} // <--- write intermediate file
 
 			// bmp file building
-			gnd::opsm::build_bmp32(&bmp, &smmap, gnd_m2dist( 1.0 / 8));
+			gnd::opsm::build_bmp32(&bmp, &smmap, gnd_m2dist( 1.0 / 10));
 
 			{ // ---> file out
 				{ // ---> bmp
@@ -1332,7 +1345,7 @@ int main(int argc, char* argv[]) {
 
 			// bmp file building
 			::fprintf(stderr, " => bmp map building\n");
-			gnd::opsm::build_bmp8(&bmp8, &smmap, gnd_m2dist( 1.0 / 8));
+			gnd::opsm::build_bmp8(&bmp8, &smmap, gnd_m2dist( 1.0 / 10));
 
 			{ // ---> file out
 				{ // ---> bmp
