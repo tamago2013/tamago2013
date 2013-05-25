@@ -5,8 +5,8 @@
  *      Author: tyamada
  */
 
-#ifndef _LOCALIZER_OPT_HPP_
-#define _LOCALIZER_OPT_HPP_
+#ifndef _PARTICLE_LOCALIZER_OPT_HPP_
+#define _PARTICLE_LOCALIZER_OPT_HPP_
 
 
 #include <string.h>
@@ -61,7 +61,8 @@ namespace Localizer {
 	typedef	proc_option
 			particle_opt;
 
-	const char particle_filter[] = "localizer";
+	const char particle_filter[] = "particle-localizer";
+	const char ConfFile[] = "particle-localizer.conf";
 
 	// default parameter
 	const proc_option::operation_mode __PARTICLE_OPTION_DEFPARAM__ = {
@@ -71,11 +72,12 @@ namespace Localizer {
 	};
 
 
-	const char ShortOpt[] = "hk:g:ar:w::d";
+	const char ShortOpt[] = "hk:g:G::ar:w::d";
 
 	const struct option LongOpt[] = {
-		{"help", 				no_argument,		0, 'h'},
+		{"help", 				no_argument,		0,	'h'},
 		{"config",				required_argument,	0,	'g'},
+		{"write-config",		optional_argument,	0,	'G'},
 		{ConfIni_KFile.token,	required_argument,	0,	'k'},
 		{"start-at",			no_argument,		0,	'a'},
 		{"wide-sampling",		optional_argument,	0,	'w'},
@@ -104,15 +106,16 @@ namespace Localizer {
 			case 'g':
 			{
 				gnd::Conf::FileStream conf_fs;
-				if( conf_fs.read(optarg) < 0 ){
+				if( proc_conf_read(optarg, param) < 0 ){
 					::fprintf(stderr, " ... [\x1b[1m\x1b[31mERROR\x1b[30m\x1b[0m]: -g option, Fail to read configure file\n");
 					return -1;
 				}
-				if( get_config_param(&conf_fs, param) < 0){
-					::fprintf(stderr, " ... [\x1b[1m\x1b[31mERROR\x1b[30m\x1b[0m]: -g option, configure file syntax error\n");
-					return -1;
-				}
 			} break;
+			// write configure
+			case 'G': {
+				proc_conf_write( optarg ? optarg : ConfFile, param);
+				::fprintf(stderr, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : ConfFile);
+			} return false;
 
 			case 'w': {
 				if( !optarg || !::strcmp(optarg, "on") )			op_mode.random = true;

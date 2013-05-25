@@ -9,10 +9,6 @@
 #include <stdio.h>
 #include <signal.h>
 
-#include "gnd-util.h"
-#include "gnd-random.hpp"
-#include "gnd-mahalanobis.hpp"
-
 #include <ypspur.h>
 
 #include <ssm.h>
@@ -21,32 +17,17 @@
 #include <ssmtype/pws-motor.h>
 #include <ssmtype/ypspur-ad.h>
 
-
 #include "ssm-particles.hpp"
 
-#include "particle-localizer-opt.hpp"
-#include "gnd-cui.hpp"
 #include "gnd-util.h"
+#include "gnd-random.hpp"
+#include "gnd-mahalanobis.hpp"
+#include "gnd-shutoff.hpp"
 
-bool gShutOff = false;
-void ShutOff(int stat);
+#include "particle-localizer-opt.hpp"
+#include "particle-localizer-cui.hpp"
 
 const char _Debug_Log_[] = "debug.log";
-
-
-const struct gnd_cui_cmd cui_cmd[] = {
-		{"Exit",		'E',	"localizer shut-off"},
-		{"help",		'h',	"show help"},
-		{"s",			's',	"state show mode"},
-		{"show",		's',	"state show mode"},
-		{"stand-by",	'B',	"operation stop and wait cui-command"},
-		{"start",		'o',	"start operation"},
-		{"start-at",	'S',	"initialize on way-point"},
-		{"wide",		'w',	"change wide sampling mode on/off"},
-		{"debug-log",	'd',	"change debug mode on/off"},
-		{"", '\0'}
-};
-
 
 
 int read_kinematics_config(double* radius_r, double* radius_l, double* tread,
@@ -62,10 +43,10 @@ int main(int argc, char* argv[], char *envp[]) {
 	SSMParticles ssm_particle;
 	SSMParticleEvaluation ssm_estimation;
 
-	gnd_cui gcui;
+	gnd::cui_reader gcui;
 	Localizer::proc_configuration param;
 	Localizer::proc_option opt(&param);
-	yp_matrix_fixed_c<1, PARTICLE_DIM> myu_ini;
+	gnd::matrix::fixed<1, PARTICLE_DIM> myu_ini;
 
 	double wheel_mean = 0,
 			wheel_ratio = 0,
@@ -82,13 +63,17 @@ int main(int argc, char* argv[], char *envp[]) {
 		size_t phase = 1;
 		double inittime = -1;
 		// todo make parameter file
-		myu_ini.set_zero();
+		gnd::matrix::set_zero(&myu_ini);
 
 		// get option
 		if( !opt.get_option(argc, argv) ){
 			return 0;
 		}
 
+		{ // ---> allocate SIGINT to shut-off
+			proc_shutoff_clear();
+			proc_shutoff_alloc_signal(SIGINT);
+		} // <--- allocate SIGINT to shut-off
 
 
 		::fprintf(stderr, "========== Initialize ==========\n");
@@ -107,28 +92,7 @@ int main(int argc, char* argv[], char *envp[]) {
 		::fprintf(stderr, "\n");
 
 
-		gShutOff = false;
-		{ // ---> allocate SIGINT to shutoff
-			struct sigaction sigact;
-
-			::memset(&sigact, 0, sizeof(sigact));
-
-			::fprintf(stderr, "\n");
-			::fprintf(stderr, " => allocate signal \"\x1b[4mSIGINT\x1b[0m\" to shut-off\n");
-			sigact.sa_handler = ShutOff;
-			sigact.sa_flags |= SA_RESETHAND | SA_RESTART;
-
-			if( sigaction(SIGINT, &sigact, 0) < 0){
-				::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to allocate \"\x1b[4mSIGINT\x1b[0m\" to shut-off\n" );
-				gShutOff = true;
-			}
-			else {
-				::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m\n");
-			}
-		} // <--- allocate SIGINT to shutoff
-
-
-		{ // ---> set initial kinematics
+		if( !is_proc_shutoff() ) { // ---> set initial kinematics
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => get initial kinematics parameter\n");
 
@@ -155,25 +119,24 @@ int main(int argc, char* argv[], char *envp[]) {
 				// initialize for using ypspur-coordinator
 				if( Spur_init() < 0){
 					::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to connect ypspur-coordinator.\n");
-					gShutOff = true;
+					proc_shutoff();
 				}
 
 				// get kinmeatics from ypspur-coordinator
-				if( !gShutOff && YP_get_parameter( YP_PARAM_RADIUS_R, &odm_prop.radius_r ) < 0 ){
-					gShutOff = true;
+				if( !is_proc_shutoff() && YP_get_parameter( YP_PARAM_RADIUS_R, &odm_prop.radius_r ) < 0 ){
+					proc_shutoff();
 				}
-				if( !gShutOff && YP_get_parameter( YP_PARAM_RADIUS_L, &odm_prop.radius_l ) < 0 ){
-					gShutOff = true;
+				if( !is_proc_shutoff() && YP_get_parameter( YP_PARAM_RADIUS_L, &odm_prop.radius_l ) < 0 ){
+					proc_shutoff();
 				}
-				if( !gShutOff && YP_get_parameter( YP_PARAM_TREAD, &odm_prop.tread ) < 0 ){
-					gShutOff = true;
+				if( !is_proc_shutoff() && YP_get_parameter( YP_PARAM_TREAD, &odm_prop.tread ) < 0 ){
+					proc_shutoff();
 				}
-
-				if( !gShutOff && YP_get_parameter(YP_PARAM_COUNT_REV, &count_rev) < 0 ){
-					gShutOff = true;
+				if( !is_proc_shutoff() && YP_get_parameter(YP_PARAM_COUNT_REV, &count_rev) < 0 ){
+					proc_shutoff();
 				}
-				if( !gShutOff && YP_get_parameter(YP_PARAM_GEAR, &gear) < 0 ){
-					gShutOff = true;
+				if( !is_proc_shutoff() && YP_get_parameter(YP_PARAM_GEAR, &gear) < 0 ){
+					proc_shutoff();
 				}
 			}
 			// <--- get parameter from ypspur-coordinater
@@ -181,25 +144,26 @@ int main(int argc, char* argv[], char *envp[]) {
 			// check kinematic parameter
 			if( odm_prop.radius_r <= 0 || odm_prop.radius_l <= 0 || odm_prop.tread <= 0 || gear <= 0 || count_rev <= 0){
 				::fprintf(stderr, "  => \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m : Incomplete loading kinematics parameter.\n");
-				gShutOff = true;
+				proc_shutoff();
 			}
 
 			// set kinematics
-			if( !gShutOff ){
+			if( !is_proc_shutoff() ){
 				// wheel mean
 				wheel_mean = (odm_prop.radius_l + odm_prop.radius_r) / 2.0;
 				wheel_ratio = odm_prop.radius_l / wheel_mean;
 				tread_ratio = odm_prop.tread / wheel_mean;
 
 				if( !param.gyro.value ){
-					myu_ini.set(0, PARTICLE_WHEEL_MEAN,  wheel_mean);
-					myu_ini.set(0, PARTICLE_WHEEL_RATIO, wheel_ratio);
-					myu_ini.set(0, PARTICLE_TREAD_RATIO, tread_ratio);
+
+					myu_ini[0][PARTICLE_WHEEL_MEAN] = wheel_mean;
+					myu_ini[0][PARTICLE_WHEEL_RATIO] = wheel_ratio;
+					myu_ini[0][PARTICLE_TREAD_RATIO] = tread_ratio;
 				}
 				else {
-					myu_ini.set(0, PARTICLE_WHEEL_MEAN,  wheel_mean);
-					myu_ini.set(0, PARTICLE_GYRO_BIAS, param.gyro_bias.value);
-					myu_ini.set(0, PARTICLE_GYRO_SF, param.gyro_sf.value);
+					myu_ini[0][PARTICLE_WHEEL_MEAN] = wheel_mean;
+					myu_ini[0][PARTICLE_GYRO_BIAS] = param.gyro_bias.value;
+					myu_ini[0][PARTICLE_GYRO_SF] = param.gyro_sf.value;
 				}
 				ssm_particle.data.init_kinematics(count_rev, gear);
 
@@ -211,32 +175,32 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 		 // ---> get configure
-		if( !gShutOff ){
+		if( !is_proc_shutoff() ){
 
 			Localizer::proc_conf_sampling_ratio_normalize(&param);
-			Localizer::proc_conf_kinematics_parameter_materialize(&param, wheel_mean, wheel_ratio, tread_ratio);
+			Localizer::proc_conf_set_kinematics_parameter(&param, wheel_mean, wheel_ratio, tread_ratio);
 
 			{ // ---> initlaize min cov
-				yp_matrix_fixed<3, 3> min_cov;
+				gnd::matrix::fixed<3, 3> min_cov;
 
-				yp_matrix_set_zero(&min_cov);
+				gnd::matrix::set_zero(&min_cov);
 
-				yp_matrix_set(&min_cov, 0, 0, 1.0e-20);
-				yp_matrix_set(&min_cov, 1, 1, 1.0e-20);
-				yp_matrix_set(&min_cov, 2, 2, 1.0e-20);
+				gnd::matrix::set(&min_cov, 0, 0, 1.0e-20);
+				gnd::matrix::set(&min_cov, 1, 1, 1.0e-20);
+				gnd::matrix::set(&min_cov, 2, 2, 1.0e-20);
 
-				yp_matrix_add(&param.poserr_covar,			&min_cov,		&param.poserr_covar);
-				yp_matrix_add(&param.knm_covar,				&min_cov,		&param.knm_covar);
-				yp_matrix_add(&param.poserr_covar_static,	&min_cov,		&param.poserr_covar_static);
-				yp_matrix_add(&param.knm_covar,				&min_cov,		&param.knm_covar);
-				yp_matrix_add(&param.wknm_covar, 			&min_cov, 		&param.wknm_covar);
+				gnd::matrix::add(&param.poserr_covar,			&min_cov,		&param.poserr_covar);
+				gnd::matrix::add(&param.knm_covar,				&min_cov,		&param.knm_covar);
+				gnd::matrix::add(&param.poserr_covar_static,	&min_cov,		&param.poserr_covar_static);
+				gnd::matrix::add(&param.knm_covar,				&min_cov,		&param.knm_covar);
+				gnd::matrix::add(&param.wknm_covar, 			&min_cov, 		&param.wknm_covar);
 
 			} // <--- initlaize min cov
 		} // <--- get configure
 
 
 		// ---> set initialize position covariance matrix
-		if( !gShutOff ){
+		if( !is_proc_shutoff() ){
 			ssm_estimation.property.n = param.particles.value + param.random_sampling.value;
 			ssm_estimation.data.n = param.particles.value + param.random_sampling.value;
 			ssm_estimation.data.value = new double [ssm_estimation.data.n];
@@ -244,12 +208,12 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 		// ---> initialize ssm
-		if( !gShutOff ) {
+		if( !is_proc_shutoff() ) {
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => initialize SSM\n");
 			if( !initSSM() ){
 				::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: SSM is not available.\n");
-				gShutOff = true;
+				proc_shutoff();
 			}
 			else {
 				::fprintf(stderr, "   ... \x1b[1mOK\x1b[0m\n");
@@ -258,12 +222,12 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 		// ---> ssm open
-		if( !gShutOff ) {
+		if( !is_proc_shutoff() ) {
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => create ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_ADJUST );
 			if( !ssm_position.create( SNAME_ADJUST, 0, 1, 0.005) ){
 				::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to create \"\x1b[4m%s\x1b[0m\"\n", SNAME_ADJUST );
-				gShutOff = true;
+				proc_shutoff();
 			}
 			else {
 				::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m\n");
@@ -272,11 +236,11 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 
-		if( !gShutOff ){ // ---> write initial position
+		if( !is_proc_shutoff() ) { // ---> write initial position
 			::fprintf(stderr, " => create initial particles and write into ssm\n" );
 
 			// create initialize position
-			ssm_particle.data.init_particle(myu_ini.base(),
+			ssm_particle.data.init_particle(&myu_ini,
 					&param.pos_ini_covar, &param.knm_ini_covar, param.particles.value + param.random_sampling.value);
 
 			// set property
@@ -297,17 +261,17 @@ int main(int argc, char* argv[], char *envp[]) {
 			// ---> write position to ssm
 			if( inittime > 0){
 				if( !ssm_position.write( inittime ) && !ssm_position.write( ) ){
-					gShutOff = true;
 					::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to write \"\x1b[4m%s\x1b[0m\"\n", SNAME_ADJUST );
+					proc_shutoff();
 				}
 				else {
 					::fprintf(stderr, "   ... \x1b[1mOK\x1b[0m\n");
 				}
 			}
-			else if( !gShutOff ){
+			else if( !is_proc_shutoff() ) {
 				if( !ssm_position.write( ) ){
-					gShutOff = true;
 					::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to write \"\x1b[4m%s\x1b[0m\"\n", SNAME_ADJUST );
+					proc_shutoff();
 				}
 				else {
 					::fprintf(stderr, "   ... \x1b[1mOK\x1b[0m\n");
@@ -316,28 +280,29 @@ int main(int argc, char* argv[], char *envp[]) {
 		} // <--- write initial position
 
 
-		// ---> ssm perticles open
-		if( !gShutOff ){
+		// ---> ssm particles open
+		if( !is_proc_shutoff() ) {
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => create ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_PARTICLES );
 			if( !ssm_particle.create( SNAME_PARTICLES, 0, 5, 0.005 ) ){
 				::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to create \"\x1b[4m%s\x1b[0m\"\n", SNAME_PARTICLES );
-				gShutOff = true;
+				proc_shutoff();
 			}
 			else {
 				ssm_particle.setProperty();
+				ssm_particle.write();
 				::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m\n");
 			}
-		} // <--- ssm perticles open
+		} // <--- ssm particles open
 
 
 		// ---> ssm perticles evaluation open
-		if( !gShutOff ){
+		if( !is_proc_shutoff() ) {
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => create ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_PARTICLES_EVALUATION );
 			if( !ssm_estimation.create( SNAME_PARTICLES_EVALUATION, 0, 5, 0.1 ) ){
 				::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", SNAME_PARTICLES_EVALUATION );
-				gShutOff = true;
+				proc_shutoff();
 			}
 			else {
 				ssm_estimation.setProperty();
@@ -346,12 +311,12 @@ int main(int argc, char* argv[], char *envp[]) {
 		}// <--- ssm perticles evaluation open
 
 		// ---> ssm pws motor open
-		if( !gShutOff ){
+		if( !is_proc_shutoff() ) {
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => open ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_PWS_MOTOR );
-			if( !gShutOff && !mtr.openWait( SNAME_PWS_MOTOR, 0, 0.0) ){
+			if( !is_proc_shutoff() && !mtr.openWait( SNAME_PWS_MOTOR, 0, 0.0) ){
 				::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to create \"\x1b[4m%s\x1b[0m\"\n", SNAME_PWS_MOTOR );
-				gShutOff = true;
+				proc_shutoff();
 			}
 			else {
 				// next read new data
@@ -364,12 +329,12 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 		// ---> ssm ad open
-		if( param.gyro.value && !gShutOff ){
+		if( param.gyro.value && !is_proc_shutoff() ){
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => open ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_YPSPUR_AD );
-			if( !gShutOff && !ad.openWait( SNAME_YPSPUR_AD, 0, 0.0) ){
+			if( !is_proc_shutoff() && !ad.openWait( SNAME_YPSPUR_AD, 0, 0.0) ){
 				::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to create \"\x1b[4m%s\x1b[0m\"\n", SNAME_YPSPUR_AD );
-				gShutOff = true;
+				proc_shutoff();
 			}
 			else {
 				// next read new data
@@ -391,7 +356,7 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 
-	if( !gShutOff ){ // ---> operation
+	if( !is_proc_shutoff() ){ // ---> operation
 		int rsmpl_cnt = 0,
 			reject_cnt = 0;
 		ssmTimeT rsmp_time = 0;
@@ -436,7 +401,7 @@ int main(int argc, char* argv[], char *envp[]) {
 		} // <--- debug log open
 
 
-		while(!gShutOff){
+		while( !is_proc_shutoff() ){
 
 			{ // ---> cui
 				int cuival = 0;
@@ -452,7 +417,7 @@ int main(int argc, char* argv[], char *envp[]) {
 					else {
 						switch(cuival) {
 						// exit
-						case 'e': gShutOff = true; break;
+						case 'e': proc_shutoff(); break;
 						// help
 						case 'h': gcui.show(stderr, "   "); break;
 						// debug log-mode
@@ -517,7 +482,7 @@ int main(int argc, char* argv[], char *envp[]) {
 
 					::fprintf(stderr, "\x1b[0;0H\x1b[2J");	// display clear
 					::fprintf(stderr, "-------------------- \x1b[33m\x1b[1m%s\x1b[0m\x1b[39m --------------------\n", Localizer::particle_filter);
-					::fprintf(stderr, "    particle : %d\n", ssm_particle.data.row() );
+					::fprintf(stderr, "    particle : %d\n", ssm_particle.data.size() );
 					::fprintf(stderr, "             : r %d, p %d, k %d, wk %d rk %d\n", nparticle_remain, nparticle_pos, nparticle_knm, nparticle_wknm, nparticle_knm_reset);
 					::fprintf(stderr, "    resample : %d,   reject %d\n", rsmpl_cnt, reject_cnt );
 					::fprintf(stderr, "    position : %.02lf %.02lf %.01lf\n",  ssm_particle.data.pos.odo.x,  ssm_particle.data.pos.odo.y,  gnd_ang2deg(ssm_particle.data.pos.odo.theta) );
@@ -616,8 +581,10 @@ int main(int argc, char* argv[], char *envp[]) {
 				size_t wknm = nparticle_wknm;			// wide kinematics sampling
 				size_t lknm = nparticle_knm;			// local kinematics sampling
 				size_t knm_reset = nparticle_knm_reset;	// kinematics reset
-				double eval_ave;
+				double eval_ave = 0;
 
+				// count resampling
+				rsmpl_cnt++;
 
 				// ---> check time
 				if( ssm_estimation.time < rsmp_time ){
@@ -653,37 +620,17 @@ int main(int argc, char* argv[], char *envp[]) {
 					wide_sampling_rate = 1.0 - (eval_ave_fast / eval_ave_slow);
 				} // <--- deternimation wide sampling num
 
-				// count resampling
-				rsmpl_cnt++;
 
 				if(opt.op_mode.debug) { // ---> open log file
-					yp_matrix_fixed<1,PARTICLE_DIM> mean;
-					char fname[128];
-					static int logcnt = 0;
-					FILE *fp;
-					sprintf( fname, "log/%04d.log", logcnt++ );
-					ssm_particle.data.mean(&mean);
-
-					fp = fopen(fname, "w");
-					if(fp){
-						fprintf(fp, "#");
-						yp_matrix_show(fp, &mean, "%lf");
-						fprintf(fp, "#%lf %lf %lf %lf %lf %lf %lf\n",
-								ssm_particle.data.pos.odo.x, ssm_particle.data.pos.odo.y, ssm_particle.data.pos.odo.theta,
-								ssm_particle.data.pos.prop.wheel_odm.wheel_mean, ssm_particle.data.pos.prop.wheel_odm.wheel_ratio, ssm_particle.data.pos.prop.wheel_odm.tread_ratio,
-								ssm_particle.data.pos.eval);
-						ssm_particle.data.show(fp);
-
-						fclose(fp);
-					}
 				} // <--- open log file
 
+				// ---> resampling
 				if(ret >= 0){
 					{ // ---> resampling position change particle
-						yp_matrix_fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM> covp;
+						gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM> covp;
 
-						yp_matrix_scalar_prod( &param.poserr_covar, enc_cnt_pos / (count_rev * gear), &covp);
-						yp_matrix_add( &covp, &param.poserr_covar_static, &covp );
+						gnd::matrix::scalar_prod( &param.poserr_covar, enc_cnt_pos / (count_rev * gear), &covp);
+						gnd::matrix::add( &covp, &param.poserr_covar_static, &covp );
 						ssm_particle.data.resampling_position(&covp, rnoise);
 						enc_cnt_pos = 0;
 					} // <--- resampling position change particle
@@ -698,15 +645,18 @@ int main(int argc, char* argv[], char *envp[]) {
 					}
 					// reset kinematics change particle
 					if(knm_reset > 0){
-						ssm_particle.data.resampling_kinematics_reset(myu_ini.base(), &param.reset_knm_covar , knm_reset);
+						ssm_particle.data.resampling_kinematics_reset(&myu_ini, &param.reset_knm_covar , knm_reset);
 					}
-				}
 
-				// write ssm
-				ssm_particle.write( mtr.time + 1.0e-6);
+					// save resampling time
+					rsmp_time = prev_time + 1.0e-6;
+					// write ssm
+					ssm_particle.write( rsmp_time );
 
-				// save resampling time
-				rsmp_time = ssm_particle.time;
+
+				} // <--- resampling
+
+
 			} // <--- resampling
 
 		}
@@ -727,15 +677,6 @@ int main(int argc, char* argv[], char *envp[]) {
 
 	return 0;
 }
-
-
-
-void ShutOff(int stat)
-{
-	// set shut-off flag
-	gShutOff = true;
-}
-
 
 
 int read_kinematics_config(double* radius_r, double* radius_l, double* tread,
