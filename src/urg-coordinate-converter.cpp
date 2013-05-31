@@ -134,7 +134,7 @@ int main(int argc, char* argv[], char* env[]) {
 					nline_show = 0;
 				}
 
-				nline_show++; ::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", "urg-proxy");
+				nline_show++; ::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", gnd::urg_cc::proc_name);
 				nline_show++; ::fprintf(stderr, "\x1b[K            prod : %s\n", ssm_sokuiki_raw.property.sensorInfo.product );
 				nline_show++; ::fprintf(stderr, "\x1b[K          serial : %s\n", ssm_sokuiki_raw.property.sensorInfo.id );
 				nline_show++; ::fprintf(stderr, "\x1b[K              fs : %s : id %d\n", pconf.fs_name.value, (pconf.fs_id.value < 0 ? pconf.raw_id.value : pconf.fs_id.value)  );

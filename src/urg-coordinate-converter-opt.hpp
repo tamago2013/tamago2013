@@ -49,7 +49,7 @@ namespace gnd {
 		};
 
 
-		const char proc_name[] = "urg-proxy";
+		const char proc_name[] = "urg-coordinate-converter";
 
 
 		const char ShortOpt[] = "hg:G::D::";
@@ -96,8 +96,8 @@ namespace gnd {
 
 				// write configure
 				case 'G': {
-					proc_conf_write( optarg ? optarg : "urg-coordiante-convert.conf", param);
-					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "urg-coordniante-convert.conf");
+					proc_conf_write( optarg ? optarg : "urg-coordiante-converter.conf", param);
+					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "urg-coordniante-converter.conf");
 				} return RWriteConf;
 				// write configure
 
