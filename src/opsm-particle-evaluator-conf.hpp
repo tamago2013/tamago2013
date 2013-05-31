@@ -88,7 +88,7 @@ namespace OPSM {
 		// sokuiki-raw-id
 		static const gnd::Conf::parameter<int> ConfIni_SokuikiRawID = {
 				"sokuiki-raw-ssm-id",
-				1,		// id
+				0,		// id
 				"sokuiki raw data ssm id"
 		};
 
@@ -132,7 +132,7 @@ namespace OPSM {
 		// particle-id
 		static const gnd::Conf::parameter<int> ConfIni_ParticleEvalID = {
 				"particle-eval-ssm-id",
-				1,		// ssm id
+				0,		// ssm id
 				"particles evaluation data ssm id"
 		};
 
