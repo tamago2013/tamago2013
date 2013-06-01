@@ -7,6 +7,7 @@
 //============================================================================
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include <ssm-laser.hpp>
 #include <ssmtype/spur-odometry.h>
@@ -48,7 +49,7 @@ int main(int argc, char *argv[], char **env) {
 
 	{ // ---> initialize
 		int ret;
-		size_t phase = 1;
+		uint32_t phase = 1;
 
 		// ---> read option
 		popt.set(&pconf);
@@ -251,7 +252,7 @@ int main(int argc, char *argv[], char **env) {
 
 	if( !::is_proc_shutoff() ){ // ---> operation
 		Spur_Odometry prev;				// previous position
-		size_t nalloc = 0;
+		uint32_t nalloc = 0;
 		int cnt_eval = 0;
 		int nline_show = 0;
 
