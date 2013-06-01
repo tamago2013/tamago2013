@@ -6,6 +6,8 @@
 #ifndef __PARTICLES_HPP__
 #define __PARTICLES_HPP__
 
+#include <stdint.h>
+
 #include <ssmtype/spur-odometry.h>
 
 #include "gnd-random.hpp"
@@ -98,7 +100,7 @@ public:
 // ---> init
 public:
 	template < typename MTRX1, typename MTRX2, typename MTRX3 >
-	int init_particle( MTRX1 *myu, MTRX2 *sigmap, MTRX3 *sigmak, const size_t n );
+	int init_particle( MTRX1 *myu, MTRX2 *sigmap, MTRX3 *sigmak, const uint32_t n );
 
 // ---> kinematics
 public:
@@ -121,23 +123,23 @@ public:
 	/**
 	 * @brief resampling remain
 	 */
-	int resampling_remain(double *eval, const size_t n, value_t* ave = 0);
+	int resampling_remain(double *eval, const uint32_t n, value_t* ave = 0);
 
 	/**
 	 * @brief resampling change position
 	 */
 	template < typename MTRX >
-	int resampling_position( MTRX *sigma, const size_t n);
+	int resampling_position( MTRX *sigma, const uint32_t n);
 	/**
 	 * @brief resampling change kinematics
 	 */
 	template < typename MTRX >
-	int resampling_kinematics( MTRX *sigma, const size_t n);
+	int resampling_kinematics( MTRX *sigma, const uint32_t n);
 	/**
 	 * @brief resampling change kinematics
 	 */
 	template < typename MTRX1, typename MTRX2 >
-	int resampling_kinematics_reset( MTRX1 *myu, MTRX2 *sigma, const size_t n);
+	int resampling_kinematics_reset( MTRX1 *myu, MTRX2 *sigma, const uint32_t n);
 	/**
 	 * @brief
 	 */
@@ -184,10 +186,10 @@ inline POSITION_PARTICLE_SET_CLASS::~POSITION_PARTICLE_SET_CLASS()
  * @param [in] n		: number of particle
  */
 template < typename MTRX1, typename MTRX2, typename MTRX3 >
-inline int POSITION_PARTICLE_SET_CLASS::init_particle( MTRX1 *myu, MTRX2 *sigmap, MTRX3 *sigmak, const size_t n )
+inline int POSITION_PARTICLE_SET_CLASS::init_particle( MTRX1 *myu, MTRX2 *sigmap, MTRX3 *sigmak, const uint32_t n )
 {
 	gnd_assert(!myu || !sigmap, -1, "null pointer");
-	gnd_assert(gnd_vector_size(myu) < (signed)PARTICLE_DIM, -1, "invalid argument");
+	gnd_assert(gnd::vector::size(myu) < (signed)PARTICLE_DIM, -1, "invalid argument");
 	gnd_assert(gnd::matrix::row(sigmap) < (signed) PARTICLE_POS_DIM, -1, "invalid argument");
 	gnd_assert(gnd::matrix::column(sigmap) < (signed) PARTICLE_POS_DIM, -1, "invalid argument");
 	gnd_error(n <= 0, -1, "no effect argument");
@@ -199,7 +201,7 @@ inline int POSITION_PARTICLE_SET_CLASS::init_particle( MTRX1 *myu, MTRX2 *sigmap
 	} // <--- initialize matrix
 
 	{
-		size_t i = 0;
+		uint32_t i = 0;
 		gnd::matrix::fixed<1, PARTICLE_DIM> rnd;
 		gnd::matrix::fixed<1, PARTICLE_POS_DIM> ws;
 		gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM> cp_sigma;
@@ -216,15 +218,15 @@ inline int POSITION_PARTICLE_SET_CLASS::init_particle( MTRX1 *myu, MTRX2 *sigmap
 			gnd::matrix::set_zero(&rnd);
 
 			{ // ---> add random (position)
-				gnd_matrix_assign_to_as_vector(&rand_ref, &rnd, 0, PARTICLE_POS_INDX, PARTICLE_POS_DIM);
+				gnd::matrix::assign_to_as_vector(&rand_ref, &rnd, 0, PARTICLE_POS_INDX, PARTICLE_POS_DIM);
 				gnd::matrix::copy(&cp_sigma, sigmap);
-				gnd_random_gaussian_mult(&cp_sigma, PARTICLE_POS_DIM, &ws, &rand_ref);
+				gnd::random_gaussian_mult(&cp_sigma, PARTICLE_POS_DIM, &ws, &rand_ref);
 			} // <--- add random (position)
 			// ---> add random (kinematics)
 			if( sigmak ) {
-				gnd_matrix_assign_to_as_vector(&rand_ref, &rnd, 0, PARTICLE_PROP_INDX, PARTICLE_PROP_DIM);
+				gnd::matrix::assign_to_as_vector(&rand_ref, &rnd, 0, PARTICLE_PROP_INDX, PARTICLE_PROP_DIM);
 				gnd::matrix::copy(&cp_sigma, sigmak);
-				gnd_random_gaussian_mult(&cp_sigma, PARTICLE_PROP_DIM, &ws, &rand_ref);
+				gnd::random_gaussian_mult(&cp_sigma, PARTICLE_PROP_DIM, &ws, &rand_ref);
 			} // <--- add random (kinematics)
 			// add random error to mean
 			gnd::matrix::add(&rnd, myu, &rnd);
@@ -277,7 +279,7 @@ inline int POSITION_PARTICLE_SET_CLASS::odometry_motion(int cnt1, int cnt2)
 
 	{ // ---> operation
 		double wr, wl;
-		size_t i;
+		uint32_t i;
 
 		{ // ---> compute wheel rotation quantity
 			wr = ( 2.0 * M_PI * ( (double) cnt2 ) ) / (_mtr.enc_rev );
@@ -328,7 +330,7 @@ inline int POSITION_PARTICLE_SET_CLASS::gyro_odometry_motion(int cnt1, int cnt2,
 
 	{ // ---> operation
 		double qt, qr;
-		size_t i;
+		uint32_t i;
 
 		qt = (pos.prop.gyro_odm.wheel_mean * M_PI * ( (double) cnt1 + cnt2 ) / (_mtr.enc_rev) );
 		if(cnt1 == 0 && cnt2 == 0) {
@@ -372,7 +374,7 @@ inline int POSITION_PARTICLE_SET_CLASS::gyro_odometry_motion(int cnt1, int cnt2,
 /**
  * @brief init_resampling()
  */
-inline int POSITION_PARTICLE_SET_CLASS::resampling_remain(double *eval, const size_t nremain, value_t *ave)
+inline int POSITION_PARTICLE_SET_CLASS::resampling_remain(double *eval, const uint32_t nremain, value_t *ave)
 {
 	double evalsum = 0;
 	{ // ---> initialize
@@ -381,7 +383,7 @@ inline int POSITION_PARTICLE_SET_CLASS::resampling_remain(double *eval, const si
 	} // <--- initialize
 
 	{ // ---> set evaluation and compute sum
-		size_t i;
+		uint32_t i;
 
 		// compute eval
 		for(i = 0; (signed)i < size(); i++){
@@ -392,7 +394,7 @@ inline int POSITION_PARTICLE_SET_CLASS::resampling_remain(double *eval, const si
 	} // <--- set evaluation and compute sum
 
 	{ // ---> resampling remain
-		size_t i, j;
+		uint32_t i, j;
 		double rnd;
 		gnd::matrix::fixed<1, PARTICLE_DIM> wave;
 		gnd::matrix::fixed<1, PARTICLE_DIM> ws;
@@ -402,7 +404,7 @@ inline int POSITION_PARTICLE_SET_CLASS::resampling_remain(double *eval, const si
 		gnd::matrix::set_zero(&wave);
 		for(i = 0; i < nremain; i++){
 			double sum = 0;
-			rnd = evalsum * gnd_random_uniform();
+			rnd = evalsum * gnd::random_uniform();
 			// select particle
 			for(j = 0; (signed)j < size() && rnd > sum; j++)	sum += eval[j];
 			if(j >= 0)	j--;
@@ -449,17 +451,17 @@ inline int POSITION_PARTICLE_SET_CLASS::resampling_remain(double *eval, const si
  * @brief resampling change position
  */
 template < typename MTRX >
-inline int POSITION_PARTICLE_SET_CLASS::resampling_position( MTRX *sigma, const size_t n)
+inline int POSITION_PARTICLE_SET_CLASS::resampling_position( MTRX *sigma, const uint32_t n)
 {
 	gnd::matrix::fixed<1, PARTICLE_DIM> tmp;
 	gnd::matrix::fixed<1, PARTICLE_POS_DIM> ws;
 	gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM> cp_sigma;
-	size_t i, j;
+	uint32_t i, j;
 	double rnd;
 
 	for(i = 0; i < n; i++){
 		double sum = 0;
-		rnd = _resampling_var.sum * gnd_random_uniform();
+		rnd = _resampling_var.sum * gnd::random_uniform();
 
 		// select perticle
 		for(j = 0; (signed)j < _resampling_var.storage.size() && rnd > sum; j++)
@@ -472,10 +474,10 @@ inline int POSITION_PARTICLE_SET_CLASS::resampling_position( MTRX *sigma, const 
 			// clear
 			gnd::matrix::set_zero(&tmp);
 			// assign
-			gnd_matrix_assign_to_as_vector(&rndp, &tmp, 0, PARTICLE_POS_INDX, PARTICLE_POS_DIM);
+			gnd::matrix::assign_to_as_vector(&rndp, &tmp, 0, PARTICLE_POS_INDX, PARTICLE_POS_DIM);
 			gnd::matrix::copy(&cp_sigma, sigma);
 			// generate random
-			gnd_random_gaussian_mult(&cp_sigma, PARTICLE_POS_DIM, &ws, &rndp);
+			gnd::random_gaussian_mult(&cp_sigma, PARTICLE_POS_DIM, &ws, &rndp);
 
 			gnd::matrix::add(&tmp, _resampling_var.storage + j, &tmp);
 			// initialize remaining count
@@ -491,17 +493,17 @@ inline int POSITION_PARTICLE_SET_CLASS::resampling_position( MTRX *sigma, const 
  * @brief resampling change kinematics
  */
 template < typename MTRX >
-inline int POSITION_PARTICLE_SET_CLASS::resampling_kinematics( MTRX *sigma, const size_t n)
+inline int POSITION_PARTICLE_SET_CLASS::resampling_kinematics( MTRX *sigma, const uint32_t n)
 {
 	gnd::matrix::fixed<1, PARTICLE_DIM> tmp;
 	gnd::matrix::fixed<1, PARTICLE_PROP_DIM> ws;
 	gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM> cp_sigma;
-	size_t i, j;
+	uint32_t i, j;
 	double rnd;
 
 	for(i = 0; i < n; i++){
 		double sum = 0;
-		rnd = _resampling_var.sum * gnd_random_uniform();
+		rnd = _resampling_var.sum * gnd::random_uniform();
 
 		// select perticle
 		for(j = 0; (signed)j < _resampling_var.storage.size() && rnd > sum; j++)
@@ -514,10 +516,10 @@ inline int POSITION_PARTICLE_SET_CLASS::resampling_kinematics( MTRX *sigma, cons
 			// clear
 			gnd::matrix::set_zero(&tmp);
 			// assign
-			gnd_matrix_assign_to_as_vector(&rndp, &tmp, 0, PARTICLE_PROP_INDX, PARTICLE_PROP_DIM);
+			gnd::matrix::assign_to_as_vector(&rndp, &tmp, 0, PARTICLE_PROP_INDX, PARTICLE_PROP_DIM);
 			gnd::matrix::copy(&cp_sigma, sigma);
 			// generate random
-			gnd_random_gaussian_mult(&cp_sigma, PARTICLE_PROP_DIM, &ws, &rndp);
+			gnd::random_gaussian_mult(&cp_sigma, PARTICLE_PROP_DIM, &ws, &rndp);
 
 			gnd::matrix::add(&tmp, _resampling_var.storage + j, &tmp);
 			// initialize remaining count
@@ -529,17 +531,17 @@ inline int POSITION_PARTICLE_SET_CLASS::resampling_kinematics( MTRX *sigma, cons
 }
 
 template < typename MTRX1, typename MTRX2 >
-inline int POSITION_PARTICLE_SET_CLASS::resampling_kinematics_reset( MTRX1 *myu, MTRX2 *sigma, const size_t n)
+inline int POSITION_PARTICLE_SET_CLASS::resampling_kinematics_reset( MTRX1 *myu, MTRX2 *sigma, const uint32_t n)
 {
 	gnd::matrix::fixed<1, PARTICLE_DIM> tmp;
 	gnd::matrix::fixed<1, PARTICLE_PROP_DIM> ws;
 	gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM> cp_sigma;
-	size_t i, j;
+	uint32_t i, j;
 	double rnd;
 
 	for(i = 0; i < n; i++){
 		double sum = 0;
-		rnd = _resampling_var.sum * gnd_random_uniform();
+		rnd = _resampling_var.sum * gnd::random_uniform();
 
 		// select perticle
 		for(j = 0; (signed)j < _resampling_var.storage.size() && rnd > sum; j++)
@@ -552,10 +554,10 @@ inline int POSITION_PARTICLE_SET_CLASS::resampling_kinematics_reset( MTRX1 *myu,
 			// clear
 			gnd::matrix::set_zero(&tmp);
 			// assign
-			gnd_matrix_assign_to_as_vector(&rndp, &tmp, 0, PARTICLE_PROP_INDX, PARTICLE_PROP_DIM);
+			gnd::matrix::assign_to_as_vector(&rndp, &tmp, 0, PARTICLE_PROP_INDX, PARTICLE_PROP_DIM);
 			gnd::matrix::copy(&cp_sigma, sigma);
 			// generate random
-			gnd_random_gaussian_mult(&cp_sigma, PARTICLE_PROP_DIM, &ws, &rndp);
+			gnd::random_gaussian_mult(&cp_sigma, PARTICLE_PROP_DIM, &ws, &rndp);
 
 			//todo
 			gnd::matrix::set(_resampling_var.storage + j, 0, PARTICLE_PROP_INDX, gnd::matrix::pointer(myu, 0, PARTICLE_PROP_INDX), PARTICLE_PROP_DIM);
@@ -707,9 +709,9 @@ public:
 
 public:
 	double *value;
-	size_t n;
+	uint32_t n;
 
-	int allocate( size_t i){
+	int allocate( uint32_t i){
 		value = new double[i];
 		return 0;
 	}
