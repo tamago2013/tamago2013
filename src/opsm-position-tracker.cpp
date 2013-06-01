@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
 	{ // ---> initialization
 		int ret;								// function return value
-		size_t phase = 1;						// initialize phase
+		uint32_t phase = 1;						// initialize phase
 
 		// ---> read process options
 		if( (ret = popt.get_option(argc, argv)) != 0 ) {
@@ -488,7 +488,6 @@ int main(int argc, char* argv[]) {
 		double culling_sqdist							// data decimation threshold
 		= gnd_square( pconf.culling.value );
 		double lkl = 0;									// likelihood
-		double lkl_prev_opt = 0;						// previous likelihood
 		Spur_Odometry pos_opt = ssm_position_read.data; // optimized position
 		int cnt_opt = 0;								// optimization loop counter
 		int cnt_correct = 0;
@@ -1015,7 +1014,6 @@ int main(int argc, char* argv[]) {
 					gnd::matrix::set_zero(&move_opt);
 					do{
 						// store previous optimization position likelihood
-						lkl_prev_opt = lkl;
 
 						{ // ---> step iteration of optimization
 							gnd::matrix::fixed<3,1> ws3x1;
