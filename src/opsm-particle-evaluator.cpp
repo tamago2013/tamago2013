@@ -82,7 +82,7 @@ int main(int argc, char *argv[], char **env) {
 
 		// ---> read map raw data
 		if( !is_proc_shutoff() && pconf.raw_map.value[0] != '\0' ) {
-			gnd::opsm::counting_map_t cnt_map;			// counting map
+			gnd::opsm::cmap_t cnt_map;			// counting map
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => Raw Map Data Reading\n");
 

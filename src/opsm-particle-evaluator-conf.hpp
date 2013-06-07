@@ -14,7 +14,7 @@
 
 #include "opsm-particle-evaluator.h"
 
-#include "gnd-observation-probability.hpp"
+#include "gnd-opsm.hpp"
 #include "gnd-configuration.hpp"
 #include "gnd-lib-error.h"
 
