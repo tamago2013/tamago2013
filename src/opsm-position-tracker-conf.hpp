@@ -11,7 +11,7 @@
 #include <ssmtype/spur-odometry.h>
 #include "ssm-laser.hpp"
 
-#include "gnd-observation-probability.hpp"
+#include "gnd-opsm.hpp"
 #include "gnd-configuration.hpp"
 #include "gnd-lib-error.h"
 

@@ -22,7 +22,7 @@
 #include "gnd-matrix-coordinate.hpp"
 #include "gnd-matrix-base.hpp"
 
-#include "gnd-observation-probability.hpp"
+#include "gnd-opsm.hpp"
 #include "gnd-odometry-correction.hpp"
 #include "gnd-gridmap.hpp"
 #include "gnd-shutoff.hpp"
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 	gnd::opsm::optimizer_basic	*optimizer = 0;		// optimizer class
 	void 						*starting = 0;		// optimization starting value
 
-	gnd::opsm::counting_map_t	cnt_smmap;			// observation probability counting map
+	gnd::opsm::cmap_t			cnt_smmap;			// observation probability counting map
 	gnd::opsm::map_t			smmap;				// observation probability map
 
 	SSMScanPoint2D				ssm_sokuikiraw;		// sokuiki raw streaming data
