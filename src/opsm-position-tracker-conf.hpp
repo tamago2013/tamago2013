@@ -572,10 +572,10 @@ namespace ObservationProbabilityScanMatching {
 				gnd::Conf::set_parameter(dest, &src->corrected_name);
 				gnd::Conf::set_parameter(dest, &src->corrected_id);
 
-				gnd::Conf::get_parameter(dest, &src->trajectory_log );
-				gnd::Conf::get_parameter(dest, &src->trajectory4route );
-				gnd::Conf::get_parameter(dest, &src->laserpoint_log );
-				gnd::Conf::get_parameter(dest, &src->output_dir );
+				gnd::Conf::set_parameter(dest, &src->trajectory_log );
+				gnd::Conf::set_parameter(dest, &src->trajectory4route );
+				gnd::Conf::set_parameter(dest, &src->laserpoint_log );
+				gnd::Conf::set_parameter(dest, &src->output_dir );
 				return 0;
 			} // <--- operation
 		}
