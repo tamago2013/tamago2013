@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <signal.h>
+#include <stdint.h>
 
 #include <ypspur.h>
 
@@ -60,7 +61,7 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 	{ // ---> Initialize
-		size_t phase = 1;
+		uint32_t phase = 1;
 		double inittime = -1;
 		// todo make parameter file
 		gnd::matrix::set_zero(&myu_ini);
@@ -370,12 +371,11 @@ int main(int argc, char* argv[], char *envp[]) {
 		static const double eval_alpha_slow = 1.0 / 180;
 		double eval_ave_fast = 0;
 		static const double eval_alpha_fast = 1.0 / 60;
-		double wide_sampling_rate = 0;
-		size_t nparticle_remain = param.particles.value * param.remain.value;
-		size_t nparticle_pos = param.particles.value * param.poserr.value;
-		size_t nparticle_knm = param.particles.value * param.knm.value;
-		size_t nparticle_wknm = param.particles.value * param.wknm.value;
-		size_t nparticle_knm_reset = param.particles.value - nparticle_remain - nparticle_pos
+		uint32_t nparticle_remain = param.particles.value * param.remain.value;
+		uint32_t nparticle_pos = param.particles.value * param.poserr.value;
+		uint32_t nparticle_knm = param.particles.value * param.knm.value;
+		uint32_t nparticle_wknm = param.particles.value * param.wknm.value;
+		uint32_t nparticle_knm_reset = param.particles.value - nparticle_remain - nparticle_pos
 				- nparticle_knm - nparticle_wknm;
 
 		int enc_cnt_pos = 0;
@@ -620,7 +620,6 @@ int main(int argc, char* argv[], char *envp[]) {
 				{ // ---> deternimation wide sampling num
 					eval_ave_fast += eval_alpha_fast * (eval_ave - eval_ave_fast);
 					eval_ave_slow += eval_alpha_slow * (eval_ave - eval_ave_slow);
-					wide_sampling_rate = 1.0 - (eval_ave_fast / eval_ave_slow);
 				} // <--- deternimation wide sampling num
 
 
