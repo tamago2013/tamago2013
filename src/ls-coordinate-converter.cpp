@@ -1,16 +1,17 @@
-//============================================================================
-// Name        : urg-coordinate-converter.cpp
-// Author      : tyamada
-// Version     :
-// Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
-//============================================================================
+/*
+ * ls-coordinate-converter-conf.hpp
+ * laser scanner data coordinate converter
+ *
+ *  Created on: 2013/05/23
+ *      Author: tyamada
+ */
+
 
 #include <stdio.h>
 
 #include "ssm-laser.hpp"
 
-#include "urg-coordinate-converter-opt.hpp"
+#include "ls-coordinate-converter-opt.hpp"
 
 #include "gnd-time.hpp"
 #include "gnd-shutoff.hpp"
@@ -18,15 +19,14 @@
 
 
 int main(int argc, char* argv[], char* env[]) {
-	SSMScanPoint2D			ssm_sokuiki_raw;	// laser scanner raw data
-	SSMSOKUIKIData3D		ssm_sokuiki_fs;		// laser scanner data on robot coordinate
-	SSMSOKUIKIData3D		ssm_sokuiki_base;	// laser scanner data on base coordinate
+	SSMScanPoint2D						ssm_sokuiki_raw;	// laser scanner raw data
+	SSMSOKUIKIData3D					ssm_sokuiki_fs;		// laser scanner data on robot coordinate
+	SSMSOKUIKIData3D					ssm_sokuiki_base;	// laser scanner data on base coordinate
 
-	gnd::matrix::fixed<4,4> cconvert_mat;		// coordinate convert matrix
+	gnd::matrix::fixed<4,4> 			cconvert_mat;		// coordinate convert matrix
 
-	gnd::urg_cc::proc_configuration		pconf;	// proccess configuration
-	gnd::urg_cc::options				opt_reader(&pconf);
-
+	gnd::ls_cc::proc_configuration		pconf;	// proccess configuration
+	gnd::ls_cc::options					opt_reader(&pconf);
 
 
 	{ // ---> initialize
@@ -134,7 +134,7 @@ int main(int argc, char* argv[], char* env[]) {
 					nline_show = 0;
 				}
 
-				nline_show++; ::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", gnd::urg_cc::proc_name);
+				nline_show++; ::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", gnd::ls_cc::proc_name);
 				nline_show++; ::fprintf(stderr, "\x1b[K            prod : %s\n", ssm_sokuiki_raw.property.sensorInfo.product );
 				nline_show++; ::fprintf(stderr, "\x1b[K          serial : %s\n", ssm_sokuiki_raw.property.sensorInfo.id );
 				nline_show++; ::fprintf(stderr, "\x1b[K              fs : %s : id %d\n", pconf.fs_name.value, (pconf.fs_id.value < 0 ? pconf.raw_id.value : pconf.fs_id.value)  );

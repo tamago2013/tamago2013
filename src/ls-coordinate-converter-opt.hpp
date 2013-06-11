@@ -1,21 +1,21 @@
 /*
- * urg-proxy-opt.hpp
+ * ls-coordinate-converter-conf.hpp
  *
  *  Created on: 2012/01/27
  *      Author: tyamada
  */
 
-#ifndef URG_COORDINATE_CONVERTER_OPT_HPP_
-#define URG_COORDINATE_CONVERTER_OPT_HPP_
+#ifndef LS_COORDINATE_CONVERTER_OPT_HPP_
+#define LS_COORDINATE_CONVERTER_OPT_HPP_
 
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
 
-#include "urg-coordinate-converter-conf.hpp"
+#include "ls-coordinate-converter-conf.hpp"
 
 namespace gnd {
-	namespace urg_cc {
+	namespace ls_cc {
 		class options
 		{
 		// ---> return value define
@@ -49,7 +49,7 @@ namespace gnd {
 		};
 
 
-		const char proc_name[] = "urg-coordinate-converter";
+		const char proc_name[] = "ls-coordinate-converter";
 
 
 		const char ShortOpt[] = "hg:G::D::";
@@ -83,7 +83,7 @@ namespace gnd {
 				// read configure
 				case 'g':
 				{
-					gnd::Conf::FileStream conf_fs;
+					gnd::conf::file_stream conf_fs;
 					if( conf_fs.read(optarg) < 0 ){
 						::fprintf(stderr, " ... [\x1b[1m\x1b[31mERROR\x1b[30m\x1b[0m]: -g option, Fail to read configure file\n");
 						return RFail;
@@ -96,8 +96,8 @@ namespace gnd {
 
 				// write configure
 				case 'G': {
-					proc_conf_write( optarg ? optarg : "urg-coordiante-converter.conf", param);
-					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "urg-coordniante-converter.conf");
+					proc_conf_write( optarg ? optarg : "ls-coordiante-converter.conf", param);
+					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "ls-coordniante-converter.conf");
 				} return RWriteConf;
 				// write configure
 
@@ -139,7 +139,7 @@ namespace gnd {
 			}
 			return 0;
 		}
-	} // namespace urg
+	} // namespace ls
 }; // namespace gnd
 
-#endif /* URG_PROXY_OPT_HPP_ */
+#endif /* LS_COORDINATE_CONVERTER_OPT_HPP_ */

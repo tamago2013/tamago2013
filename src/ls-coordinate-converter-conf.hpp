@@ -1,18 +1,18 @@
 /*
- * urg-coordinate-converter-conf.hpp
+ * ls-coordinate-converter-conf.hpp
  *
  *  Created on: 2013/05/23
  *      Author: tyamada
  */
 
-#ifndef URG_COORDINATE_CONVERTER_CONF_HPP_
-#define URG_COORDINATE_CONVERTER_CONF_HPP_
+#ifndef LS_COORDINATE_CONVERTER_CONF_HPP_
+#define LS_COORDINATE_CONVERTER_CONF_HPP_
 
-#include "gnd-configuration.hpp"
+#include "gnd-config-file.hpp"
 
 // ---> type declaration
 namespace gnd {
-	namespace urg_cc {
+	namespace ls_cc {
 		struct proc_configuration;
 		typedef struct proc_configuration configuration;
 	}
@@ -21,40 +21,40 @@ namespace gnd {
 
 // ---> constant value definition
 namespace gnd {
-	namespace urg_cc {
-		// sokuiki raw data ssm name
-		static const gnd::Conf::parameter_array<char, 256> ConfIni_RawSSMName = {
+	namespace ls_cc {
+		// laser scanner raw data ssm name
+		static const gnd::conf::parameter_array<char, 256> ConfIni_RawSSMName = {
 				"ssm-name-raw",
 				SSM_NAME_SCAN_POINT_2D,		// device port path
-				"sokuiki raw data ssm name"
+				"laser scanner raw data ssm name"
 		};
 
-		// sokuiki raw data ssm id
-		static const gnd::Conf::parameter<int> ConfIni_RawSSMID = {
+		// laser scanner raw data ssm id
+		static const gnd::conf::parameter<int> ConfIni_RawSSMID = {
 				"ssm-id-raw",
 				0,		// device port path
-				"sokuiki raw data ssm id"
+				"laser scanner raw data ssm id"
 		};
 
-		// sokuiki fs data ssm name
-		static const gnd::Conf::parameter_array<char, 256> ConfIni_FSSSMName = {
+		// laser scanner fs data ssm name
+		static const gnd::conf::parameter_array<char, 256> ConfIni_FSSSMName = {
 				"ssm-name-fs",
 				SSM_NAME_SOKUIKI_3D_FS,		// device port path
-				"sokuiki fs data ssm name"
+				"laser scanner fs data ssm name"
 		};
 
-		// sokuiki fs data ssm id
-		static const gnd::Conf::parameter<int> ConfIni_FSSSMID = {
+		// laser scanner fs data ssm id
+		static const gnd::conf::parameter<int> ConfIni_FSSSMID = {
 				"ssm-id-fs",
 				-1,
-				"sokuiki fs data ssm id. if this value is less than 0, fs id is same to raw"
+				"laser scanner fs data ssm id. if this value is less than 0, fs id is same to raw"
 		};
 
-		// sokuiki fs storage life
-		static const gnd::Conf::parameter<double> ConfIni_FSStorageLife = {
+		// laser scanner fs storage life
+		static const gnd::conf::parameter<double> ConfIni_FSStorageLife = {
 				"storage-life-fs",
 				5,	 // [sec]
-				"sokuiki fs data storage life on ssm"
+				"laser scanner fs data storage life on ssm"
 		};
 
 	}
@@ -64,7 +64,7 @@ namespace gnd {
 
 // ---> function declaration
 namespace gnd {
-	namespace urg_cc {
+	namespace ls_cc {
 		/**
 		 * @brief initialize configure to default parameter
 		 */
@@ -73,7 +73,7 @@ namespace gnd {
 		/**
 		 * @brief analyze configure file
 		 */
-		int analyze_configure(gnd::Conf::Configuration *fconf, proc_configuration *confp);
+		int analyze_configure(gnd::conf::configuration *fconf, proc_configuration *confp);
 
 		/**
 		 * @brief file out  configure file
@@ -86,18 +86,18 @@ namespace gnd {
 
 // ---> type definition
 namespace gnd {
-	namespace urg_cc {
+	namespace ls_cc {
 		/**
 		 * \brief particle localizer configure
 		 */
 		struct proc_configuration {
 			proc_configuration();
 
-			gnd::Conf::parameter_array<char, 256>	raw_name;
-			gnd::Conf::parameter<int>				raw_id;
-			gnd::Conf::parameter_array<char, 256>	fs_name;
-			gnd::Conf::parameter<int>				fs_id;
-			gnd::Conf::parameter<double>			fs_storage;
+			gnd::conf::parameter_array<char, 256>	raw_name;
+			gnd::conf::parameter<int>				raw_id;
+			gnd::conf::parameter_array<char, 256>	fs_name;
+			gnd::conf::parameter<int>				fs_id;
+			gnd::conf::parameter<double>			fs_storage;
 		};
 
 		typedef struct proc_configuration proc_configuration;
@@ -116,7 +116,7 @@ namespace gnd {
 
 // ---> function definition
 namespace gnd {
-	namespace urg_cc {
+	namespace ls_cc {
 
 		/*!
 		 * @brief initialize configure
@@ -138,16 +138,16 @@ namespace gnd {
 		 * @brief analyze
 		 */
 		inline
-		int proc_conf_get(gnd::Conf::Configuration *src, proc_configuration *dest)
+		int proc_conf_get(gnd::conf::configuration *src, proc_configuration *dest)
 		{
 			gnd_assert(!src, -1, "invalid null pointer");
 			gnd_assert(!dest, -1, "invalid null pointer");
 
-			gnd::Conf::get_parameter(src, &dest->raw_name);
-			gnd::Conf::get_parameter(src, &dest->raw_id);
-			gnd::Conf::get_parameter(src, &dest->fs_name);
-			gnd::Conf::get_parameter(src, &dest->fs_id);
-			gnd::Conf::get_parameter(src, &dest->fs_storage);
+			gnd::conf::get_parameter(src, &dest->raw_name);
+			gnd::conf::get_parameter(src, &dest->raw_id);
+			gnd::conf::get_parameter(src, &dest->fs_name);
+			gnd::conf::get_parameter(src, &dest->fs_id);
+			gnd::conf::get_parameter(src, &dest->fs_storage);
 			return 0;
 		}
 
@@ -156,16 +156,16 @@ namespace gnd {
 		 * @brief set configuration parameter
 		 */
 		inline
-		int proc_conf_set(gnd::Conf::Configuration *dest, proc_configuration *src)
+		int proc_conf_set(gnd::conf::configuration *dest, proc_configuration *src)
 		{
 			gnd_assert(!dest, -1, "invalid null pointer");
 			gnd_assert(!src, -1, "invalid null pointer");
 
-			gnd::Conf::set_parameter(dest, &src->raw_name);
-			gnd::Conf::set_parameter(dest, &src->raw_id);
-			gnd::Conf::set_parameter(dest, &src->fs_name);
-			gnd::Conf::set_parameter(dest, &src->fs_id);
-			gnd::Conf::set_parameter(dest, &src->fs_storage);
+			gnd::conf::set_parameter(dest, &src->raw_name);
+			gnd::conf::set_parameter(dest, &src->raw_id);
+			gnd::conf::set_parameter(dest, &src->fs_name);
+			gnd::conf::set_parameter(dest, &src->fs_id);
+			gnd::conf::set_parameter(dest, &src->fs_storage);
 			return 0;
 		}
 
@@ -182,7 +182,7 @@ namespace gnd {
 
 			{ // ---> operation
 				int ret;
-				gnd::Conf::FileStream fs;
+				gnd::conf::file_stream fs;
 				// configuration file read
 				if( (ret = fs.read(f)) < 0 )    return ret;
 
@@ -200,7 +200,7 @@ namespace gnd {
 
 			{ // ---> operation
 				int ret;
-				gnd::Conf::FileStream fs;
+				gnd::conf::file_stream fs;
 				if( (ret = proc_conf_set(&fs, src)) < 0 )	return ret;
 
 				return fs.write(f);
