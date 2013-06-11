@@ -15,7 +15,7 @@
 #include "opsm-particle-evaluator.h"
 
 #include "gnd-opsm.hpp"
-#include "gnd-configuration.hpp"
+#include "gnd-config-file.hpp"
 #include "gnd-lib-error.h"
 
 #ifndef OPSM
@@ -47,8 +47,8 @@ namespace OPSM {
 	namespace PEVAL {
 
 		int proc_conf_initialize(proc_configuration *c);
-		int proc_conf_get(gnd::Conf::Configuration *src, proc_configuration* dest);
-		int proc_conf_set(gnd::Conf::Configuration *dest, proc_configuration* src);
+		int proc_conf_get(gnd::conf::configuration *src, proc_configuration* dest);
+		int proc_conf_set(gnd::conf::configuration *dest, proc_configuration* src);
 		int proc_conf_read(const char* f, proc_configuration* dest);
 		int proc_conf_write(const char* f, proc_configuration* src);
 
@@ -65,42 +65,42 @@ namespace OPSM {
 		static const char proc_name[] = "opsm-particle-evaluator";
 
 		// bmp-map
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_BMPMap = {
+		static const gnd::conf::parameter_array<char, 512> ConfIni_BMPMap = {
 				"bmp-map",
 				"",		// file path
 				"load map with bmp file"
 		};
 
 		// raw-map
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_RawMap = {
+		static const gnd::conf::parameter_array<char, 512> ConfIni_RawMap = {
 				"cnt-map-dir",
 				"",		// map file directory
 				"load map with counting map"
 		};
 
 		// sokuiki-raw-name
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_SokuikiRawName = {
+		static const gnd::conf::parameter_array<char, 512> ConfIni_SokuikiRawName = {
 				"sokuiki-raw-ssm-name",
 				SSM_NAME_SCAN_POINT_2D,		// ssm name
 				"sokuiki raw data ssm name"
 		};
 
 		// sokuiki-raw-id
-		static const gnd::Conf::parameter<int> ConfIni_SokuikiRawID = {
+		static const gnd::conf::parameter<int> ConfIni_SokuikiRawID = {
 				"sokuiki-raw-ssm-id",
 				0,		// id
 				"sokuiki raw data ssm id"
 		};
 
 		// odometry-raw-name
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_OdometryName = {
+		static const gnd::conf::parameter_array<char, 512> ConfIni_OdometryName = {
 				"odometry-ssm-name",
 				SNAME_ODOMETRY,		// map file directory
 				"odometry data ssm name (for sleeping mode)"
 		};
 
 		// odometry-raw-id
-		static const gnd::Conf::parameter<int> ConfIni_OdometryID = {
+		static const gnd::conf::parameter<int> ConfIni_OdometryID = {
 				"odometry-sokuiki-id",
 				-1,		// map file directory
 				"odometry data ssm id (for sleeping mode)"
@@ -108,14 +108,14 @@ namespace OPSM {
 
 
 		// particle-name
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_ParticleName = {
+		static const gnd::conf::parameter_array<char, 512> ConfIni_ParticleName = {
 				"particles-ssm-name",
 				SNAME_PARTICLES,		// ssm name
 				"particles data ssm name"
 		};
 
 		// particle-id
-		static const gnd::Conf::parameter<int> ConfIni_ParticleID = {
+		static const gnd::conf::parameter<int> ConfIni_ParticleID = {
 				"particle-ssm-id",
 				0,		// ssm id
 				"particles data ssm id"
@@ -123,14 +123,14 @@ namespace OPSM {
 
 
 		// particle-name
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_ParticleEvalName = {
+		static const gnd::conf::parameter_array<char, 512> ConfIni_ParticleEvalName = {
 				"particle-eval-ssm-name",
 				SNAME_PARTICLES_EVALUATION,		// ssm name
 				"particles evaluation data ssm name"
 		};
 
 		// particle-id
-		static const gnd::Conf::parameter<int> ConfIni_ParticleEvalID = {
+		static const gnd::conf::parameter<int> ConfIni_ParticleEvalID = {
 				"particle-eval-ssm-id",
 				0,		// ssm id
 				"particles evaluation data ssm id"
@@ -138,26 +138,26 @@ namespace OPSM {
 
 
 		// cycle
-		static const gnd::Conf::parameter<double> ConfIni_Cycle = {
+		static const gnd::conf::parameter<double> ConfIni_Cycle = {
 				"cycle",
 				0.083333,	// [s]
 				"evaluation cycle"
 		};
 
 		// rest-cycle
-		static const gnd::Conf::parameter<double> ConfIni_SleepingTime = {
+		static const gnd::conf::parameter<double> ConfIni_SleepingTime = {
 				"sleep-time",
 				0.0,	// sec
 				"if robot did not move, evaluation stop for this time"
 		};
 		// rest-threshold-distance
-		static const gnd::Conf::parameter<double> ConfIni_SleepingDist = {
+		static const gnd::conf::parameter<double> ConfIni_SleepingDist = {
 				"sleep-threshold-distance",
 				0.01,	// [m]
 				"if robot did not move more than this distance, evaluation stop"
 		};
 		// rest-threshold-orientation
-		static const gnd::Conf::parameter<double> ConfIni_SleepingOrient = {
+		static const gnd::conf::parameter<double> ConfIni_SleepingOrient = {
 				"sleep-threshold-orientation",
 				gnd_deg2rad(5),	// [rad]
 				"if robot did not move more than this angle, evaluation stop"
@@ -165,7 +165,7 @@ namespace OPSM {
 
 
 		// cull
-		static const gnd::Conf::parameter<double> ConfIni_Cull = {
+		static const gnd::conf::parameter<double> ConfIni_Cull = {
 				"cull",
 				0.1,	// [m]
 				"input data culling parameter"
@@ -186,24 +186,24 @@ namespace OPSM {
 		 */
 		struct proc_configuration {
 			// initliaze input
-			gnd::Conf::parameter_array<char, 512>	bmp_map;			///< Bit Map
-			gnd::Conf::parameter_array<char, 512>	raw_map;			///< Raw Map Data
+			gnd::conf::parameter_array<char, 512>	bmp_map;			///< Bit Map
+			gnd::conf::parameter_array<char, 512>	raw_map;			///< Raw Map Data
 			// online input output
-			gnd::Conf::parameter_array<char, 512>	sokuikiraw_name;	///< Sokuiki ssm data name
-			gnd::Conf::parameter<int> 				sokuikiraw_id;		///< Sokuiki ssm data id
-			gnd::Conf::parameter_array<char, 512>	odometry_name;		///< Sokuiki ssm data name
-			gnd::Conf::parameter<int> 				odometry_id;		///< Sokuiki ssm data id
-			gnd::Conf::parameter_array<char, 512>	particle_name;		///< particles ssm data name
-			gnd::Conf::parameter<int>				particle_id;		///< particles ssm data id
-			gnd::Conf::parameter_array<char, 512>	eval_name;			///< particles evaluation ssm data name
-			gnd::Conf::parameter<int>				eval_id;			///< particles evaluation ssm data id
+			gnd::conf::parameter_array<char, 512>	sokuikiraw_name;	///< Sokuiki ssm data name
+			gnd::conf::parameter<int> 				sokuikiraw_id;		///< Sokuiki ssm data id
+			gnd::conf::parameter_array<char, 512>	odometry_name;		///< Sokuiki ssm data name
+			gnd::conf::parameter<int> 				odometry_id;		///< Sokuiki ssm data id
+			gnd::conf::parameter_array<char, 512>	particle_name;		///< particles ssm data name
+			gnd::conf::parameter<int>				particle_id;		///< particles ssm data id
+			gnd::conf::parameter_array<char, 512>	eval_name;			///< particles evaluation ssm data name
+			gnd::conf::parameter<int>				eval_id;			///< particles evaluation ssm data id
 			// process behavior configuration
-			gnd::Conf::parameter<double>			cycle;				///< evaluation cycle
-			gnd::Conf::parameter<double>			sleeping_time;		///< evaluation cycle in rest mode
-			gnd::Conf::parameter<double>			sleeping_dist;		///< criteria of rest mode (movement distance threshold)
-			gnd::Conf::parameter<double>			sleeping_orient;	///< criteria of rest mode (movement orient angle threshold)
+			gnd::conf::parameter<double>			cycle;				///< evaluation cycle
+			gnd::conf::parameter<double>			sleeping_time;		///< evaluation cycle in rest mode
+			gnd::conf::parameter<double>			sleeping_dist;		///< criteria of rest mode (movement distance threshold)
+			gnd::conf::parameter<double>			sleeping_orient;	///< criteria of rest mode (movement orient angle threshold)
 
-			gnd::Conf::parameter<double>			cull;				///< reflection point cull
+			gnd::conf::parameter<double>			cull;				///< reflection point cull
 
 			proc_configuration();
 		};
@@ -260,23 +260,23 @@ namespace OPSM {
 		 * @param [out] dest : configuration parameter
 		 */
 		inline
-		int proc_conf_get(gnd::Conf::Configuration *src, proc_configuration* dest) {
+		int proc_conf_get(gnd::conf::configuration *src, proc_configuration* dest) {
 			gnd_assert(!src, -1, "invalid null pointer");
 			gnd_assert(!dest, -1, "invalid null pointer");
 
-			gnd::Conf::get_parameter(src, &dest->bmp_map);
-			gnd::Conf::get_parameter(src, &dest->raw_map);
-			gnd::Conf::get_parameter(src, &dest->sokuikiraw_name);
-			gnd::Conf::get_parameter(src, &dest->sokuikiraw_id);
-			gnd::Conf::get_parameter(src, &dest->particle_name);
-			gnd::Conf::get_parameter(src, &dest->particle_id);
-			gnd::Conf::get_parameter(src, &dest->eval_name);
-			gnd::Conf::get_parameter(src, &dest->eval_id);
-			gnd::Conf::get_parameter(src, &dest->cycle);
-			gnd::Conf::get_parameter(src, &dest->sleeping_time);
-			gnd::Conf::get_parameter(src, &dest->sleeping_dist);
-			gnd::Conf::get_parameter(src, &dest->cull);
-			if( gnd::Conf::get_parameter(src, &dest->sleeping_orient) >= 0 ){
+			gnd::conf::get_parameter(src, &dest->bmp_map);
+			gnd::conf::get_parameter(src, &dest->raw_map);
+			gnd::conf::get_parameter(src, &dest->sokuikiraw_name);
+			gnd::conf::get_parameter(src, &dest->sokuikiraw_id);
+			gnd::conf::get_parameter(src, &dest->particle_name);
+			gnd::conf::get_parameter(src, &dest->particle_id);
+			gnd::conf::get_parameter(src, &dest->eval_name);
+			gnd::conf::get_parameter(src, &dest->eval_id);
+			gnd::conf::get_parameter(src, &dest->cycle);
+			gnd::conf::get_parameter(src, &dest->sleeping_time);
+			gnd::conf::get_parameter(src, &dest->sleeping_dist);
+			gnd::conf::get_parameter(src, &dest->cull);
+			if( gnd::conf::get_parameter(src, &dest->sleeping_orient) >= 0 ){
 				// convert unit of angle(deg2rad)
 				dest->sleeping_orient.value = gnd_deg2rad(dest->sleeping_orient.value);
 			}
@@ -290,32 +290,32 @@ namespace OPSM {
 		 * @param [in]  src  : configuration parameter
 		 */
 		inline
-		int proc_conf_set(gnd::Conf::Configuration *dest, proc_configuration* src) {
+		int proc_conf_set(gnd::conf::configuration *dest, proc_configuration* src) {
 			gnd_assert(!src, -1, "invalid null pointer");
 			gnd_assert(!dest, -1, "invalid null pointer");
 
-			gnd::Conf::set_parameter(dest, &src->bmp_map);
-			gnd::Conf::set_parameter(dest, &src->raw_map);
-			gnd::Conf::set_parameter(dest, &src->sokuikiraw_name);
-			gnd::Conf::set_parameter(dest, &src->sokuikiraw_id);
-			gnd::Conf::set_parameter(dest, &src->odometry_name);
-			gnd::Conf::set_parameter(dest, &src->odometry_id);
-			gnd::Conf::set_parameter(dest, &src->particle_name);
-			gnd::Conf::set_parameter(dest, &src->particle_id);
-			gnd::Conf::set_parameter(dest, &src->eval_name);
-			gnd::Conf::set_parameter(dest, &src->eval_id);
-			gnd::Conf::set_parameter(dest, &src->cycle);
-			gnd::Conf::set_parameter(dest, &src->sleeping_time);
+			gnd::conf::set_parameter(dest, &src->bmp_map);
+			gnd::conf::set_parameter(dest, &src->raw_map);
+			gnd::conf::set_parameter(dest, &src->sokuikiraw_name);
+			gnd::conf::set_parameter(dest, &src->sokuikiraw_id);
+			gnd::conf::set_parameter(dest, &src->odometry_name);
+			gnd::conf::set_parameter(dest, &src->odometry_id);
+			gnd::conf::set_parameter(dest, &src->particle_name);
+			gnd::conf::set_parameter(dest, &src->particle_id);
+			gnd::conf::set_parameter(dest, &src->eval_name);
+			gnd::conf::set_parameter(dest, &src->eval_id);
+			gnd::conf::set_parameter(dest, &src->cycle);
+			gnd::conf::set_parameter(dest, &src->sleeping_time);
 
-			gnd::Conf::set_parameter(dest, &src->sleeping_dist);
+			gnd::conf::set_parameter(dest, &src->sleeping_dist);
 			// convert unit of angle (rad2deg)
 			src->sleeping_orient.value = gnd_rad2deg(src->sleeping_orient.value);
 
-			gnd::Conf::set_parameter(dest, &src->sleeping_orient);
+			gnd::conf::set_parameter(dest, &src->sleeping_orient);
 			// reconvert unit of angle (rad2deg)
 			src->sleeping_orient.value = gnd_deg2rad(src->sleeping_orient.value);
 
-			gnd::Conf::set_parameter(dest, &src->cull);
+			gnd::conf::set_parameter(dest, &src->cull);
 			return 0;
 		}
 
@@ -331,7 +331,7 @@ namespace OPSM {
 
 			{ // ---> operation
 				int ret;
-				gnd::Conf::FileStream fs;
+				gnd::conf::file_stream fs;
 				// configuration file read
 				if( (ret = fs.read(f)) < 0 )	return ret;
 
@@ -351,7 +351,7 @@ namespace OPSM {
 
 			{ // ---> operation
 				int ret;
-				gnd::Conf::FileStream fs;
+				gnd::conf::file_stream fs;
 				// convert configuration declaration
 				if( (ret = proc_conf_set(&fs, src)) < 0 ) return ret;
 
