@@ -17,7 +17,7 @@
 
 #include "gnd-shutoff.hpp"
 #include "gnd-time.hpp"
-#include "gnd-configuration.hpp"
+#include "gnd-config-file.hpp"
 #include "gnd-util.h"
 #include "gnd-matrix-coordinate.hpp"
 #include "gnd-matrix-base.hpp"
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
 	{ // ---> initialize
 		int ret;
-		gnd::Conf::FileStream fst_conf;			// device configuration file
+		gnd::conf::file_stream fst_conf;			// device configuration file
 
 		// ---> read process options
 		if( (ret = proc_opt.get_option(argc, argv)) != 0 ) {
@@ -96,6 +96,7 @@ int main(int argc, char* argv[]) {
 		{ // ---> allocate SIGINT to shut-off
 			::proc_shutoff_clear();
 			::proc_shutoff_alloc_signal(SIGINT);
+			::proc_shutoff_alloc_signal(SIGTERM);
 		} // <--- allocate SIGINT to shut-off
 
 
@@ -130,7 +131,7 @@ int main(int argc, char* argv[]) {
 				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: faile to open port \"\x1b[4m%s\x1b[0m\"\n", "/dev/ttyACM0");
 			}
 			else {
-				gnd::Conf::Configuration *pconf;
+				gnd::conf::configuration *pconf;
 
 				// get device version infomation
 				::Scip2CMD_VV(port, &version);
@@ -404,7 +405,6 @@ int main(int argc, char* argv[]) {
 				scan_psec++;
 				// Don't forget S2Sdd_End to unlock buffer
 				S2Sdd_End( &buffer );
-
 			}// <--- sensor reading
 
 

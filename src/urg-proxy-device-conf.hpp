@@ -11,7 +11,7 @@
 
 #include <time.h>
 #include "gnd-matrix-base.hpp"
-#include "gnd-configuration.hpp"
+#include "gnd-config-file.hpp"
 #include "gnd-lib-error.h"
 
 // ---> constant value definition
@@ -20,42 +20,42 @@ namespace gnd {
 
 		const char Token_Serial[] = "<Serial>";
 		// ssm-name
-		static const gnd::Conf::parameter_array<char, 64> ConfIni_SSMName = {
+		static const gnd::conf::parameter_array<char, 64> ConfIni_SSMName = {
 				"ssm-name",
 				"scan-data2d",
 		};
 		// ssm-id
-		static const gnd::Conf::param_int ConfIni_SSMID = {
+		static const gnd::conf::param_int ConfIni_SSMID = {
 				"ssm-id",
 				10,
 		};
 		// time-adjust
-		static const gnd::Conf::parameter_array<int, 2> ConfIni_TimeAdjust = {
+		static const gnd::conf::parameter_array<int, 2> ConfIni_TimeAdjust = {
 				"timeadjust",
 				{ 1, 8, },
 		};
 		// reflection
-		static const gnd::Conf::param_bool ConfIni_Reflect = {
+		static const gnd::conf::param_bool ConfIni_Reflect = {
 				"reflect",
 				false,
 		};
 		// scan range
-		static const gnd::Conf::parameter_array<double, 2> ConfIni_AngleRange = {
+		static const gnd::conf::parameter_array<double, 2> ConfIni_AngleRange = {
 				"angle-range",
 				{ -180, 180, },
 		};
 		// position
-		static const gnd::Conf::parameter_array<double, 3> ConfIni_Position = {
+		static const gnd::conf::parameter_array<double, 3> ConfIni_Position = {
 				"position",
 				{ 0, 0, 0, },
 		};
 		// orient
-		static const gnd::Conf::parameter_array<double, 3> ConfIni_Orient = {
+		static const gnd::conf::parameter_array<double, 3> ConfIni_Orient = {
 				"orient",
 				{ 1.00, 0.00, 0.00, },
 		};
 		// upside
-		static const gnd::Conf::parameter_array<double, 3> ConfIni_Upside = {
+		static const gnd::conf::parameter_array<double, 3> ConfIni_Upside = {
 				"upside",
 				{ 0.00, 0.00, 1.00, },
 		};
@@ -85,7 +85,7 @@ namespace gnd {
 		/**
 		 * @brief analyze configure file
 		 */
-		int dev_conf_get(gnd::Conf::Configuration *fconf, device_configuration *dest);
+		int dev_conf_get(gnd::conf::configuration *fconf, device_configuration *dest);
 
 		/**
 		 * @brief file out  configure file
@@ -107,14 +107,14 @@ namespace gnd {
 		 */
 		struct device_configuration {
 			char									serial[64];
-			gnd::Conf::parameter_array<char, 64>	name;
-			gnd::Conf::param_int					id;
-			gnd::Conf::param_bool					reflect;
-			gnd::Conf::parameter_array<int, 2>		timeadjust;
-			gnd::Conf::parameter_array<double, 2>	angle_range;
-			gnd::Conf::parameter_array<double, 3>	position;
-			gnd::Conf::parameter_array<double, 3>	orient;
-			gnd::Conf::parameter_array<double, 3>	upside;
+			gnd::conf::parameter_array<char, 64>	name;
+			gnd::conf::param_int					id;
+			gnd::conf::param_bool					reflect;
+			gnd::conf::parameter_array<int, 2>		timeadjust;
+			gnd::conf::parameter_array<double, 2>	angle_range;
+			gnd::conf::parameter_array<double, 3>	position;
+			gnd::conf::parameter_array<double, 3>	orient;
+			gnd::conf::parameter_array<double, 3>	upside;
 			device_configuration();
 		};
 
@@ -155,19 +155,19 @@ namespace gnd {
 		 * @brief analyze
 		 */
 		inline
-		int dev_conf_get(gnd::Conf::Configuration *src, device_configuration *dest)
+		int dev_conf_get(gnd::conf::configuration *src, device_configuration *dest)
 		{
 			gnd_assert(!src, -1, "invalid null pointer");
 			gnd_assert(!dest, -1, "invalid null pointer");
 
-			gnd::Conf::get_parameter(src, &dest->name);
-			gnd::Conf::get_parameter(src, &dest->id);
-			gnd::Conf::get_parameter(src, &dest->timeadjust);
-			gnd::Conf::get_parameter(src, &dest->reflect);
-			gnd::Conf::get_parameter(src, &dest->angle_range);
-			gnd::Conf::get_parameter(src, &dest->position);
-			gnd::Conf::get_parameter(src, &dest->orient);
-			gnd::Conf::get_parameter(src, &dest->upside);
+			gnd::conf::get_parameter(src, &dest->name);
+			gnd::conf::get_parameter(src, &dest->id);
+			gnd::conf::get_parameter(src, &dest->timeadjust);
+			gnd::conf::get_parameter(src, &dest->reflect);
+			gnd::conf::get_parameter(src, &dest->angle_range);
+			gnd::conf::get_parameter(src, &dest->position);
+			gnd::conf::get_parameter(src, &dest->orient);
+			gnd::conf::get_parameter(src, &dest->upside);
 			return 0;
 		}
 
@@ -175,23 +175,23 @@ namespace gnd {
 		 * @brief analyze
 		 */
 		inline
-		int dev_conf_set(gnd::Conf::Configuration *dest, device_configuration *src)
+		int dev_conf_set(gnd::conf::configuration *dest, device_configuration *src)
 		{
-			gnd::Conf::Configuration *ch;
+			gnd::conf::configuration *ch;
 			gnd_assert(!dest, -1, "invalid null pointer");
 			gnd_assert(!src, -1, "invalid null pointer");
 
 			dest->child_push_back(src->serial, 0, 0);
 			if( (ch = dest->child_find(src->serial) ) ) {
 
-				gnd::Conf::set_parameter(ch, &src->name);
-				gnd::Conf::set_parameter(ch, &src->id);
-				gnd::Conf::set_parameter(ch, &src->timeadjust);
-				gnd::Conf::set_parameter(ch, &src->reflect);
-				gnd::Conf::set_parameter(ch, &src->angle_range);
-				gnd::Conf::set_parameter(ch, &src->position);
-				gnd::Conf::set_parameter(ch, &src->orient);
-				gnd::Conf::set_parameter(ch, &src->upside);
+				gnd::conf::set_parameter(ch, &src->name);
+				gnd::conf::set_parameter(ch, &src->id);
+				gnd::conf::set_parameter(ch, &src->timeadjust);
+				gnd::conf::set_parameter(ch, &src->reflect);
+				gnd::conf::set_parameter(ch, &src->angle_range);
+				gnd::conf::set_parameter(ch, &src->position);
+				gnd::conf::set_parameter(ch, &src->orient);
+				gnd::conf::set_parameter(ch, &src->upside);
 			}
 
 			return 0;
@@ -209,7 +209,7 @@ namespace gnd {
 
 			{ // ---> operation
 				int ret;
-				gnd::Conf::FileStream fs;
+				gnd::conf::file_stream fs;
 				// configuration file read
 				if( (ret = fs.read(f)) < 0 )    return ret;
 
@@ -228,7 +228,7 @@ namespace gnd {
 
 			{ // ---> operation
 				int ret;
-				gnd::Conf::FileStream fs;
+				gnd::conf::file_stream fs;
 				if( (ret = dev_conf_set(&fs, src)) < 0 )	return ret;
 
 				return fs.write(f);

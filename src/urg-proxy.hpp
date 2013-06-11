@@ -109,6 +109,8 @@ namespace gnd {
 		};
 
 		ssm_property::ssm_property() {
+			::strcpy(name, SSM_NAME_SCAN_POINT_2D);
+			id = 0;
 			gnd::matrix::set_unit(&coord);
 		}
 	}

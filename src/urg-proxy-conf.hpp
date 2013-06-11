@@ -8,7 +8,7 @@
 #ifndef URG_HANDLER_CONF_HPP_
 #define URG_HANDLER_CONF_HPP_
 
-#include "gnd-configuration.hpp"
+#include "gnd-config-file.hpp"
 
 // ---> type declaration
 namespace gnd {
@@ -23,13 +23,13 @@ namespace gnd {
 namespace gnd {
 	namespace urg_proxy {
 		// device port
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_DevicePort = {
+		static const gnd::conf::parameter_array<char, 512> ConfIni_DevicePort = {
 				"device-port",
 				"/dev/ttyACM0",		// device port path
 		};
 
 		// device configuration file
-		static const gnd::Conf::parameter_array<char, 512> ConfIni_DeviceConf = {
+		static const gnd::conf::parameter_array<char, 512> ConfIni_DeviceConf = {
 				"dev-conf",
 				"",		// map file directory
 		};
@@ -50,7 +50,7 @@ namespace gnd {
 		/**
 		 * @brief analyze configure file
 		 */
-		int analyze_configure(gnd::Conf::Configuration *fconf, proc_configuration *confp);
+		int analyze_configure(gnd::conf::configuration *fconf, proc_configuration *confp);
 
 		/**
 		 * @brief file out  configure file
@@ -70,8 +70,8 @@ namespace gnd {
 		struct proc_configuration {
 			proc_configuration();
 
-			gnd::Conf::parameter_array<char, 512>	dev_port;
-			gnd::Conf::parameter_array<char, 512>	dev_conf;
+			gnd::conf::parameter_array<char, 512>	dev_port;
+			gnd::conf::parameter_array<char, 512>	dev_conf;
 		};
 
 		typedef struct proc_configuration proc_configuration;
@@ -109,13 +109,13 @@ namespace gnd {
 		 * @brief analyze
 		 */
 		inline
-		int proc_conf_get(gnd::Conf::Configuration *src, proc_configuration *dest)
+		int proc_conf_get(gnd::conf::configuration *src, proc_configuration *dest)
 		{
 			gnd_assert(!src, -1, "invalid null pointer");
 			gnd_assert(!dest, -1, "invalid null pointer");
 
-			gnd::Conf::get_parameter(src, &dest->dev_port);
-			gnd::Conf::get_parameter(src, &dest->dev_conf);
+			gnd::conf::get_parameter(src, &dest->dev_port);
+			gnd::conf::get_parameter(src, &dest->dev_conf);
 			return 0;
 		}
 
@@ -124,13 +124,13 @@ namespace gnd {
 		 * @brief set configuration parameter
 		 */
 		inline
-		int proc_conf_set(gnd::Conf::Configuration *dest, proc_configuration *src)
+		int proc_conf_set(gnd::conf::configuration *dest, proc_configuration *src)
 		{
 			gnd_assert(!dest, -1, "invalid null pointer");
 			gnd_assert(!src, -1, "invalid null pointer");
 
-			gnd::Conf::set_parameter(dest, &src->dev_port);
-			gnd::Conf::set_parameter(dest, &src->dev_conf);
+			gnd::conf::set_parameter(dest, &src->dev_port);
+			gnd::conf::set_parameter(dest, &src->dev_conf);
 			return 0;
 		}
 
@@ -147,7 +147,7 @@ namespace gnd {
 
 			{ // ---> operation
 				int ret;
-				gnd::Conf::FileStream fs;
+				gnd::conf::file_stream fs;
 				// configuration file read
 				if( (ret = fs.read(f)) < 0 )    return ret;
 
@@ -165,7 +165,7 @@ namespace gnd {
 
 			{ // ---> operation
 				int ret;
-				gnd::Conf::FileStream fs;
+				gnd::conf::file_stream fs;
 				if( (ret = proc_conf_set(&fs, src)) < 0 )	return ret;
 
 				return fs.write(f);
