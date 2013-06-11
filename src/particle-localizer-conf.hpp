@@ -10,7 +10,7 @@
 
 #include "ssm-particles.hpp"
 
-#include "gnd-configuration.hpp"
+#include "gnd-config-file.hpp"
 #include "gnd-matrix-base.hpp"
 #include "gnd-lib-error.h"
 
@@ -19,7 +19,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter for number of particles
 	 */
-	static const gnd::Conf::parameter_array<char, 512> ConfIni_KFile = {
+	static const gnd::conf::parameter_array<char, 512> ConfIni_KFile = {
 			"k-param",
 			"",
 			"kinematics parameter file path"
@@ -28,7 +28,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter for number of particles
 	 */
-	static const gnd::Conf::parameter<int> ConfIni_Particles = {
+	static const gnd::conf::parameter<int> ConfIni_Particles = {
 			"particles",
 			500,
 			"nunber of particles"
@@ -37,7 +37,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter remain resampling ratio
 	 */
-	static const gnd::Conf::parameter<double> ConfIni_RemainRatio = {
+	static const gnd::conf::parameter<double> ConfIni_RemainRatio = {
 			"remain-ratio",
 			0.35,
 			"re-sampling parameter"
@@ -46,7 +46,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter random error resampling ratio
 	 */
-	static const gnd::Conf::parameter<double> ConfIni_RandomErrorRatio = {
+	static const gnd::conf::parameter<double> ConfIni_RandomErrorRatio = {
 			"random-error-rate",
 			0.1,
 			"re-sampling parameter "
@@ -55,7 +55,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter random error covariance
 	 */
-	static const gnd::Conf::parameter_array< double , PARTICLE_POS_DIM > ConfIni_RandomErrorCovar = {
+	static const gnd::conf::parameter_array< double , PARTICLE_POS_DIM > ConfIni_RandomErrorCovar = {
 			"random-error-covar",
 			{ gnd_mm2dist(100), gnd_mm2dist(100), gnd_deg2ang(5) }
 	};
@@ -63,7 +63,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter random error covariance
 	 */
-	static const gnd::Conf::parameter_array< double, PARTICLE_POS_DIM > ConfIni_RandomErrorStaticCovar = {
+	static const gnd::conf::parameter_array< double, PARTICLE_POS_DIM > ConfIni_RandomErrorStaticCovar = {
 			"random-error-static-covar",
 			{ gnd_mm2dist(2.5), gnd_mm2dist(2.5), gnd_deg2ang(0.5) }
 	};
@@ -71,7 +71,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter kinematics ratio
 	 */
-	static const gnd::Conf::parameter<double> ConfIni_KinematicsRatio = {
+	static const gnd::conf::parameter<double> ConfIni_KinematicsRatio = {
 			"kinematics-ratio",
 			0.3
 	};
@@ -79,7 +79,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter kinematics covariance
 	 */
-	static const gnd::Conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_KinematicsCovar = {
+	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_KinematicsCovar = {
 			"kinematics-covar",
 			{ 1.0e-5, 1.0e-5, 1.0e-5 }
 	};
@@ -87,7 +87,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter wide kinematics sampling
 	 */
-	static const gnd::Conf::parameter<double> ConfIni_WideKinematicsRatio = {
+	static const gnd::conf::parameter<double> ConfIni_WideKinematicsRatio = {
 			"wide-kinematics-ratio",
 			0.2
 	};
@@ -95,7 +95,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter wide kinematics covariance
 	 */
-	static const gnd::Conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_WideKinematicsCovar = {
+	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_WideKinematicsCovar = {
 			"wide-kinematics-covar",
 			{ 1.0e-3, 1.0e-3, 1.0e-3 }
 	};
@@ -103,7 +103,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter reset kinematics sampling ratio
 	 */
-	static const gnd::Conf::parameter<double> ConfIni_ResetKinematicsRatio = {
+	static const gnd::conf::parameter<double> ConfIni_ResetKinematicsRatio = {
 			"reset-kinematics-ratio",
 			0.05
 	};
@@ -111,7 +111,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter reset kinematics sampling covariance
 	 */
-	static const gnd::Conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_ResetKinematicsCovar = {
+	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_ResetKinematicsCovar = {
 			"reset-kinematics-covar",
 			{ 1.0e-5, 1.0e-5, 1.0e-5 }
 	};
@@ -119,7 +119,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter random sampling
 	 */
-	static const gnd::Conf::parameter<int> ConfIni_RandomSampling = {
+	static const gnd::conf::parameter<int> ConfIni_RandomSampling = {
 			"random-sampling",
 			36
 	};
@@ -130,7 +130,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter random error covariance
 	 */
-	static const gnd::Conf::parameter_array< double, PARTICLE_POS_DIM > ConfIni_PositionCovar_Ini = {
+	static const gnd::conf::parameter_array< double, PARTICLE_POS_DIM > ConfIni_PositionCovar_Ini = {
 			"ini-pos-covar",
 			{ gnd_m2dist(1.0), gnd_m2dist(1.0), gnd_m2dist(1.0) }
 	};
@@ -138,7 +138,7 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter random error covariance
 	 */
-	static const gnd::Conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_KinematicsCovar_Ini = {
+	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_KinematicsCovar_Ini = {
 			"ini-kinematics-covar",
 			{ 1.0e-5, 1.0e-5, 1.0e-5 }
 	};
@@ -146,7 +146,7 @@ namespace Localizer {
 	/*
 	 * @brief pws ssm id (input)
 	 */
-	static const gnd::Conf::parameter< int > ConfIni_PWSSSM = {
+	static const gnd::conf::parameter< int > ConfIni_PWSSSM = {
 			"pws-ssm-id",
 			0
 	};
@@ -154,7 +154,7 @@ namespace Localizer {
 	/*
 	 * @brief output ssm id (spur-adjust, particles)
 	 */
-	static const gnd::Conf::parameter< int > ConfIni_SSMID = {
+	static const gnd::conf::parameter< int > ConfIni_SSMID = {
 			"ssm-id",
 			0
 	};
@@ -164,7 +164,7 @@ namespace Localizer {
 	/*
 	 * @brief pws ssm id (input)
 	 */
-	static const gnd::Conf::parameter< bool > ConfIni_Gyro = {
+	static const gnd::conf::parameter< bool > ConfIni_Gyro = {
 			"gyro",
 			0
 	};
@@ -172,7 +172,7 @@ namespace Localizer {
 	/*
 	 * @brief gyro voltage
 	 */
-	static const gnd::Conf::parameter< double > ConfIni_GyroVoltage = {
+	static const gnd::conf::parameter< double > ConfIni_GyroVoltage = {
 			"gyro-voltage",
 			5000
 	};
@@ -180,7 +180,7 @@ namespace Localizer {
 	/*
 	 * @brief gyro voltage
 	 */
-	static const gnd::Conf::parameter< int > ConfIni_GyroADBits = {
+	static const gnd::conf::parameter< int > ConfIni_GyroADBits = {
 			"gyro-ad-bits",
 			10
 	};
@@ -188,7 +188,7 @@ namespace Localizer {
 	/*
 	 * @brief gyro bias
 	 */
-	static const gnd::Conf::parameter< double > ConfIni_GyroBias = {
+	static const gnd::conf::parameter< double > ConfIni_GyroBias = {
 			"gyro-bias",
 			2500
 	};
@@ -196,7 +196,7 @@ namespace Localizer {
 	/*
 	 * @brief gyro scale-factor
 	 */
-	static const gnd::Conf::parameter< double > ConfIni_GyroScaleFactor = {
+	static const gnd::conf::parameter< double > ConfIni_GyroScaleFactor = {
 			"gyro-scale-factor",
 			1.0 / 1145.9 // rad/sec par mV
 	};
@@ -215,17 +215,17 @@ namespace Localizer {
 		/*
 		 * @brief kinematics parameter file
 		 */
-		gnd::Conf::parameter_array<char, 512>						kfile;
+		gnd::conf::parameter_array<char, 512>						kfile;
 
 		/*
 		 * @brief number of particles
 		 */
-		gnd::Conf::parameter<int>									particles;
+		gnd::conf::parameter<int>									particles;
 
 		/*
 		 * @brief initial position
 		 */
-		gnd::Conf::parameter_array<double, PARTICLE_POS_DIM>		pos_ini;
+		gnd::conf::parameter_array<double, PARTICLE_POS_DIM>		pos_ini;
 		/*
 		 * @brief initial position variance
 		 */
@@ -234,7 +234,7 @@ namespace Localizer {
 		/*
 		 * @brief initial kinematics covariance
 		 */
-		gnd::Conf::parameter_array<double, PARTICLE_PROP_DIM>		knm_ini;
+		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		knm_ini;
 		/*
 		 * @brief initial kinematics variance parameter
 		 */
@@ -243,16 +243,16 @@ namespace Localizer {
 		/*
 		 * @brief remain re-sampling rate
 		 */
-		gnd::Conf::parameter<double>								remain;
+		gnd::conf::parameter<double>								remain;
 		/*
 		 * @brief position error re-sampling rate
 		 */
-		gnd::Conf::parameter<double>								poserr;
+		gnd::conf::parameter<double>								poserr;
 
 		/*
 		 * @brief position error variance parameter
 		 */
-		gnd::Conf::parameter_array<double, PARTICLE_POS_DIM>		poserr_covar_conf;
+		gnd::conf::parameter_array<double, PARTICLE_POS_DIM>		poserr_covar_conf;
 		/*
 		 * @brief position error covariance
 		 */
@@ -261,7 +261,7 @@ namespace Localizer {
 		/*
 		 * @brief position error static variance parameter
 		 */
-		gnd::Conf::parameter_array<double, PARTICLE_POS_DIM>		poserr_covar_static_conf;
+		gnd::conf::parameter_array<double, PARTICLE_POS_DIM>		poserr_covar_static_conf;
 		/*
 		 * @brief position error static covariance
 		 */
@@ -270,12 +270,12 @@ namespace Localizer {
 		/*
 		 * @brief kinematic re-sampling rate
 		 */
-		gnd::Conf::parameter<double>								knm;
+		gnd::conf::parameter<double>								knm;
 
 		/*
 		 * @brief kinematic variance parameter
 		 */
-		gnd::Conf::parameter_array<double, PARTICLE_PROP_DIM>		knm_covar_conf;
+		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		knm_covar_conf;
 		/*
 		 * @brief kinematic covariance
 		 */
@@ -284,11 +284,11 @@ namespace Localizer {
 		/*
 		 * @brief wide kinematic variance parameter
 		 */
-		gnd::Conf::parameter<double>								wknm;
+		gnd::conf::parameter<double>								wknm;
 		/*
 		 * @brief wide kinematic variance parameter
 		 */
-		gnd::Conf::parameter_array<double, PARTICLE_PROP_DIM>		wknm_covar_conf;
+		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		wknm_covar_conf;
 		/*
 		 * @brief wide kinematic covariance
 		 */
@@ -297,11 +297,11 @@ namespace Localizer {
 		/*
 		 * @brief reset kinematic variance parameter
 		 */
-		gnd::Conf::parameter<double>								reset_knm;
+		gnd::conf::parameter<double>								reset_knm;
 		/*
 		 * @brief reset kinematic variance parameter
 		 */
-		gnd::Conf::parameter_array<double, PARTICLE_PROP_DIM>		reset_knm_covar_conf;
+		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		reset_knm_covar_conf;
 		/*
 		 * @brief reset kinematic variance parameter
 		 */
@@ -310,43 +310,43 @@ namespace Localizer {
 		/*
 		 * @brief number of random sampling particle
 		 */
-		gnd::Conf::parameter<int>									random_sampling;
+		gnd::conf::parameter<int>									random_sampling;
 
 		/*
 		 * @brief pws ssm-id (input)
 		 */
-		gnd::Conf::parameter<int>									pws_id;
+		gnd::conf::parameter<int>									pws_id;
 
 		/*
 		 * @brief output ssm-id
 		 */
-		gnd::Conf::parameter<int>									ssm_id;
+		gnd::conf::parameter<int>									ssm_id;
 
 		/*
 		 * @brief gyro
 		 */
-		gnd::Conf::parameter<bool>									gyro;
+		gnd::conf::parameter<bool>									gyro;
 
 		/*
 		 * @brief gyro voltage
 		 */
-		gnd::Conf::parameter<double>								gyro_vol;
+		gnd::conf::parameter<double>								gyro_vol;
 
 		/*
 		 * @brief gyro-bits
 		 */
-		gnd::Conf::parameter<int>									gyro_bits;
+		gnd::conf::parameter<int>									gyro_bits;
 
 		/*
 		 * @brief gyro-bias
 		 */
-		gnd::Conf::parameter<double>								gyro_bias;
+		gnd::conf::parameter<double>								gyro_bias;
 
 
 		/*
 		 * @brief gyro-scalefactor
 		 */
-		gnd::Conf::parameter<double>								gyro_sf;
+		gnd::conf::parameter<double>								gyro_sf;
 
 	};
 	typedef struct proc_configuration configure_parameters;
@@ -368,7 +368,7 @@ namespace Localizer {
 	/**
 	 * @brief analyze configure file
 	 */
-	int proc_conf_analyze(gnd::Conf::Configuration *fconf, proc_configuration *confp);
+	int proc_conf_analyze(gnd::conf::configuration *fconf, proc_configuration *confp);
 
 
 	// constructor
@@ -571,31 +571,31 @@ namespace Localizer {
 
 	// configure file data analyze
 	inline
-	int proc_conf_get(gnd::Conf::Configuration *src, proc_configuration* dest) {
+	int proc_conf_get(gnd::conf::configuration *src, proc_configuration* dest) {
 		gnd_assert(!src, -1, "invalid null pointer");
 		gnd_assert(!dest, -1, "invalid null pointer");
 
-		gnd::Conf::get_parameter(src, &dest->kfile);
-		gnd::Conf::get_parameter(src, &dest->particles);
-		gnd::Conf::get_parameter(src, &dest->pos_ini);
-		gnd::Conf::get_parameter(src, &dest->knm_ini);
-		gnd::Conf::get_parameter(src, &dest->remain);
-		gnd::Conf::get_parameter(src, &dest->poserr);
-		gnd::Conf::get_parameter(src, &dest->poserr_covar_conf);
-		gnd::Conf::get_parameter(src, &dest->knm);
-		gnd::Conf::get_parameter(src, &dest->knm_covar_conf);
-		gnd::Conf::get_parameter(src, &dest->wknm);
-		gnd::Conf::get_parameter(src, &dest->wknm_covar_conf);
-		gnd::Conf::get_parameter(src, &dest->reset_knm);
-		gnd::Conf::get_parameter(src, &dest->reset_knm_covar_conf);
-		gnd::Conf::get_parameter(src, &dest->random_sampling);
-		gnd::Conf::get_parameter(src, &dest->pws_id);
-		gnd::Conf::get_parameter(src, &dest->ssm_id);
-		gnd::Conf::get_parameter(src, &dest->gyro);
-		gnd::Conf::get_parameter(src, &dest->gyro_vol);
-		gnd::Conf::get_parameter(src, &dest->gyro_bits);
-		gnd::Conf::get_parameter(src, &dest->gyro_bias);
-		gnd::Conf::get_parameter(src, &dest->gyro_sf);
+		gnd::conf::get_parameter(src, &dest->kfile);
+		gnd::conf::get_parameter(src, &dest->particles);
+		gnd::conf::get_parameter(src, &dest->pos_ini);
+		gnd::conf::get_parameter(src, &dest->knm_ini);
+		gnd::conf::get_parameter(src, &dest->remain);
+		gnd::conf::get_parameter(src, &dest->poserr);
+		gnd::conf::get_parameter(src, &dest->poserr_covar_conf);
+		gnd::conf::get_parameter(src, &dest->knm);
+		gnd::conf::get_parameter(src, &dest->knm_covar_conf);
+		gnd::conf::get_parameter(src, &dest->wknm);
+		gnd::conf::get_parameter(src, &dest->wknm_covar_conf);
+		gnd::conf::get_parameter(src, &dest->reset_knm);
+		gnd::conf::get_parameter(src, &dest->reset_knm_covar_conf);
+		gnd::conf::get_parameter(src, &dest->random_sampling);
+		gnd::conf::get_parameter(src, &dest->pws_id);
+		gnd::conf::get_parameter(src, &dest->ssm_id);
+		gnd::conf::get_parameter(src, &dest->gyro);
+		gnd::conf::get_parameter(src, &dest->gyro_vol);
+		gnd::conf::get_parameter(src, &dest->gyro_bits);
+		gnd::conf::get_parameter(src, &dest->gyro_bias);
+		gnd::conf::get_parameter(src, &dest->gyro_sf);
 
 		proc_conf_sampling_ratio_normalize(dest);
 		configure_get_covariance(dest);
@@ -605,31 +605,31 @@ namespace Localizer {
 
 	// configure file data analyze
 	inline
-	int proc_conf_set(gnd::Conf::Configuration *dest, proc_configuration* src) {
+	int proc_conf_set(gnd::conf::configuration *dest, proc_configuration* src) {
 		gnd_assert(!src, -1, "invalid null pointer");
 		gnd_assert(!dest, -1, "invalid null pointer");
 
-		gnd::Conf::set_parameter(dest, &src->kfile);
-		gnd::Conf::set_parameter(dest, &src->particles);
-		gnd::Conf::set_parameter(dest, &src->pos_ini);
-		gnd::Conf::set_parameter(dest, &src->knm_ini);
-		gnd::Conf::set_parameter(dest, &src->remain);
-		gnd::Conf::set_parameter(dest, &src->poserr);
-		gnd::Conf::set_parameter(dest, &src->poserr_covar_conf);
-		gnd::Conf::set_parameter(dest, &src->knm);
-		gnd::Conf::set_parameter(dest, &src->knm_covar_conf);
-		gnd::Conf::set_parameter(dest, &src->wknm);
-		gnd::Conf::set_parameter(dest, &src->wknm_covar_conf);
-		gnd::Conf::set_parameter(dest, &src->reset_knm);
-		gnd::Conf::set_parameter(dest, &src->reset_knm_covar_conf);
-		gnd::Conf::set_parameter(dest, &src->random_sampling);
-		gnd::Conf::set_parameter(dest, &src->pws_id);
-		gnd::Conf::set_parameter(dest, &src->ssm_id);
-		gnd::Conf::set_parameter(dest, &src->gyro);
-		gnd::Conf::set_parameter(dest, &src->gyro_vol);
-		gnd::Conf::set_parameter(dest, &src->gyro_bits);
-		gnd::Conf::set_parameter(dest, &src->gyro_bias);
-		gnd::Conf::set_parameter(dest, &src->gyro_sf);
+		gnd::conf::set_parameter(dest, &src->kfile);
+		gnd::conf::set_parameter(dest, &src->particles);
+		gnd::conf::set_parameter(dest, &src->pos_ini);
+		gnd::conf::set_parameter(dest, &src->knm_ini);
+		gnd::conf::set_parameter(dest, &src->remain);
+		gnd::conf::set_parameter(dest, &src->poserr);
+		gnd::conf::set_parameter(dest, &src->poserr_covar_conf);
+		gnd::conf::set_parameter(dest, &src->knm);
+		gnd::conf::set_parameter(dest, &src->knm_covar_conf);
+		gnd::conf::set_parameter(dest, &src->wknm);
+		gnd::conf::set_parameter(dest, &src->wknm_covar_conf);
+		gnd::conf::set_parameter(dest, &src->reset_knm);
+		gnd::conf::set_parameter(dest, &src->reset_knm_covar_conf);
+		gnd::conf::set_parameter(dest, &src->random_sampling);
+		gnd::conf::set_parameter(dest, &src->pws_id);
+		gnd::conf::set_parameter(dest, &src->ssm_id);
+		gnd::conf::set_parameter(dest, &src->gyro);
+		gnd::conf::set_parameter(dest, &src->gyro_vol);
+		gnd::conf::set_parameter(dest, &src->gyro_bits);
+		gnd::conf::set_parameter(dest, &src->gyro_bias);
+		gnd::conf::set_parameter(dest, &src->gyro_sf);
 
 		return 0;
 	}
@@ -647,7 +647,7 @@ namespace Localizer {
 
 		{ // ---> operation
 			int ret;
-			gnd::Conf::FileStream fs;
+			gnd::conf::file_stream fs;
 			// configuration file read
 			if( (ret = fs.read(f)) < 0 )	return ret;
 
@@ -667,7 +667,7 @@ namespace Localizer {
 
 		{ // ---> operation
 			int ret;
-			gnd::Conf::FileStream fs;
+			gnd::conf::file_stream fs;
 			// convert configuration declaration
 			if( (ret = proc_conf_set(&fs, src)) < 0 ) return ret;
 

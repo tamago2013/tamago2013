@@ -105,7 +105,7 @@ namespace Localizer {
 			case 'k': ::strcpy(param->kfile.value, optarg); break;
 			case 'g':
 			{
-				gnd::Conf::FileStream conf_fs;
+				gnd::conf::file_stream conf_fs;
 				if( proc_conf_read(optarg, param) < 0 ){
 					::fprintf(stderr, " ... [\x1b[1m\x1b[31mERROR\x1b[30m\x1b[0m]: -g option, Fail to read configure file\n");
 					return -1;

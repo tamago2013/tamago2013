@@ -113,10 +113,10 @@ int main(int argc, char* argv[], char *envp[]) {
 
 			// check kinematic parameter
 			if( odm_prop.radius_r > 0 && odm_prop.radius_l > 0 && odm_prop.tread > 0 && gear > 0 && count_rev > 0){
-				::fprintf(stderr, "    load lacking parameter from \x1b[4mypsypur-coordinator\x1b[0m\n");
 			}
 			else {
 				// initialize for using ypspur-coordinator
+				::fprintf(stderr, "    load lacking parameter from \x1b[4mypsypur-coordinator\x1b[0m\n");
 				if( Spur_init() < 0){
 					::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to connect ypspur-coordinator.\n");
 					proc_shutoff();
@@ -138,12 +138,15 @@ int main(int argc, char* argv[], char *envp[]) {
 				if( !is_proc_shutoff() && YP_get_parameter(YP_PARAM_GEAR, &gear) < 0 ){
 					proc_shutoff();
 				}
+				::fprintf(stdout, "%d %d %d\n", YP_PARAM_NUM, YP_PARAM_RADIUS_R, YP_PARAM_RADIUS_L);
+				::fprintf(stdout, "%lf %lf %lf %lf %lf\n",
+						odm_prop.radius_r, odm_prop.radius_l, odm_prop.tread, count_rev, gear);
 			}
 			// <--- get parameter from ypspur-coordinater
 
 			// check kinematic parameter
 			if( odm_prop.radius_r <= 0 || odm_prop.radius_l <= 0 || odm_prop.tread <= 0 || gear <= 0 || count_rev <= 0){
-				::fprintf(stderr, "  => \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m : Incomplete loading kinematics parameter.\n");
+				::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m : Incomplete loading kinematics parameter.\n");
 				proc_shutoff();
 			}
 
