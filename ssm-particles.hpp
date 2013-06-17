@@ -640,7 +640,7 @@ private:
 	{
 		const ssmdata_t *ssmp = static_cast<const ssmdata_t *>( (const void*) ((const char*)assmp + sizeof(int)));
 		particle_set_c *data = static_cast<particle_set_c *>( adata );
-		int n;
+		uint64_t n;
 
 		::memcpy( &n, static_cast<const char *>(assmp), sizeof(int) );
 		if( data->nalloc() < n )	data->allocate(n);
