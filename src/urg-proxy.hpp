@@ -214,8 +214,6 @@ namespace gnd {
 			gnd_error(pr->min_poll == 0, -1, "invalid property");
 			gnd_error(pr->min_poll > pr->max_poll, -1, "invalid property");
 
-			fLogDebug("Begin:int timeadjust(%p, %p, %p, %p)\n", pr, t, d, h);
-
 			{ // ---> operation
 				double dtime_d, htime_d;
 
@@ -235,7 +233,6 @@ namespace gnd {
 					else if( diff > pr->delta ) {
 						if(t->poll > pr->max_poll)	t->poll--;
 					}
-					fLogDebug("     : poll %d\n", t->poll );
 				} // <--- set poll
 
 				{ // --->
@@ -250,7 +247,6 @@ namespace gnd {
 					if( ::fabs( 1.0 - drift ) > DriftError )	t->drift = 1.0;
 					else 										t->drift += (drift * ( 1 - pr->inv_z )) - (t->drift * ( 1 - pr->inv_z ));
 
-					fLogDebug("     : drift %lf\n", t->drift );
 				} // <--- drift
 				// host
 				t->host = htime_d;
@@ -258,7 +254,6 @@ namespace gnd {
 				t->device = dtime_d;
 			} // <--- operation
 
-			fLogDebug("  End:int timeadjust(%p, %p, %p, %p)\n", pr, t, d, h);
 			return 0;
 		}
 
@@ -285,11 +280,6 @@ namespace gnd {
 				::fprintf(fp, "PROT:%s\n", v->protocol);
 				::fprintf(fp, "SERI:%s\n", v->serialno);
 			}
-			fLogDebug("VEND:%s\n", v->vender);
-			fLogDebug("PROD:%s\n", v->product);
-			fLogDebug("FIRM:%s\n", v->firmware);
-			fLogDebug("PROT:%s\n", v->protocol);
-			fLogDebug("SERI:%s\n", v->serialno);
 
 			return 0;
 		}
@@ -308,14 +298,6 @@ namespace gnd {
 				::fprintf(fp, "AFRT:%d\n", p->step_front);
 				::fprintf(fp, "SCAN:%d\n", p->step_resolution);
 			}
-			fLogDebug("MODL:%s\n", p->model);
-			fLogDebug("DMIN:%d\n", p->dist_min);
-			fLogDebug("DMAX:%d\n", p->dist_max);
-			fLogDebug("ARES:%d\n", p->revolution);
-			fLogDebug("AMIN:%d\n", p->step_min);
-			fLogDebug("AMAX:%d\n", p->step_max);
-			fLogDebug("AFRT:%d\n", p->step_front);
-			fLogDebug("SCAN:%d\n", p->step_resolution);
 
 			return 0;
 		}
