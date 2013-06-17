@@ -106,7 +106,7 @@ namespace gnd {
 				{
 					int i = 0;
 					fprintf(stderr, "\t\x1b[1mNAME\x1b[0m\n");
-					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m - observation probability scan matching optimizer\n", proc_name);
+					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m - laser scan coordinate convert \n", proc_name);
 					fprintf(stderr, "\n");
 
 					fprintf(stderr, "\t\x1b[1mSYNAPSIS\x1b[0m\n");
@@ -114,7 +114,7 @@ namespace gnd {
 					fprintf(stderr, "\n");
 
 					fprintf(stderr, "\t\x1b[1mDISCRIPTION\x1b[0m\n");
-					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m is estimate the robot position and optimize it with newton method.\n", proc_name);
+					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m convert the coordinate of laser scan.\n", proc_name);
 
 					fprintf(stderr, "\n");
 					fprintf(stderr, "\t\x1b[1mOPTIONS\x1b[0m\n");
