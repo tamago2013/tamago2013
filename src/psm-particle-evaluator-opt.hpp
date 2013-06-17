@@ -1,62 +1,62 @@
 /*
- * opsm-particle-evaluator-opt.hpp
+ * psm-particle-evaluator-opt.hpp
  *
  *  Created on: 2012/03/14
  *      Author: tyamada
  */
 
-#ifndef OPSM_PARTICLE_EVALUATOR_OPT_HPP_
-#define OPSM_PARTICLE_EVALUATOR_OPT_HPP_
+#ifndef PSM_PARTICLE_EVALUATOR_OPT_HPP_
+#define PSM_PARTICLE_EVALUATOR_OPT_HPP_
 
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
 
-#include "opsm-particle-evaluator.h"
+#include "psm-particle-evaluator.hpp"
 
-#include "opsm-particle-evaluator-conf.hpp"
+#include "psm-particle-evaluator-conf.hpp"
 
 // type declaration
-// ---> namespace ObservationProbabilityScanMatching
-namespace OPSM {
+// ---> namespace psm
+namespace psm {
 	// ---> namespace Particle Evaluator
-	namespace PEVAL {
+	namespace peval {
 		class proc_option_reader;
 
 	} // <--- namespace Particle Evaluator
- }// <--- namespace ObservationProbabilityScanMatching
+ }// <--- namespace psm
 
 
 // constant declaration
-// ---> namespace ObservationProbabilityScanMatching
-namespace OPSM {
+// ---> namespace psm
+namespace psm {
 	// ---> namespace Particle Evaluator
-	namespace PEVAL {
-		const char ConfFile[] = "opsm-particle-evaluator.conf";
+	namespace peval {
+		const char ConfFile[] = "psm-particle-evaluator.conf";
 		const char ShortOpt[] = "hg:G::m:r:s:p:e:c:";
 		const struct option LongOpt[] = {
 				{"help", 							no_argument,		0,	'h'},
 				{"config",							required_argument,	0,	'g'},
 				{"write-config",					optional_argument,	0,	'G'},
-				{ConfIni_BMPMap.token,				required_argument,	0,	'm'},
-				{ConfIni_RawMap.token,				required_argument,	0,	'r'},
-				{ConfIni_SokuikiRawID.token,		required_argument,	0,	's'},
-				{ConfIni_ParticleID.token,			required_argument,	0,	'p'},
-				{ConfIni_ParticleEvalID.token,		required_argument,	0,	'e'},
-				{ConfIni_Cycle.token,				required_argument,	0,	'c'},
+				{ConfIni_BMPMap.item,				required_argument,	0,	'm'},
+				{ConfIni_RawMap.item,				required_argument,	0,	'r'},
+				{ConfIni_SokuikiRawID.item,			required_argument,	0,	's'},
+				{ConfIni_ParticleID.item,			required_argument,	0,	'p'},
+				{ConfIni_ParticleEvalID.item,		required_argument,	0,	'e'},
+				{ConfIni_Cycle.item,				required_argument,	0,	'c'},
 				{0, 0, 0, 0}	// end of array
 		};
 
 	} // <--- namespace Particle Evaluator
- }// <--- namespace ObservationProbabilityScanMatching
+ }// <--- namespace psm
 
 
 
 // type definition
-// ---> namespace ObservationProbabilityScanMatching
-namespace OPSM {
+// ---> namespace psm
+namespace psm {
 	// ---> namespace Particle Evaluator
-	namespace PEVAL {
+	namespace peval {
 		class proc_option_reader {
 		// ---> return value definition
 		public:
@@ -143,7 +143,7 @@ namespace OPSM {
 				// write configure
 				case 'G': {
 					proc_conf_write( optarg ? optarg : ConfFile, conf);
-					::fprintf(stderr, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "opsm-particle-evaluator.conf");
+					::fprintf(stderr, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "psm-particle-evaluator.conf");
 				} return RetWriteConf;
 
 				// entry map file
@@ -173,7 +173,7 @@ namespace OPSM {
 				{
 					int i = 0;
 					fprintf(stderr, "\t\x1b[1mNAME\x1b[0m\n");
-					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m - observation probability scan matching optimizer\n", proc_name);
+					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m - particle evaluation using probabilistic scan matching\n", proc_name);
 					fprintf(stderr, "\n");
 
 					fprintf(stderr, "\t\x1b[1mSYNAPSIS\x1b[0m\n");
@@ -181,7 +181,7 @@ namespace OPSM {
 					fprintf(stderr, "\n");
 
 					fprintf(stderr, "\t\x1b[1mDISCRIPTION\x1b[0m\n");
-					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m is estimate the robot position and optimize it with newton method.\n", proc_name);
+					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m evaluate particles for particle filter localization using probabilistic scan matching.\n", proc_name);
 
 					fprintf(stderr, "\n");
 					fprintf(stderr, "\t\x1b[1mOPTIONS\x1b[0m\n");
@@ -239,7 +239,7 @@ namespace OPSM {
 
 
 	} // <--- namespace Particle Evaluator
- }// <--- namespace ObservationProbabilityScanMatching
+ }// <--- namespace psm
 
 
 

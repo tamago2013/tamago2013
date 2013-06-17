@@ -3,7 +3,7 @@
 LAUNCHER		:=launcher
 
 #lanch option
-LAUNCH_OPTION	:=-g $(PWD)/opsm-particle-evaluator.conf
+LAUNCH_OPTION	:=-g $(PWD)/psm-particle-evaluator.conf
 
 #launch command
 LAUNCH_CMD		:=./$(RELEASE_DIR)$(TARGET) $(LAUNCH_OPTION) "$$"@

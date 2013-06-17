@@ -1,18 +1,18 @@
 /*
- * opsm-particle-evaluator-cui.hpp
+ * psm-particle-evaluator-cui.hpp
  *
  *  Created on: 2012/03/21
  *      Author: tyamada
  */
 
-#ifndef OPSM_PARTICLE_EVALUATOR_CUI_HPP_
-#define OPSM_PARTICLE_EVALUATOR_CUI_HPP_
+#ifndef PSM_PARTICLE_EVALUATOR_CUI_HPP_
+#define PSM_PARTICLE_EVALUATOR_CUI_HPP_
 
-#include "opsm-particle-evaluator.h"
+#include "psm-particle-evaluator.hpp"
 #include "gnd-cui.hpp"
 
-namespace OPSM {
-	namespace PEVAL {
+namespace psm {
+	namespace peval {
 		const double ShowUpdateCycle = 1.0;
 
 		const gnd::cui_command cui_cmd[] = {
@@ -29,4 +29,4 @@ namespace OPSM {
 	}
 }
 
-#endif /* OPSM_PARTICLE_EVALUATOR_CUI_HPP_ */
+#endif /* PSM_PARTICLE_EVALUATOR_CUI_HPP_ */

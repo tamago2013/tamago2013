@@ -1,50 +1,43 @@
 /*
- * opsm-particle-evaluator-conf.hpp
+ * psm-particle-evaluator-conf.hpp
  *
  *  Created on: 2012/03/14
  *      Author: tyamada
  */
 
-#ifndef OPSM_PARTICLE_EVALUATOR_CONF_HPP_
-#define OPSM_PARTICLE_EVALUATOR_CONF_HPP_
+#ifndef PSM_PARTICLE_EVALUATOR_CONF_HPP_
+#define PSM_PARTICLE_EVALUATOR_CONF_HPP_
 
 #include <ssmtype/spur-odometry.h>
 #include "ssm-laser.hpp"
 #include "ssm-particles.hpp"
 
-#include "opsm-particle-evaluator.h"
+#include "psm-particle-evaluator.hpp"
 
-#include "gnd-opsm.hpp"
+#include "gnd-psm.hpp"
 #include "gnd-config-file.hpp"
 #include "gnd-lib-error.h"
 
-#ifndef OPSM
-#define OPSM ObservationProbabilityScamMatching
-#endif
-
-#ifndef PEVAL
-#define PEVAL ParticleEvaluator
-#endif
 
 /// structure declaration
-// ---> namespace ObservationProbability
-namespace OPSM {
-	// ---> namespace ParticleEvaluator
-	namespace PEVAL {
+// ---> namespace psm
+namespace psm {
+	// ---> namespace peval
+	namespace peval {
 		/*!
 		 * @brief process configuration
 		 */
 		struct proc_configuration;
-	} // <--- namespace ParticleEvaluator
-} // <--- namespace ObservationProbability
+	} // <--- namespace psm
+} // <--- namespace peval
 
 
 
 /// function declaration
-// ---> namespace ObservationProbability
-namespace OPSM {
-	// ---> namespace ParticleEvaluator
-	namespace PEVAL {
+// ---> namespace psm
+namespace psm {
+	// ---> namespace peval
+	namespace peval {
 
 		int proc_conf_initialize(proc_configuration *c);
 		int proc_conf_get(gnd::conf::configuration *src, proc_configuration* dest);
@@ -52,17 +45,17 @@ namespace OPSM {
 		int proc_conf_read(const char* f, proc_configuration* dest);
 		int proc_conf_write(const char* f, proc_configuration* src);
 
-	} // <--- namespace ParticleEvaluator
-} // <--- namespace ObservationProbability
+	} // <--- namespace psm
+} // <--- namespace peval
 
 
 // constant definition
-// ---> namespace ObservationProbability
-namespace OPSM {
-	// ---> namespace ParticleEvaluator
-	namespace PEVAL {
+// ---> namespace peval
+namespace psm {
+	// ---> namespace psm
+	namespace peval {
 
-		static const char proc_name[] = "opsm-particle-evaluator";
+		static const char proc_name[] = "psm-particle-evaluator";
 
 		// bmp-map
 		static const gnd::conf::parameter_array<char, 512> ConfIni_BMPMap = {
@@ -171,15 +164,15 @@ namespace OPSM {
 				"input data culling parameter"
 		};
 
-	} // <--- namespace ParticleEvaluator
-} // <--- namespace ObservationProbability
+	} // <--- namespace psm
+} // <--- namespace peval
 
 
 // type definition
-// ---> namespace ObservationProbability
-namespace OPSM {
-	// ---> namespace ParticleEvaluator
-	namespace PEVAL {
+// ---> namespace psm
+namespace psm {
+	// ---> namespace peval
+	namespace peval {
 
 		/**
 		 * @brief process configuration parameter
@@ -216,15 +209,15 @@ namespace OPSM {
 		proc_configuration::proc_configuration() {
 			proc_conf_initialize(this);
 		}
-	} // <--- namespace ParticleEvaluator
-} // <--- namespace ObservationProbability
+	} // <--- namespace peval
+} // <--- namespace psm
 
 
 // function definition
-// ---> namespace ObservationProbability
-namespace OPSM {
-	// ---> namespace ParticleEvaluator
-	namespace PEVAL {
+// ---> namespace psm
+namespace psm {
+	// ---> namespace peval
+	namespace peval {
 
 		/**
 		 * @brief initialize process configuration structure
@@ -359,8 +352,8 @@ namespace OPSM {
 			} // <--- operation
 		}
 
-	} // <--- namespace ParticleEvaluator
-} // <--- namespace ObservationProbability
+	} // <--- namespace peval
+} // <--- namespace psm
 
 
-#endif /* OPSM_PARTICLE_EVALUATOR_CONF_HPP_ */
+#endif /* PSM_PARTICLE_EVALUATOR_CONF_HPP_ */
