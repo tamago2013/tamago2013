@@ -485,7 +485,7 @@ int main(int argc, char* argv[], char *envp[]) {
 
 					::fprintf(stderr, "\x1b[0;0H\x1b[2J");	// display clear
 					::fprintf(stderr, "-------------------- \x1b[33m\x1b[1m%s\x1b[0m\x1b[39m --------------------\n", Localizer::particle_filter);
-					::fprintf(stderr, "    particle : %d\n", ssm_particle.data.size() );
+					::fprintf(stderr, "    particle : %ld\n", ssm_particle.data.size() );
 					::fprintf(stderr, "             : r %d, p %d, k %d, wk %d rk %d\n", nparticle_remain, nparticle_pos, nparticle_knm, nparticle_wknm, nparticle_knm_reset);
 					::fprintf(stderr, "    resample : %d,   reject %d\n", rsmpl_cnt, reject_cnt );
 					::fprintf(stderr, "    position : %.02lf %.02lf %.01lf\n",  ssm_particle.data.pos.odo.x,  ssm_particle.data.pos.odo.y,  gnd_ang2deg(ssm_particle.data.pos.odo.theta) );

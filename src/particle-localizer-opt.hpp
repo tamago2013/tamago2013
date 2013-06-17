@@ -78,7 +78,7 @@ namespace Localizer {
 		{"help", 				no_argument,		0,	'h'},
 		{"config",				required_argument,	0,	'g'},
 		{"write-config",		optional_argument,	0,	'G'},
-		{ConfIni_KFile.token,	required_argument,	0,	'k'},
+		{ConfIni_KFile.item,	required_argument,	0,	'k'},
 		{"start-at",			no_argument,		0,	'a'},
 		{"wide-sampling",		optional_argument,	0,	'w'},
 		{"debug",				no_argument,		0,	'd'},

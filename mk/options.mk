@@ -9,7 +9,7 @@ _WRN_OPTION_	:=-Wall
 _DBG_OPTION_	:=
 
 #preprocessor option
-_PRE_OPTION_	:=-DNDEBUG
+_PRE_OPTION_	:="-DNDEBUG=yes"
 
 #linker option
 _LNK_OPTION_	:=$(patsubst %,-l%,$(LIBS))
