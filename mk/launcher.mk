@@ -3,7 +3,7 @@
 LAUNCHER		:=launcher
 
 #lanch option
-LAUNCH_OPTION	:=-g ./opsm-pos-tracker.conf
+LAUNCH_OPTION	:=-g ./psm-pos-tracker.conf
 
 #launch command
 LAUNCH_CMD		:= ./$(RELEASE_DIR)$(TARGET) $(LAUNCH_OPTION) "$$"@

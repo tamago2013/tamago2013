@@ -1,12 +1,12 @@
 /*
- * observation-probability-position-tracker-opt.hpp
+ * psm-position-tracker-opt.hpp
  *
  *  Created on: 2011/12/22
  *      Author: tyamada
  */
 
-#ifndef OBSERVATION_PROBABILITY_POSITION_TRACKER_OPT_HPP_
-#define OBSERVATION_PROBABILITY_POSITION_TRACKER_OPT_HPP_
+#ifndef PSM_POSITION_TRACKER_OPT_HPP_
+#define PSM_POSITION_TRACKER_OPT_HPP_
 
 
 #include <string.h>
@@ -16,14 +16,14 @@
 #include <ssmtype/spur-odometry.h>
 #include <ssmtype/pws-motor.h>
 
-#include "opsm-position-tracker-conf.hpp"
+#include "psm-position-tracker-conf.hpp"
 
-#ifndef OPSMPosTrack
-#define OPSMPosTrack ObservationProbabilityScanMatching::PositionTracker
+#ifndef psm_pt
+#define psm_pt psm::position_tracker
 #endif
 
-namespace ObservationProbabilityScanMatching {
-	namespace PositionTracker {
+namespace psm {
+	namespace position_tracker {
 
 		class options
 		{
@@ -64,13 +64,13 @@ namespace ObservationProbabilityScanMatching {
 				{"help", 							no_argument,		0,	'h'},
 				{"config",							required_argument,	0,	'g'},
 				{"write-config",					required_argument,	0,	'G'},
-				{ConfIni_ScanMatchingMapDir.token,	required_argument,	0,	'm'},
-				{ConfIni_LaserScannerSSMName.token,	required_argument,	0,	'S'},
-				{ConfIni_OdometrySSMName.token,		required_argument,	0,	'O'},
-				{ConfIni_Culling.token,				required_argument,	0,	'd'},
-				{ConfIni_Cycle.token,				required_argument,	0,	'c'},
-				{ConfIni_SLAM.token,				no_argument,		0,	'l'},
-				{ConfIni_NDT.token,					no_argument,		0,	'N'},
+				{ConfIni_ScanMatchingMapDir.item,	required_argument,	0,	'm'},
+				{ConfIni_LaserScannerSSMName.item,	required_argument,	0,	'S'},
+				{ConfIni_OdometrySSMName.item,		required_argument,	0,	'O'},
+				{ConfIni_Culling.item,				required_argument,	0,	'd'},
+				{ConfIni_Cycle.item,				required_argument,	0,	'c'},
+				{ConfIni_SLAM.item,					no_argument,		0,	'l'},
+				{ConfIni_NDT.item,					no_argument,		0,	'N'},
 				{0, 0, 0, 0}	// end of array
 		};
 
@@ -103,8 +103,8 @@ namespace ObservationProbabilityScanMatching {
 
 				// write configure
 				case 'G': {
-					proc_conf_write( optarg ? optarg : "opsm-pos-tracker.conf", pconf);
-					::fprintf(stderr, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "opsm-pos-tracker.conf");
+					proc_conf_write( optarg ? optarg : "psm-pos-tracker.conf", pconf);
+					::fprintf(stderr, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "psm-pos-tracker.conf");
 				} return RWriteConf;
 
 				// entry map file directory
@@ -165,7 +165,7 @@ namespace ObservationProbabilityScanMatching {
 				{
 					int i = 0;
 					fprintf(stderr, "\t\x1b[1mNAME\x1b[0m\n");
-					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m - observation probability scan matching optimizer\n", proc_name);
+					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m - position tracking using probabilistic scan matching\n", proc_name);
 					fprintf(stderr, "\n");
 
 					fprintf(stderr, "\t\x1b[1mSYNAPSIS\x1b[0m\n");
@@ -173,7 +173,7 @@ namespace ObservationProbabilityScanMatching {
 					fprintf(stderr, "\n");
 
 					fprintf(stderr, "\t\x1b[1mDISCRIPTION\x1b[0m\n");
-					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m is estimate the robot position and optimize it with newton method.\n", proc_name);
+					fprintf(stderr, "\t\t\x1b[1m%s\x1b[0m estimate the robot position and optimize it with probabilistic scan matching.\n", proc_name);
 
 					fprintf(stderr, "\n");
 					fprintf(stderr, "\t\x1b[1mOPTIONS\x1b[0m\n");
@@ -224,8 +224,8 @@ namespace ObservationProbabilityScanMatching {
 			return 0;
 		}
 	}; // namespace Optimizer
-}; // namespace ObservationProbabilityScanMatching
+}; // namespace psm
 
 
 
-#endif /* OBSERVATION_PROBABILITY_POSITION_TRACKER_OPT_HPP_ */
+#endif /* PSM_POSITION_TRACKER_OPT_HPP_ */

@@ -1,23 +1,23 @@
 /*
- * observation-probability-position-tracker-view.hpp
+ * psm-position-tracker-view.hpp
  *
  *  Created on: 2012/01/10
  *      Author: tyamada
  */
 
-#ifndef OBSERVATION_PROBABILITY_POSITION_TRACKER_VIEW_HPP_
-#define OBSERVATION_PROBABILITY_POSITION_TRACKER_VIEW_HPP_
+#ifndef PSM_POSITION_TRACKER_VIEW_HPP_
+#define PSM_POSITION_TRACKER_VIEW_HPP_
 
 #include "gnd-gl.hpp"
 #include "gnd-gldraw.hpp"
 
-#ifndef OPSMPosTrack
-#define OPSMPosTrack ObservationProbabilityScanMatching::PositionTracker
+#ifndef psm_pt
+#define psm_pt psm::position_tracker
 #endif
 
-namespace ObservationProbabilityScanMatching {
-	namespace PositionTracker {
-		namespace Viewer {
+namespace psm {
+	namespace position_tracker {
+		namespace viewer {
 			gnd_semvariable< gnd::queue< gnd::gl::point > > scan_2prev;	///< previous point
 			gnd_semvariable< gnd::queue< gnd::gl::point > > scan_prev;	///< previous point
 			gnd_semvariable< gnd::queue< gnd::gl::point > > scan_cur;	///< current point
@@ -139,4 +139,4 @@ namespace ObservationProbabilityScanMatching {
 	}
 }
 
-#endif /* OBSERVATION_PROBABILITY_POSITION_TRACKER_VIEW_HPP_ */
+#endif /* PSM_POSITION_TRACKER_VIEW_HPP_ */
