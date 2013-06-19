@@ -13,6 +13,8 @@
 
 #include "ls-coordinate-converter-opt.hpp"
 
+#include "gnd-matrix-base.hpp"
+#include "gnd-vector-base.hpp"
 #include "gnd-time.hpp"
 #include "gnd-shutoff.hpp"
 #include "gnd-util.h"
@@ -152,18 +154,18 @@ int main(int argc, char* argv[], char* env[]) {
 
 					if( !ssm_sokuiki_fs.data[i].isError() && ssm_sokuiki_fs.data[i].status != ssm::laser::STATUS_NO_REFLECTION) {
 						{ // ---> coordinate convert
-							gnd::matrix::fixed<4,1> point_sns, point_fs;
+							gnd::vector::fixed_column<4> point_sns, point_fs;
 
-							point_sns[0][0] = ssm_sokuiki_raw.data[i].r * ::cos( ssm_sokuiki_raw.data[i].th );
-							point_sns[1][0] = ssm_sokuiki_raw.data[i].r * ::sin( ssm_sokuiki_raw.data[i].th );
-							point_sns[2][0] = 0;
-							point_sns[3][0] = 1;
+							point_sns[0] = ssm_sokuiki_raw.data[i].r * ::cos( ssm_sokuiki_raw.data[i].th );
+							point_sns[1] = ssm_sokuiki_raw.data[i].r * ::sin( ssm_sokuiki_raw.data[i].th );
+							point_sns[2] = 0;
+							point_sns[3] = 1;
 
 							gnd::matrix::prod(&cconvert_mat, &point_sns, &point_fs );
 
-							ssm_sokuiki_fs.data[i].reflect.x = point_fs[0][0];
-							ssm_sokuiki_fs.data[i].reflect.y = point_fs[1][0];
-							ssm_sokuiki_fs.data[i].reflect.z = point_fs[2][0];
+							ssm_sokuiki_fs.data[i].reflect.x = point_fs[0];
+							ssm_sokuiki_fs.data[i].reflect.y = point_fs[1];
+							ssm_sokuiki_fs.data[i].reflect.z = point_fs[2];
 						} // <--- coordinate convert
 
 						{ // ---> set other sensor value
