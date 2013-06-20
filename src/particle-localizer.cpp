@@ -22,7 +22,6 @@
 
 #include "gnd-util.h"
 #include "gnd-random.hpp"
-#include "gnd-mahalanobis.hpp"
 #include "gnd-shutoff.hpp"
 
 #include "particle-localizer-opt.hpp"
