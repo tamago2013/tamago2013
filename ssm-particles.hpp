@@ -11,7 +11,6 @@
 #include <ssmtype/spur-odometry.h>
 
 #include "gnd-random.hpp"
-#include "gnd-mahalanobis.hpp"
 
 #include "gnd-matrix-base.hpp"
 #include "gnd-queue.hpp"
