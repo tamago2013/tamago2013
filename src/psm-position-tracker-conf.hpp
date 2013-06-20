@@ -228,12 +228,6 @@ namespace psm {
 
 
 		// debug viewer switch
-		static const gnd::conf::parameter<bool> ConfIni_DebugViewer = {
-				"debug-viewer",
-				true,
-		};
-
-		// debug viewer switch
 		static const gnd::conf::parameter<bool> ConfIni_DebugShowMode = {
 				"debug-show-mode",
 				true,
@@ -374,7 +368,6 @@ namespace psm {
 			gnd::conf::parameter<int>				ini_map_cnt;		///< number of scan data for first map building
 			gnd::conf::parameter<int>				ini_match_cnt;		///< count of initial position estimation. in these matching result is not resister on odometry error map
 			gnd::conf::parameter<bool>				ndt;				///< ndt mode
-			gnd::conf::parameter<bool>				debug_viewer;		///< debug viewer
 			gnd::conf::parameter<bool>				debug_show;			///< debug show mode
 
 			gnd::conf::parameter<double>			pos_gridsizex;		///< road map position size
@@ -441,7 +434,6 @@ namespace psm {
 			::memcpy(&conf->ini_map_cnt,		&ConfIni_InitMapCnt,			sizeof(ConfIni_InitMapCnt) );
 			::memcpy(&conf->ini_match_cnt,		&ConfIni_InitMatchingCnt,		sizeof(ConfIni_InitMatchingCnt) );
 			::memcpy(&conf->ndt,				&ConfIni_NDT,					sizeof(ConfIni_NDT) );
-			::memcpy(&conf->debug_viewer,		&ConfIni_DebugViewer,			sizeof(ConfIni_DebugViewer) );
 			::memcpy(&conf->debug_show,			&ConfIni_DebugShowMode,			sizeof(ConfIni_DebugShowMode) );
 
 			::memcpy(&conf->pos_gridsizex,		&ConfIni_PosGridSizeX,			sizeof(ConfIni_PosGridSizeX) );
@@ -493,7 +485,6 @@ namespace psm {
 			gnd::conf::get_parameter( src, &dest->ini_map_cnt );
 			gnd::conf::get_parameter( src, &dest->ini_match_cnt );
 			gnd::conf::get_parameter( src, &dest->ndt );
-			gnd::conf::get_parameter( src, &dest->debug_viewer );
 			gnd::conf::get_parameter( src, &dest->debug_show );
 			gnd::conf::get_parameter( src, &dest->pos_gridsizex );
 			gnd::conf::get_parameter( src, &dest->pos_gridsizey );
@@ -557,7 +548,6 @@ namespace psm {
 				gnd::conf::set_parameter(dest, &src->ini_map_cnt );
 				gnd::conf::set_parameter(dest, &src->ini_match_cnt );
 				gnd::conf::set_parameter(dest, &src->ndt);
-				gnd::conf::set_parameter(dest, &src->debug_viewer );
 				gnd::conf::set_parameter(dest, &src->debug_show );
 
 				gnd::conf::set_parameter(dest, &src->pos_gridsizex );

@@ -16,7 +16,6 @@
 
 #include "psm-position-tracker-opt.hpp"
 #include "psm-position-tracker-cui.hpp"
-#include "psm-position-tracker-viewer.hpp"
 
 #include "gnd-coord-tree.hpp"
 #include "gnd-matrix-coordinate.hpp"
@@ -343,27 +342,6 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		} // <--- open ssm sokuiki raw data
-
-
-		// ---> viewer initialization
-		if ( !::is_proc_shutoff() ) {
-			gnd::gl::initialize(&argc, argv);
-
-			gnd::gl::window.m = GLUT_DEPTH | GLUT_RGBA | GLUT_DOUBLE;
-			gnd::gl::window.w = 400;
-			gnd::gl::window.h = 300;
-
-			gnd::gl::window.field = 10;
-			::strcpy( gnd::gl::window.name, "viewer" );
-
-			gnd::gl::window.df = psm_pt::viewer::display;
-			gnd::gl::window.idle = psm_pt::viewer::idle;
-			gnd::gl::window.mf = psm_pt::viewer::mouse;
-			gnd::gl::window.mmf = psm_pt::viewer::motion;
-			gnd::gl::window.reshf = psm_pt::viewer::reshape;
-
-			if ( pconf.debug_viewer.value ) gnd::gl::begin();
-		} // <--- viewer initialization
 
 
 		// ---> make output directory
@@ -795,26 +773,6 @@ int main(int argc, char* argv[]) {
 							cuito = -1;
 						} break;
 
-						case 'v': {
-							if ( !pconf.debug_viewer.value ) {
-								::fprintf(stderr, "   ... create window\n");
-								if( !gnd::gl::is_thread_fin() ) {
-									::fprintf(stderr, "   ... \x1b[31m\x1b[1mFial\x1b[0m\x1b[39m can'not create because of thread is busy\n");
-								}
-								else if( gnd::gl::begin() < 0){
-									::fprintf(stderr, "   ... \x1b[31m\x1b[1mFial\x1b[0m\x1b[39m can'not create because of thread is busy\n");
-								}
-								pconf.debug_viewer.value = true;
-							}
-							else if ( pconf.debug_viewer.value ) {
-								::fprintf(stderr, "   ... delete\n");
-								if( gnd::gl::end() < 0 ) {
-									::fprintf(stderr, "   ... \x1b[31m\x1b[1mFial\x1b[0m\x1b[39m can'not delete window\n");
-								}
-								pconf.debug_viewer.value = false;
-							}
-						} break;
-
 						}
 					} // <--- cui command operation
 					::fprintf(stderr, "  > ");
@@ -946,7 +904,6 @@ int main(int argc, char* argv[]) {
 				//		 3. optimization iteration by matching laser scanner reading to map(likelihood field)
 				//		 4. optimization error test and write position ssm-data
 				//		 5. robot current position coordinate and odometory position coordinate
-				//		 6. update map and view data
 
 				// read sokuiki data
 				if( !ssm_position_read.readTime( ssm_sokuikiraw.time) ) continue;
@@ -1094,7 +1051,7 @@ int main(int argc, char* argv[]) {
 
 
 
-				{ // ---> 6. update map and view data
+				{ // ---> 6. update map
 					// get coordinate convert matrix
 					coordtree.get_convert_matrix(coordid_sns_sm, coordid_gl, &coordm_sns2gl);
 
@@ -1113,34 +1070,10 @@ int main(int argc, char* argv[]) {
 						gnd::matrix::fixed<4,1> reflect_cgl;
 						gnd::matrix::fixed<2,1> reflect_prevent;
 
-						psm_pt::viewer::robot_pos.wait();
-						{ // ---> set robot position
-							psm_pt::viewer::robot_pos.var.x = ssm_position_write.data.x;
-							psm_pt::viewer::robot_pos.var.y = ssm_position_write.data.y;
-							psm_pt::viewer::robot_pos.var.t = ssm_position_write.data.theta;
-						} // <--- set robot position
-						psm_pt::viewer::robot_pos.post();
-
-						psm_pt::viewer::scan_cur.wait();
-						{ // set view point data
-							psm_pt::viewer::scan_2prev.wait();
-							psm_pt::viewer::scan_prev.wait();
-							// shift prev data
-							psm_pt::viewer::scan_2prev.var.clear();
-							if( psm_pt::viewer::scan_prev.var.begin() )
-								psm_pt::viewer::scan_2prev.var.copy(psm_pt::viewer::scan_prev.var.begin(), psm_pt::viewer::scan_prev.var.size() );
-							psm_pt::viewer::scan_prev.var.clear();
-							if( psm_pt::viewer::scan_cur.var.begin() )
-								psm_pt::viewer::scan_prev.var.copy(psm_pt::viewer::scan_cur.var.begin(), psm_pt::viewer::scan_cur.var.size() );
-							psm_pt::viewer::scan_prev.post();
-							psm_pt::viewer::scan_2prev.post();
-						}
-						psm_pt::viewer::scan_cur.var.clear();
 						// ---> scanning loop of laser scanner reading
 						for(size_t i = 0; i < ssm_sokuikiraw.data.numPoints(); i++){
 							gnd::matrix::fixed<3,1> ws3x1;
 							gnd::matrix::fixed<3,3> ws3x3;
-							gnd::gl::point p;
 
 							// if range data is null because of no reflection
 							if( ssm_sokuikiraw.data[i].status == ssm::laser::STATUS_NO_REFLECTION)	continue;
@@ -1193,14 +1126,7 @@ int main(int argc, char* argv[]) {
 
 							// log
 							if( llog_fp )	::fprintf(llog_fp, "%lf %lf\n", reflect_cgl[0][0], reflect_cgl[1][0]);
-
-							// enter viewer data
-							p.x = reflect_cgl[0][0];
-							p.y = reflect_cgl[1][0];
-							p.z = 0.0;
-							psm_pt::viewer::scan_cur.var.push_back(&p);
 						} // <--- scanning loop of laser scanner reading
-						psm_pt::viewer::scan_cur.post();
 
 						// log
 						if( llog_fp )	::fprintf(llog_fp, "\n" );
@@ -1225,7 +1151,7 @@ int main(int argc, char* argv[]) {
 							}
 						}
 					} // <--- rebuild map
-				} // ---> 6. update map and view data
+				} // ---> 6. update map
 				cnt++;
 			} // <--- read ssm sokuikiraw
 
@@ -1377,9 +1303,6 @@ int main(int argc, char* argv[]) {
 					fclose(fp);
 				} // --->  origin
 			} // <--- fileout
-
-			// viwer free
-			gnd::gl::finalize();
 
 		}
 

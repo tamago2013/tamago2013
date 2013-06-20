@@ -26,7 +26,6 @@ namespace psm {
 				{"cycle",					'c',	"change cycle (cycle)"},
 				{"start",					't',	"start (end stand-by mode)"},
 				{"stand-by",				'B',	"stand-by mode"},
-				{"viewer",					'v',	"viewer on / off"},
 				{"", '\0'}
 		};
 	}
