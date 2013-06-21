@@ -6,4 +6,5 @@ ssmのログ取得用シェルスクリプト
     ./multilogger <list-file>
 
 終了方法
+
     killssm
