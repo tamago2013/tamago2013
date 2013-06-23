@@ -1467,11 +1467,10 @@ namespace gnd {
 			 * @brief iterate
 			 * @param[out] d : delta
 			 * @param[out] p : pos
-			 * @param[out] v : variance
 			 * @param[out] l : likelihood
 			 * @return    0 :
 			 */
-			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, matrix::fixed<3,3> *v, double *l) = 0;
+			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, double *l) = 0;
 			// <--- optimization
 
 
@@ -1631,10 +1630,10 @@ namespace gnd {
 		 * @brief probabilistic scan matching optimizer
 		 */
 		class optimize_newton
-		: public optimize_basic {
+				: public optimize_basic {
 
 			// ---> type declaration
-		public:
+				public:
 			/// map type
 			typedef psm::map_t					map_t;
 			/// map type pointer
@@ -1660,14 +1659,14 @@ namespace gnd {
 
 
 			// ---> constructor, destructor
-		public:
+				public:
 			optimize_newton();
 			optimize_newton(map_pt m);
 			~optimize_newton();
 			// <--- constructor, destructor
 
 			// ---> variance
-		protected:
+				protected:
 			/// @brief variables
 			variables	_var;
 			/// @brief coordinate convert matrix
@@ -1676,7 +1675,7 @@ namespace gnd {
 
 
 			// ---> starting value of optimization
-		public:
+				public:
 			virtual int initial_parameter_create(void** p);
 			virtual int initial_parameter_delete(void** p);
 			virtual int initial_parameter_set_position(void* p, double x, double y, double theta);
@@ -1685,9 +1684,9 @@ namespace gnd {
 
 
 			// ---> optimization
-		public:
+				public:
 			virtual int begin(void *v);
-			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, matrix::fixed<3,3> *v, double *l) ;
+			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, double *l) ;
 			// <--- optimization
 
 			static int _newton_method_variables_( double x, double y, matrix::fixed<4,4> *c, map_pt m,  double *l, matrix::fixed<3,1> *g, matrix::fixed<3,3> *h );
@@ -1791,7 +1790,7 @@ namespace gnd {
 		 * @return    0 :
 		 */
 		inline
-		int optimize_newton::iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, matrix::fixed<3,3> *v, double *l) {
+		int optimize_newton::iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, double *l) {
 			double likelihood = 0;
 			uint64_t pi;
 			matrix::fixed<3,1> grad;
@@ -1838,8 +1837,6 @@ namespace gnd {
 				}
 				if( p ) {
 					copy(p, &_var.pos);
-				}
-				if( v ) {
 				}
 				if( l ) {
 					*l = _var.likelihood;
@@ -2022,9 +2019,9 @@ namespace gnd {
 		protected:
 			/// @brief particle
 			struct particle {
-				matrix::fixed<3,1> pos;		///< position
-				matrix::fixed<4,4> coordm;	///< coordinate convert matrix
-				double likelihood;			///< likelihood
+				vector::fixed_column<3> pos;	///< position
+				matrix::fixed<4,4> coordm;		///< coordinate convert matrix
+				double likelihood;				///< likelihood
 			};
 			/// @brief particles
 			queue< struct particle > particles;
@@ -2036,13 +2033,11 @@ namespace gnd {
 		public:
 			/// @brief starting value of optimization
 			typedef struct initial_parameter {
-				double				x;				///<! x of position
-				double				y;				///<! y of position
-				double				theta;			///<! orientation
+				vector::fixed_column<3> pos;		///<! position (column vector)
 				matrix::fixed<3,3>	var_ini;		///<! initial variance
+				matrix::fixed<3,3>	var_rsmp;		///<! variance for resampling random
 				uint32_t			n;				///<! number of particle
-				double				alpha;			///<! seek range parameter
-				double				beta;			///<! max likelihoood particle ratio for re-sampling seed (for seek around max likelihoood particle)
+				double				alpha;			///<! parameter for seeking around max likelihood particle
 				initial_parameter();
 			} initial_parameter;
 
@@ -2063,7 +2058,7 @@ namespace gnd {
 			// ---> optimization
 		public:
 			virtual int begin(void *v);
-			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, matrix::fixed<3,3> *v, double *l);
+			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, double *l);
 			// <--- optimization
 		protected:
 			int init_particle( initial_parameter *v );
@@ -2130,9 +2125,9 @@ namespace gnd {
 		inline
 		int optimize_monte_calro_method::initial_parameter_set_position(void* p, double x, double y, double theta) {
 			initial_parameter *pp = static_cast<initial_parameter*>(p);
-			pp->x = x;
-			pp->y = y;
-			pp->theta = theta;
+			pp->pos[0] = x;
+			pp->pos[1] = y;
+			pp->pos[2] = theta;
 			return 0;
 		}
 
@@ -2149,6 +2144,9 @@ namespace gnd {
 			LogIndent();
 
 			::memcpy(&_v, v, sizeof(_v));
+
+			// ckolesky
+			linalg::cholesky_decomposition(&_v.var_rsmp, 3);
 
 			// reflesh particle
 			particles.clear();
@@ -2183,14 +2181,12 @@ namespace gnd {
 			p.likelihood = 0;
 
 			// set position
-			p.pos[0][0] = v->x;
-			p.pos[1][0] = v->y;
-			p.pos[2][0] = v->theta;
+			matrix::copy(&p.pos, &v->pos);
 
 			// get coordinate convert matrix
 			matrix::coordinate_converter(&p.coordm,
-					p.pos[0][0], p.pos[1][0], 0,
-					::cos(p.pos[2][0]), ::sin(p.pos[2][0]), 0,
+					p.pos[0], p.pos[1], 0,
+					::cos(p.pos[2]), ::sin(p.pos[2]), 0,
 					 0, 0, 1);
 			particles.push_back(&p);
 
@@ -2201,14 +2197,12 @@ namespace gnd {
 				rnd[2][0] = random_gaussian(1.0);
 				matrix::prod(&L, &rnd, &p.pos);
 				// add average
-				p.pos[0][0] += v->x;
-				p.pos[1][0] += v->y;
-				p.pos[2][0] += v->theta;
+				matrix::add(&p.pos, &v->pos, &p.pos);
 
 				// get coordinate convert matrix
 				matrix::coordinate_converter(&p.coordm,
-						p.pos[0][0], p.pos[1][0], 0,
-						::cos(p.pos[2][0]), ::sin(p.pos[2][0]), 0,
+						p.pos[0], p.pos[1], 0,
+						::cos(p.pos[2]), ::sin(p.pos[2]), 0,
 						 0, 0, 1);
 
 				particles.push_back(&p);
@@ -2223,12 +2217,12 @@ namespace gnd {
 		 * @brief optimization iterate
 		 * @param[out] d : difference
 		 * @param[out] p : pos
-		 * @param[out] v : variance
+		 * @param[out] v : variance ()
 		 * @param[out] l : likelihood
 		 * @return    0 :
 		 */
 		inline
-		int optimize_monte_calro_method::iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, matrix::fixed<3,3> *v, double *l){
+		int optimize_monte_calro_method::iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, double *l){
 			gnd_error(particles.size() == 0, -1, "no data" );
 			gnd_error(_points.size() == 0, -1, "no scan data" );
 
@@ -2241,14 +2235,13 @@ namespace gnd {
 				double sum;
 				double max;
 				size_t imax;
-				matrix::fixed<3,1> delta;		// delta
-				matrix::fixed<3,3> cov;			// error co-variance
-				matrix::fixed<3,1> ws3x1;
-				matrix::fixed<3,3> ws3x3;
+				vector::fixed_column<3>	delta;	// delta
+				vector::fixed_column<3>	ws3x1;	// workspace
+				matrix::fixed<3,3>		ws3x3;	// workspace
 
-				set_zero(&delta);
+				matrix::set_zero(&delta);
 				sum = 0;
-				for( j = 0; j < (unsigned)_points.size(); j++ ){
+				for( j = 0; j < _points.size(); j++ ){
 					matrix::fixed<4,1> p;
 
 					p[0][0] = _points[j][0][0];
@@ -2270,7 +2263,6 @@ namespace gnd {
 				// ---> likelihood sum and get max
 				max = 0.0;
 				imax = 0;
-				_ws_resmpl.clear();
 				for( i = 0; i < (unsigned)particles.size(); i++){
 					particles[i].likelihood /= _points.size();
 
@@ -2283,26 +2275,22 @@ namespace gnd {
 					// sum
 					sum += particles[i].likelihood;
 
-					LogVerbosef("particle (%lf, %lf, %lf) lkh = %lf\n",
-							particles[i].pos[0][0], particles[i].pos[1][0], particles[i].pos[2][0], particles[i].likelihood);
+					LogVerbosef("      : particle (%lf, %lf, %lf) lkh = %lf\n",
+							particles[i].pos[0], particles[i].pos[1], particles[i].pos[2], particles[i].likelihood);
 				} // ---> likelihood sum and get max
 
 				// if sum == zero, error
 				gnd_error( sum == 0, -1, "all likelihood is 0" );
 
-				{ // ---> nearest neighbor
-					delta[0][0] = particles[imax].pos[0][0] - _v.x;
-					delta[1][0] = particles[imax].pos[1][0] - _v.y;
-					delta[2][0] = particles[imax].pos[2][0] - _v.theta;
+				{ // ---> save maximum likelihood particle
+					matrix::sub(&particles[imax].pos, &_v.pos, &delta);
 
-					_v.x = particles[imax].pos[0][0];
-					_v.y = particles[imax].pos[1][0];
-					_v.theta = particles[imax].pos[2][0];
-				} // <--- nearest neighbor
+					matrix::copy(&_v.pos, &particles[imax].pos);
+				} // <--- save maximum likelihood particle
 
-				LogDebugf("     : mcl - delta = (%lf, %lf, %lf):\n", delta[0][0], delta[1][0], delta[2][0]);
+				LogDebugf("      : delta = (%lf, %lf, %lf):\n", delta[0], delta[1], delta[2]);
 
-				// store delta
+				// store delta for converge test
 				matrix::copy(&_converge.delta, &delta);
 
 				{ // ---> output
@@ -2322,16 +2310,20 @@ namespace gnd {
 
 
 				{ // ---> resampling
-					matrix::fixed<3,1> mean;
-					matrix::fixed<3,3> L;
 					particle p;
+
+					// clear
+					_ws_resmpl.clear();
+
+					// save max likelihood particle
+					_ws_resmpl.push_back(&particles[imax]);
 
 					// save max particle
 					// and seek around max one
-					for( i = 0; i < _v.n / 10; i++) _ws_resmpl.push_back(&particles[imax]);
+					while(_ws_resmpl.size() < _v.n * _v.alpha )
+						_ws_resmpl.push_back(&particles[imax]);
 
 					// ---> select particle considering its likelihood
-					matrix::set_zero(&mean);
 					while( _ws_resmpl.size() < _v.n ) {
 						double lrand = sum * random_uniform();
 
@@ -2341,41 +2333,13 @@ namespace gnd {
 
 						// save
 						_ws_resmpl.push_back(&particles[i]);
-
-						// sum
-						matrix::add( &mean, &particles[i].pos, &mean );
 					} // <--- select particle considering its likelihood
-					// mean
-					matrix::scalar_div(&mean, _v.n, &mean);
-					LogVerbosef("mean : %.4lf, %.4lf, %.4lf\n", mean[0][0], mean[0][1], mean[0][2] );
 
-					// ---> co-variance
-					matrix::set_unit(&cov);
-					matrix::scalar_prod(&cov, SqrtDBL_EPSILON, &cov);
-					for( i = 0; i < _ws_resmpl.size(); i++ ) {
-						matrix::sub( &_ws_resmpl[i].pos, &mean, &ws3x1 );
-						matrix::prod_transpose2(&ws3x1, &ws3x1, &ws3x3 );
-
-						matrix::add(&cov, &ws3x3, &cov);
-					}
-					matrix::scalar_div( &cov, _ws_resmpl.size(), &cov );
-					matrix::add(&cov, &ws3x3, &cov);
-					// ---> co-variance
 
 					// cholesky decomposition
-					matrix::copy(&L, &cov);
-					linalg::cholesky_decomposition(&L, 3);
-					LogVerbosef("L    : %.4lf, %.4lf, %.4lf\n", L[0][0], L[0][1], L[0][2] );
-					LogVerbosef("     : %.4lf, %.4lf, %.4lf\n", L[1][0], L[1][1], L[1][2] );
-					LogVerbosef("     : %.4lf, %.4lf, %.4lf\n", L[2][0], L[2][1], L[2][2] );
-					matrix::scalar_prod( &L, 0.5, &L );
-
-					{ // ---> output
-						if( v ) { // ---> variance
-							matrix::copy(v, &cov);
-						} // <--- set position
-					} // <--- output
-
+					LogVerbosef("L    : %.4lf, %.4lf, %.4lf\n", _v.var_rsmp[0][0], _v.var_rsmp[0][1], _v.var_rsmp[0][2] );
+					LogVerbosef("     : %.4lf, %.4lf, %.4lf\n", _v.var_rsmp[1][0], _v.var_rsmp[1][1], _v.var_rsmp[1][2] );
+					LogVerbosef("     : %.4lf, %.4lf, %.4lf\n", _v.var_rsmp[2][0], _v.var_rsmp[2][1], _v.var_rsmp[2][2] );
 
 					// clear
 					particles.clear();
@@ -2386,18 +2350,18 @@ namespace gnd {
 					// resample
 					for( i = particles.size(); i < _ws_resmpl.size(); i++ ) {
 						// random
-						ws3x1[0][0] = random_gaussian(1.0);
-						ws3x1[1][0] = random_gaussian(1.0);
-						ws3x1[2][0] = random_gaussian(1.0);
+						ws3x1[0] = random_gaussian(1.0);
+						ws3x1[1] = random_gaussian(1.0);
+						ws3x1[2] = random_gaussian(1.0);
 
-						matrix::prod( &L, &ws3x1, &p.pos );
-						LogVerbosef("rand : %.4lf, %.4lf, %.4lf\n", p.pos[0][0], p.pos[0][1], p.pos[0][2] );
+						matrix::prod( &_v.var_rsmp, &ws3x1, &p.pos );
+						LogVerbosef("rand : %.4lf, %.4lf, %.4lf\n", p.pos[0], p.pos[1], p.pos[2] );
 						matrix::add( &p.pos, &_ws_resmpl[i].pos, &p.pos );
 
 						// get coordinate convert matrix
 						matrix::coordinate_converter(&p.coordm,
-								p.pos[0][0], p.pos[1][0], 0,
-								::cos(p.pos[2][0]), ::sin(p.pos[2][0]), 0,
+								p.pos[0], p.pos[1], 0,
+								::cos(p.pos[2]), ::sin(p.pos[2]), 0,
 								 0, 0, 1);
 
 						// set
@@ -2416,19 +2380,18 @@ namespace gnd {
 
 		inline
 		optimize_monte_calro_method::initial_parameter::initial_parameter(){
-			x = 0;
-			y = 0;
-			theta = 0;
+			matrix::set_zero(&pos);
 
 			n = 250;
+			var_ini[0][0] = gnd_square( gnd_m2dist( 0.1 ) );
+			var_ini[1][1] = gnd_square( gnd_m2dist( 0.1 ) );
+			var_ini[2][2] = gnd_square( gnd_deg2ang( 10.0 ) );
 
-			var_ini[0][0] = gnd_square( gnd_m2dist( 0.05 ) );
-			var_ini[1][1] = gnd_square( gnd_m2dist( 0.05 ) );
-			var_ini[2][2] = gnd_square( gnd_deg2ang( 5.0 ) );
+			var_rsmp[0][0] = gnd_square( gnd_m2dist( 0.005 ) );
+			var_rsmp[1][1] = gnd_square( gnd_m2dist( 0.005 ) );
+			var_rsmp[2][2] = gnd_square( gnd_deg2ang( 0.25 ) );
 
-			alpha = 0.1;
-
-			beta = 0.1;
+			alpha = 0.0;
 		}
 	}
 };
@@ -2458,14 +2421,6 @@ namespace gnd {
 			typedef pixel_t*		pixel_pt;
 			// <--- type declaration
 
-			// ---> constant value definition
-		public:
-			/// @brief sphere table resolution
-			static const size_t SphereTableResolution = 4;
-			/// @brief sphere table
-			static const size_t SphereTableSize = (SphereTableResolution * 2) * (SphereTableResolution - 1) + 2;
-			// <--- constant value definition
-
 			// ---> constructor, destructor
 		public:
 			optimize_quasi_monte_calro();
@@ -2474,16 +2429,16 @@ namespace gnd {
 			// <--- constructor, destructor
 
 		private:
-			/// @brief sphere table
-			matrix::fixed<3,1> SphereTable[SphereTableSize];
+			/// @brief particle table
+			queue< vector::fixed_column<3> > table;
 			/// @brief create sphere-table
-			int create_spheretable();
+			int create_particletable(uint32_t n);
 
 			// ---> particle
 		protected:
 			/// @brief particle
 			struct particle {
-				matrix::fixed<3,1> pos;		///< position
+				vector::fixed_column<3> pos;		///< position
 				matrix::fixed<4,4> coordm;	///< coordinate convert matrix
 				double likelihood;			///< likelihood
 			};
@@ -2495,14 +2450,14 @@ namespace gnd {
 		public:
 			/// @brief starting value of optimization
 			typedef struct initial_parameter {
-				matrix::fixed<3,1>	pos;			///<! position
-				matrix::fixed<3,3>	variance;		///<! variance
-				size_t				n;				///<! resolution
+				vector::fixed_column<3>	pos;			///<! position
+				matrix::fixed<3,3>	var;		///<! variance
+				uint32_t			n;				///<! resolution
 				initial_parameter();
 			} initial_parameter;
 		protected:
 			/// @brief optimize starting value
-			initial_parameter _sv;
+			initial_parameter _v;
 			// <--- starting value
 
 
@@ -2517,7 +2472,7 @@ namespace gnd {
 			// ---> optimization
 		public:
 			virtual int begin(void *v);
-			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, matrix::fixed<3,3> *v, double *l);
+			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, double *l);
 			// <--- optimization
 		protected:
 			int create_particle(initial_parameter *v);
@@ -2529,7 +2484,6 @@ namespace gnd {
 		 */
 		inline
 		optimize_quasi_monte_calro::optimize_quasi_monte_calro() {
-			create_spheretable();
 			return;
 		}
 
@@ -2540,7 +2494,6 @@ namespace gnd {
 		inline
 		optimize_quasi_monte_calro::optimize_quasi_monte_calro(map_pt m)
 		: optimize_basic(m) {
-			create_spheretable();
 			return;
 		}
 
@@ -2550,6 +2503,36 @@ namespace gnd {
 		inline
 		optimize_quasi_monte_calro::~optimize_quasi_monte_calro(){
 		}
+
+		inline
+		int optimize_quasi_monte_calro::create_particletable(uint32_t n) {
+			uint32_t x, y, t;
+			vector::fixed_column<3> tmp;
+
+			LogVerbose("Begin : qmc create_particletable\n");
+			LogIndent();
+
+			table.clear();
+			matrix::set_zero(&tmp);
+			table.push_back(&tmp);
+
+			for(x = 0; x < n * 2 + 3; x++) {
+				tmp[0] = ((double)x / (n+1)) - 1;
+				for(y = 0; y < n * 2 + 3; y++) {
+					tmp[1] = ((double)y / (n+1)) - 1;
+					for(t = 0; t < n * 2 + 3; t++) {
+						tmp[2] = ((double)t / (n+1)) - 1;
+						LogVerbosef("%.04lf %.04lf %.04lf\n", tmp[0], tmp[1], tmp[2]);
+						table.push_back(&tmp);
+					} // for (t)
+				} // for (y)
+			} // for (x)
+
+			LogUnindent();
+			LogVerbose(" End   : qmc create_particletable\n");
+			return 0;
+		}
+
 
 
 		/**
@@ -2586,41 +2569,9 @@ namespace gnd {
 		inline
 		int optimize_quasi_monte_calro::initial_parameter_set_position(void* p, double x, double y, double theta) {
 			initial_parameter *pp = static_cast<initial_parameter*>(p);
-			pp->pos[0][0] = x;
-			pp->pos[1][0] = y;
-			pp->pos[2][0] = theta;
-			return 0;
-		}
-
-
-		/**
-		 * @brief initialize
-		 */
-		inline
-		int optimize_quasi_monte_calro::create_spheretable(){
-			size_t cnt = 0;
-			size_t rsl = SphereTableResolution * 2;
-			// exception (fai = 90[deg])
-			SphereTable[cnt][0][0] = 0.0;
-			SphereTable[cnt][1][0] = 0.0;
-			SphereTable[cnt++][2][0] = 1.0;
-
-			for( size_t y = 0; y < rsl; y++ ){
-				double yaw = (2 * M_PI / rsl) * y;
-				double cosy = ::cos(yaw);
-				double siny = ::sin(yaw);
-				for( size_t f = 1; f < SphereTableResolution; f++ ){
-					double fai = - M_PI_2 + (2 * M_PI / rsl) * f;
-					double cosf = ::cos(fai);
-					SphereTable[cnt][0][0] = cosf * cosy;
-					SphereTable[cnt][1][0] = cosf * siny;
-					SphereTable[cnt++][2][0] = ::sin(fai);
-				}
-			}
-			// exception (fai = -90[deg])
-			SphereTable[cnt][0][0] =  0.0;
-			SphereTable[cnt][1][0] =  0.0;
-			SphereTable[cnt++][2][0] = -1.0;
+			pp->pos[0] = x;
+			pp->pos[1] = y;
+			pp->pos[2] = theta;
 			return 0;
 		}
 
@@ -2633,16 +2584,16 @@ namespace gnd {
 		int optimize_quasi_monte_calro::begin(void *v) {
 			initial_parameter *varp = static_cast<initial_parameter*>(v);
 
+			create_particletable(varp->n);
+
 			// reflesh particle
 			particles.clear();
 			create_particle(varp);
 
 			// clear laser scanner reflection point
 			_points.clear();
-			LogVerbose("     : psm optimize -> begin:\n");
+			::memcpy( &_v, varp, sizeof(_v) );
 
-			// store starting value
-			::memcpy( &_sv, varp, sizeof(_sv) );
 			return 0;
 		}
 
@@ -2656,36 +2607,40 @@ namespace gnd {
 		int optimize_quasi_monte_calro::create_particle(initial_parameter *v) {
 			matrix::fixed<3,3> L;
 			particle p;
-			double rsl = 0;
-			size_t n = v->n + 1;
+			uint32_t i;
+
+			LogVerbose("Begin : qmc create_particle\n");
+			LogIndent();
 
 			// cholesky decomposition
-			copy(&L, &v->variance);
+			matrix::copy(&L, &v->var);
 			linalg::cholesky_decomposition(&L, 3);
+			LogVerbosef("L : %.04lf %.04lf %.04lf\n", L[0][0], L[0][1], L[0][2]);
+			LogVerbosef("  : %.04lf %.04lf %.04lf\n", L[1][0], L[1][1], L[1][2]);
+			LogVerbosef("  : %.04lf %.04lf %.04lf\n", L[2][0], L[2][1], L[2][2]);
 
 			// set 0
 			p.likelihood = 0;
-			set_zero(&p.pos);
+			matrix::set_zero(&p.pos);
 			matrix::coordinate_converter(&p.coordm,
-					p.pos[0][0] + v->pos[0][0], p.pos[1][0] + v->pos[1][0], 0,
-					::cos(p.pos[2][0] + v->pos[2][0]), ::sin(p.pos[2][0] + v->pos[2][0]), 0,
+					p.pos[0] + v->pos[0], p.pos[1] + v->pos[1], 0,
+					::cos(p.pos[2] + v->pos[2]), ::sin(p.pos[2] + v->pos[2]), 0,
 					 0, 0, 1);
 			particles.push_back(&p);
 
-			rsl = 1.5 / n;
-			// ---> scanning loop for SphereTable
-			for( size_t j = 0; j < SphereTableSize; j++ ){
-				for( size_t i = 1; i <= n; i++ ){
-					double r = rsl * i;
-					prod(&L, SphereTable + j, &p.pos);
-					scalar_prod(&p.pos, r, &p.pos);
-					matrix::coordinate_converter(&p.coordm,
-							p.pos[0][0] + v->pos[0][0], p.pos[1][0] + v->pos[1][0], 0,
-							::cos(p.pos[2][0] + v->pos[2][0]), ::sin(p.pos[2][0] + v->pos[2][0]), 0,
-							 0, 0, 1);
-					particles.push_back(&p);
-				}
+			// ---> scanning loop for Table
+			for( i = 0; i < table.size(); i++ ){
+				prod(&L, table + i, &p.pos);
+				matrix::coordinate_converter(&p.coordm,
+						p.pos[0] + v->pos[0], p.pos[1] + v->pos[1], 0,
+						::cos(p.pos[2] + v->pos[2]), ::sin(p.pos[2] + v->pos[2]), 0,
+						 0, 0, 1);
+				LogVerbosef("%.04lf %.04lf %.04lf\n", p.pos[0], p.pos[1], p.pos[2]);
+				particles.push_back(&p);
 			} // <--- scanning loop for SphereTable
+
+			LogUnindent();
+			LogVerbose(" End   : qmc create_particle\n");
 			return 0;
 		}
 
@@ -2700,7 +2655,7 @@ namespace gnd {
 		 * @return    0 :
 		 */
 		inline
-		int optimize_quasi_monte_calro::iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, matrix::fixed<3,3> *v, double *l){
+		int optimize_quasi_monte_calro::iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, double *l){
 			gnd_error(particles.size() == 0, -1, "no data" );
 
 			{ // ---> operate
@@ -2734,26 +2689,26 @@ namespace gnd {
 				} // ---> loop for compute likelihood
 				for(size_t i = 0; i < (unsigned)particles.size(); i++){
 					sum += particles[i].likelihood;
-					scalar_prod( &particles[i].pos, particles[i].likelihood, &ws3x1 );
-					add(&delta, &ws3x1, &delta);
+					matrix::scalar_prod( &particles[i].pos, particles[i].likelihood, &ws3x1 );
+					matrix::add(&delta, &ws3x1, &delta);
 				}
 
 				if(sum == 0)	return -1;
 				// weighted average
-				scalar_div(&delta, sum, &delta);
+				matrix::scalar_div(&delta, sum, &delta);
 
 				LogDebugf("     : qmc - delta = (%lf, %lf, %lf):\n", delta[0][0], delta[1][0], delta[2][0]);
 
 				// store delta
-				copy(&_converge.delta, &delta);
+				matrix::copy(&_converge.delta, &delta);
 
 				// output delta
-				if( d )	copy(d, &delta);
+				if( d )	matrix::copy(d, &delta);
 				// compute
-				add(&delta, &_sv.pos, &_sv.pos);
+				matrix::add(&delta, &_v.pos, &_v.pos);
 
 				// output position
-				if( p ) copy(p, &_sv.pos);
+				if( p ) matrix::copy(p, &_v.pos);
 
 
 				{ // ---> compute distribution
@@ -2761,16 +2716,15 @@ namespace gnd {
 					matrix::fixed<3,3> ws3x3;
 
 					// ---> compute weighted summation
-					set_zero(&_sv.variance);
+					set_zero(&_v.var);
 					for(size_t i = 0; i < (unsigned)particles.size(); i++) {
-						sub(&particles[i].pos, &delta, &ws3x1);
-						prod_transpose2(&ws3x1, &ws3x1, &ws3x3);
-						scalar_prod(&ws3x3, particles[i].likelihood, &ws3x3);
-						add(&_sv.variance, &ws3x3, &_sv.variance);
+						matrix::sub(&particles[i].pos, &delta, &ws3x1);
+						matrix::prod_transpose2(&ws3x1, &ws3x1, &ws3x3);
+						matrix::scalar_prod(&ws3x3, particles[i].likelihood, &ws3x3);
+						matrix::add(&_v.var, &ws3x3, &_v.var);
 					} // <--- compute weighted summation
 
-					scalar_div(&_sv.variance, sum, &_sv.variance);
-					if( v ) copy(v, &_sv.variance);
+					matrix::scalar_div(&_v.var, sum, &_v.var);
 				} // <--- compute distribution
 
 				if( l ) {// ---> set likelihood
@@ -2781,7 +2735,7 @@ namespace gnd {
 				{ // ---> refresh particle
 					// store starting value
 					particles.clear();
-					create_particle(&_sv);
+					create_particle(&_v);
 				} /// <--- refresh particle
 			} // <--- operate
 			return 0;
@@ -2791,9 +2745,9 @@ namespace gnd {
 		inline
 		optimize_quasi_monte_calro::initial_parameter::initial_parameter(){
 			n = 1;
-			variance[0][0] = gnd_square( gnd_m2dist( 0.05 ) );
-			variance[1][1] = gnd_square( gnd_m2dist( 0.05 ) );
-			variance[2][2] = gnd_square( gnd_deg2ang( 3 ) );
+			var[0][0] = gnd_square( gnd_m2dist( 0.05 ) );
+			var[1][1] = gnd_square( gnd_m2dist( 0.05 ) );
+			var[2][2] = gnd_square( gnd_deg2ang( 3 ) );
 		}
 	}
 };
@@ -2833,7 +2787,7 @@ namespace gnd {
 
 			// ---> optimization
 		public:
-			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, matrix::fixed<3,3> *v, double *l);
+			virtual int iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, double *l);
 			// <--- optimization
 		};
 
@@ -2876,7 +2830,7 @@ namespace gnd {
 		 * @return    0 :
 		 */
 		inline
-		int optimize_hybrid_qmc2newton::iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, matrix::fixed<3,3> *v, double *l){
+		int optimize_hybrid_qmc2newton::iterate(matrix::fixed<3,1> *d, matrix::fixed<3,1> *p, double *l){
 
 			{ // ---> operate
 				double lk, likelihood = 0;
@@ -2908,7 +2862,7 @@ namespace gnd {
 							particles[i].likelihood += lk;
 						}
 						sum += particles[i].likelihood;
-						scalar_prod( &particles[i].pos, particles[i].likelihood, &ws3x1 );
+						matrix::scalar_prod( &particles[i].pos, particles[i].likelihood, &ws3x1 );
 						add(&delta, &ws3x1, &delta);
 					} // ---> loop for compute likelihood
 
@@ -2924,16 +2878,15 @@ namespace gnd {
 						matrix::fixed<3,3> ws3x3;
 
 						// ---> compute weighted summation
-						set_zero(&_sv.variance);
+						matrix::set_zero(&_v.var);
 						for(size_t i = 0; i < (unsigned)particles.size(); i++) {
-							sub(&particles[i].pos, &delta, &ws3x1);
-							prod_transpose2(&ws3x1, &ws3x1, &ws3x3);
-							scalar_prod(&ws3x3, particles[i].likelihood, &ws3x3);
-							add(&_sv.variance, &ws3x3, &_sv.variance);
+							matrix::sub(&particles[i].pos, &delta, &ws3x1);
+							matrix::prod_transpose2(&ws3x1, &ws3x1, &ws3x3);
+							matrix::scalar_prod(&ws3x3, particles[i].likelihood, &ws3x3);
+							matrix::add(&_v.var, &ws3x3, &_v.var);
 						} // <--- compute weighted summation
 
-						scalar_div(&_sv.variance, sum, &_sv.variance);
-						if( v ) copy(v, &_sv.variance);
+						matrix::scalar_div(&_v.var, sum, &_v.var);
 					} // <--- compute distribution
 
 				} // <--- quasi monte-calro method
@@ -2948,8 +2901,8 @@ namespace gnd {
 					LogVerbose("     : qmc2newton - newton:\n");
 					// coordinate convert matrix
 					matrix::coordinate_converter(&coordm,
-							_sv.pos[0][0], _sv.pos[1][0], 0,
-							::cos(_sv.pos[2][0]), ::sin(_sv.pos[2][0]), 0,
+							_v.pos[0], _v.pos[1], 0,
+							::cos(_v.pos[2]), ::sin(_v.pos[2]), 0,
 							 0, 0, 1);
 
 					// ---> scanning loop of reflection points
@@ -2973,23 +2926,23 @@ namespace gnd {
 
 				LogDebugf("     : qmc2newton - delta = (%lf, %lf, %lf):\n", delta[0][0], delta[1][0], delta[2][0]);
 				// merge delta
-				add( &delta, &_sv.pos, &_sv.pos );
+				matrix::add( &delta, &_v.pos, &_v.pos );
 				// store delta
-				copy( &_converge.delta, &delta );
+				matrix::copy( &_converge.delta, &delta );
 
 				// output position
-				if( p ) copy( p, &_sv.pos );
+				if( p ) matrix::copy( p, &_v.pos );
 				// set likelihood
 				if( l ) *l = likelihood;
 				// output delta
-				if( d )	copy( d, &delta );
+				if( d )	matrix::copy( d, &delta );
 
 				// select qmc or neton's method
 				if( !converge_test( gnd_square( _converge.delta[0][0] ) + gnd_square( _converge.delta[1][0] ) , _converge.delta[2][0],
 						gnd_square( gnd_m2dist(0.001) ), gnd_deg2ang(1)) ) {
 					// quasi monte calro method
 					particles.clear();
-					create_particle(&_sv);
+					create_particle(&_v);
 				}
 				else {
 					// newton's method
