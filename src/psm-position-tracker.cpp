@@ -34,7 +34,7 @@ static const double ClockCycle = gnd_sec2time(1.0) / 1000.0 ;
 
 int main(int argc, char* argv[]) {
 	gnd::psm::optimize_basic	*optimizer = 0;		// optimizer class
-	void 						*starting = 0;		// optimization starting value
+	void 						*optim_ini = 0;		// optimization starting value
 
 	gnd::psm::cmap_t			cnt_smmap;			// probabilistic scan matching counting map
 	gnd::psm::map_t				smmap;				// probabilistic scan matching map
@@ -160,29 +160,41 @@ int main(int argc, char* argv[]) {
 		if( !::is_proc_shutoff() ) {
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => create optimizer class \"\x1b[4m%s\x1b[0m\"\n", pconf.optimizer.value);
+			// Newton Method
 			if( !::strcmp(pconf.optimizer.value, psm_pt::OptNewton) ){
 				optimizer = new gnd::psm::newton;
-				optimizer->initial_parameter_create(&starting);
+				optimizer->initial_parameter_create(&optim_ini);
 				optimizer->set_converge_threshold(pconf.converge_dist.value, pconf.converge_orient.value );
 				::fprintf(stderr, " ... newton's method \x1b[1mOK\x1b[0m\n");
 			}
+			// Monte Calro Method
+			else if( !::strcmp(pconf.optimizer.value, psm_pt::OptMCL)){
+				gnd::psm::mcl::initial_parameter *p;
+				optimizer = new gnd::psm::mcl;
+				optimizer->initial_parameter_create(&optim_ini);
+				p = static_cast<gnd::psm::mcl::initial_parameter*>(optim_ini);
+				optim_ini = static_cast<void*>(p);
+				optimizer->set_converge_threshold(pconf.converge_dist.value, pconf.converge_orient.value );
+				::fprintf(stderr, "  ... quasi monte calro method \x1b[1mOK\x1b[0m\n");
+			}
+			// Quasi Monte Calro Method
 			else if( !::strcmp(pconf.optimizer.value, psm_pt::OptQMC)){
 				gnd::psm::qmc::initial_parameter *p;
 				optimizer = new gnd::psm::qmc;
-				optimizer->initial_parameter_create(&starting);
-				p = static_cast<gnd::psm::qmc::initial_parameter*>(starting);
+				optimizer->initial_parameter_create(&optim_ini);
+				p = static_cast<gnd::psm::qmc::initial_parameter*>(optim_ini);
 				p->n = 2;
-				starting = static_cast<void*>(p);
+				optim_ini = static_cast<void*>(p);
 				optimizer->set_converge_threshold(pconf.converge_dist.value, pconf.converge_orient.value );
 				::fprintf(stderr, "  ... quasi monte calro method \x1b[1mOK\x1b[0m\n");
 			}
 			else if( !::strcmp(pconf.optimizer.value, psm_pt::OptQMC2Newton)){
 				gnd::psm::hybrid_q2n::initial_parameter *p;
 				optimizer = new gnd::psm::hybrid_q2n;
-				optimizer->initial_parameter_create(&starting);
-				p = static_cast<gnd::psm::hybrid_q2n::initial_parameter*>(starting);
+				optimizer->initial_parameter_create(&optim_ini);
+				p = static_cast<gnd::psm::hybrid_q2n::initial_parameter*>(optim_ini);
 				p->n = 2;
-				starting = static_cast<void*>(p);
+				optim_ini = static_cast<void*>(p);
 				optimizer->set_converge_threshold(pconf.converge_dist.value, pconf.converge_orient.value );
 				::fprintf(stderr, "  ... quasi monte calro and newton hybrid \x1b[1mOK\x1b[0m\n");
 			}
@@ -909,8 +921,8 @@ int main(int argc, char* argv[]) {
 				if( !ssm_position_read.readTime( ssm_sokuikiraw.time) ) continue;
 
 				// ---> 2. set position estimation by odometry as optimization starting value
-				optimizer->initial_parameter_set_position( starting, ssm_position_read.data.x, ssm_position_read.data.y, ssm_position_read.data.theta );
-				optimizer->begin(starting);
+				optimizer->initial_parameter_set_position( optim_ini, ssm_position_read.data.x, ssm_position_read.data.y, ssm_position_read.data.theta );
+				optimizer->begin(optim_ini);
 
 
 				gnd::matrix::set_zero(&move_opt);
@@ -1171,7 +1183,7 @@ int main(int argc, char* argv[]) {
 		ssm_sokuikiraw.close();
 		::endSSM();
 
-		optimizer->initial_parameter_delete(&starting);
+		optimizer->initial_parameter_delete(&optim_ini);
 		delete optimizer;
 
 		// slam

@@ -21,6 +21,7 @@
 
 #define __OPTIMIZER_NEWTON__		"newton"
 #define __OPTIMIZER_QMC__	 		"qmc"
+#define __OPTIMIZER_MCL__	 		"mcl"
 #define __OPTIMIZER_QMC2NEWTON__	"qmc2newton"
 
 
@@ -185,10 +186,11 @@ namespace psm {
 		// optimizer
 		static const char OptNewton[]		= __OPTIMIZER_NEWTON__;
 		static const char OptQMC[]			= __OPTIMIZER_QMC__;
+		static const char OptMCL[]			= __OPTIMIZER_MCL__;
 		static const char OptQMC2Newton[]	= __OPTIMIZER_QMC2NEWTON__;
 		static const gnd::conf::parameter_array<char, 256> ConfIni_Optimizer = {
 				"optimizer",
-				__OPTIMIZER_NEWTON__,		// map file directory
+				__OPTIMIZER_MCL__,		// map file directory
 				"optimize method (newton or qmc or qmc2newton)"
 		};
 
