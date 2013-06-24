@@ -173,9 +173,10 @@ int main(int argc, char* argv[]) {
 				optimizer = new gnd::psm::mcl;
 				optimizer->initial_parameter_create(&optim_ini);
 				p = static_cast<gnd::psm::mcl::initial_parameter*>(optim_ini);
+				p->n = 250;
 				optim_ini = static_cast<void*>(p);
 				optimizer->set_converge_threshold(pconf.converge_dist.value, pconf.converge_orient.value );
-				::fprintf(stderr, "  ... quasi monte calro method \x1b[1mOK\x1b[0m\n");
+				::fprintf(stderr, "  ... monte calro method \x1b[1mOK\x1b[0m\n");
 			}
 			// Quasi Monte Calro Method
 			else if( !::strcmp(pconf.optimizer.value, psm_pt::OptQMC)){
@@ -692,9 +693,9 @@ int main(int argc, char* argv[]) {
 
 		{ // ---> timer
 			// set parameter-cycle
-			//			timer_operate.begin(CLOCK_REALTIME, param.cycle.value, -param.cycle.value);
-			//			timer_clock.begin(CLOCK_REALTIME,
-			//					param.cycle.value < ClockCycle ? param.cycle.value :  ClockCycle);
+			timer_operate.begin(CLOCK_REALTIME, pconf.cycle.value, -pconf.cycle.value);
+			timer_clock.begin(CLOCK_REALTIME,
+					pconf.cycle.value < ClockCycle ? pconf.cycle.value :  ClockCycle);
 			::fprintf(stderr, "\n");
 			if( pconf.debug_show.value ) {
 				timer_show.begin(CLOCK_REALTIME, ShowCycle, -ShowCycle);
@@ -831,50 +832,50 @@ int main(int argc, char* argv[]) {
 			// ---> update position
 			if( ssm_odometry.readNext() ){
 				{ // ---> compute the movement estimation
-					gnd::matrix::fixed<4,1> odov_cprev;			// current odometry position vector on previous odometry coordinate
+					gnd::vector::fixed_column<4> odov_cprev;			// current odometry position vector on previous odometry coordinate
 
 					{ // ---> compute current odometry position on previous odometry coordinate
 						gnd::matrix::fixed<4,4> coordm_r2podo;		// coordinate matrix of previous odometry position
-						gnd::matrix::fixed<4,1> ws4x1;
+						gnd::vector::fixed_column<4> ws4x1;
 
 						// get previous odometry coordinate matrix
 						coordtree.get_convert_matrix(0, coordid_odm, &coordm_r2podo);
 
 						// multiply previous odometry coordinate matrix with current position vector
-						ws4x1[0][0] = ssm_odometry.data.x;
-						ws4x1[1][0] = ssm_odometry.data.y;
-						ws4x1[2][0] = 0;
-						ws4x1[3][0] = 1;
+						ws4x1[0] = ssm_odometry.data.x;
+						ws4x1[1] = ssm_odometry.data.y;
+						ws4x1[2] = 0;
+						ws4x1[3] = 1;
 						gnd::matrix::prod(&coordm_r2podo, &ws4x1, &odov_cprev);
 					} // <--- compute current odometry position on previous odometry coordinate
 
 					// get movement estimation by odometry
-					move_est.x = odov_cprev[0][0];
-					move_est.y = odov_cprev[1][0];
+					move_est.x = odov_cprev[0];
+					move_est.y = odov_cprev[1];
 					move_est.theta = ssm_odometry.data.theta - prev_odometry.theta;
 				} // <--- compute the movement estimation
 
 				{ // ---> add movement estimation
-					gnd::matrix::fixed<4,1> pos_odmest;
+					gnd::vector::fixed_column<4> pos_odmest;
 
 					{ // ---> compute position estimation by odometry on global coordinate
 						gnd::matrix::fixed<4,4> coordm_rbt2gl;		// coordinate convert matrix from robot to global
-						gnd::matrix::fixed<4,1> ws4x1;
+						gnd::vector::fixed_column<4> ws4x1;
 
 						// set search position on sensor-coordinate
 						coordtree.get_convert_matrix(coordid_rbt, coordid_gl, &coordm_rbt2gl);
 
-						ws4x1[0][0] = move_est.x;
-						ws4x1[1][0] = move_est.y;
-						ws4x1[2][0] = 0;
-						ws4x1[3][0] = 1;
+						ws4x1[0] = move_est.x;
+						ws4x1[1] = move_est.y;
+						ws4x1[2] = 0;
+						ws4x1[3] = 1;
 
 						gnd::matrix::prod(&coordm_rbt2gl, &ws4x1, &pos_odmest);
 					} // <--- compute position estimation by odometry on global coordinate
 
 					// set position
-					ssm_position_write.data.x = pos_odmest[0][0];
-					ssm_position_write.data.y = pos_odmest[1][0];
+					ssm_position_write.data.x = pos_odmest[0];
+					ssm_position_write.data.y = pos_odmest[1];
 					ssm_position_write.data.theta += move_est.theta;
 				} // <--- add movement estimation
 
@@ -986,7 +987,7 @@ int main(int argc, char* argv[]) {
 
 						{ // ---> step iteration of optimization
 							gnd::matrix::fixed<3,1> ws3x1;
-							if( (ret = optimizer->iterate(&delta, &ws3x1, 0, &lkl)) < 0 ){
+							if( (ret = optimizer->iterate(&delta, &ws3x1, &lkl)) < 0 ){
 								break;
 							}
 
