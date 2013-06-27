@@ -20,7 +20,7 @@ else
 endif
 endif
 
-CFLAGS		:=$(_OPT_OPTION_) $(_WRN_OPTION_) $(_DBG_OPTION_) $(_HDIR_OPTION_)
+CFLAGS		:=$(_OPT_OPTION_) $(_WRN_OPTION_) $(_DBG_OPTION_) $(_HDIR_OPTION_) $(_PRE_OPTION_)
 LDFLAGS		:=$(_LNK_OPTION_) $(_LDIR_OPTION_)
 
 

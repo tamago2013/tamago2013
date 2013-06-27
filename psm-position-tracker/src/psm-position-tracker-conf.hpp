@@ -32,16 +32,16 @@ namespace psm {
 
 		// map-file
 		static const gnd::conf::parameter_array<char, 256> ConfIni_ScanMatchingMapDir = {
-				"scan-matching-map",
+				"init-psm-map",
 				"",		// map file directory
-				"scan matching map directory path (optional argument)"
+				"input scan matching map directory path (optional argument)"
 		};
 
 		// map-file
 		static const gnd::conf::parameter_array<char, 256> ConfIni_CorrectionMapPath = {
-				"correction-map",
+				"init-correction-map",
 				"",		// map path
-				"correction map file path (optional argument)"
+				"input correction map file path (optional argument)"
 		};
 
 		// ssm-name
@@ -136,30 +136,33 @@ namespace psm {
 		static const gnd::conf::parameter<double> ConfIni_Cycle = {
 				"cycle",
 				gnd_sec2time(0.5),	// [s]
-				"scan matching cycle [sec]",
+				"scan matching cycle [sec]"
 		};
 
 		// rest-cycle
 		static const gnd::conf::parameter<double> ConfIni_RestCycle = {
-				"rest-cycle",
+				"pause-time",
 				gnd_sec2time(10.0),	// [s]
+				"pause scan matching during this time, when robot is stopping"
 		};
 		// rest-threshold-distance
 		static const gnd::conf::parameter<double> ConfIni_RestDist = {
-				"rest-threshold-distance",
+				"pause-distance",
 				gnd_m2dist(0.05),	// [m]
+				"pause scan matching during robot move less than this parameter ([m])"
 		};
 		// rest-threshold-orientation
 		static const gnd::conf::parameter<double> ConfIni_RestOrient = {
-				"rest-threshold-orientation",
+				"pause-orientation",
 				gnd_deg2ang(2.5),	// [rad]
+				"pause scan matching during robot move less than this parameter ([deg])"
 		};
 
 		// rest-threshold-orientation
 		static const gnd::conf::parameter<bool> ConfIni_SLAM = {
-				"slam",
+				"map-update",
 				true,
-				"switch of slam (map building)",
+				"this is true, map is updated using this position estimation",
 		};
 		// map update parameter time
 		static const gnd::conf::parameter<double> ConfIni_MapUpdateTime = {
@@ -191,7 +194,7 @@ namespace psm {
 		static const gnd::conf::parameter_array<char, 256> ConfIni_Optimizer = {
 				"optimizer",
 				__OPTIMIZER_MCL__,		// map file directory
-				"optimize method (newton or qmc or qmc2newton)"
+				"optimize method (newton or mcl or qmc or qmc2newton)"
 		};
 
 		// distance threshold of converge test
@@ -221,67 +224,90 @@ namespace psm {
 				"count of initial position estimation. in these matching result is not resister on odometry error map",
 		};
 
-		// rest-threshold-orientation
+		// ndt
 		static const gnd::conf::parameter<bool> ConfIni_NDT = {
 				"ndt",
 				false,
-				"scan matching evaluation function (ndt or op)"
+				"scan matching evaluation function (ndt or psm)"
 		};
 
 
 		// debug viewer switch
 		static const gnd::conf::parameter<bool> ConfIni_DebugShowMode = {
-				"debug-show-mode",
+				"cui-show-mode",
 				true,
+				"initial cui mode",
 		};
 
-
+		//
+		static const gnd::conf::parameter_array<char, 256> ConfIni_PSMMap = {
+				"psm-map",
+				"psm-map",		// path name
+				"psm map output directory"
+		};
 
 		// number of scan data for first map building
 		static const gnd::conf::parameter<double> ConfIni_PosGridSizeX = {
-				"correction-map-pos-grid-x",
+				"odometry-error-map-grid-x",
 				1.0,	// [m]
+				"gird size of odometry error map (x[m])"
 		};
 
 		// number of scan data for first map building
 		static const gnd::conf::parameter<double> ConfIni_PosGridSizeY = {
-				"correction-map-pos-grid-y",
-				1.0,	// [m]
+				"odometry-error-map-grid-y",
+				1.0,
+				"gird size of odometry error map (y[m])"
 		};
 
 		// number of scan data for first map building
 		static const gnd::conf::parameter<int> ConfIni_AngReslution = {
-				"correction-map-ang-rsl",
+				"odometry-error-map-grid-ori",
 				8,	// [m]
+				"gird resolution of odometry error map (orientation)"
 		};
 
 		// trajectory log
 		static const gnd::conf::parameter_array<char, 256> ConfIni_TrajectoryLog = {
 				"trajectory-txtlog",
 				"",		// file name
-				"log file name (text) (trajectory)"
+				"trajectory log file name (text)"
 		};
 
-		// trajectory log
+		// log for route editor
 		static const gnd::conf::parameter_array<char, 256> ConfIni_Trajectory4Route = {
 				"trajectory-for-route-edit",
-				"spurgl.dat",		// file name
-				"name of log file for route edit"
+				// "spurgl.dat",
+				"", // file name
+				"name of log file for route editor (text)"
 		};
 
 		// laser point log
 		static const gnd::conf::parameter_array<char, 256> ConfIni_LaserPointLog = {
 				"laser-point-txtlog",
 				"",		// file name
-				"log file name (text) (laser point)"
+				"laser point log file name (text)"
+		};
+
+		// bmp
+		static const gnd::conf::parameter<bool> ConfIni_BMP = {
+				"bmp-map",
+				false,		// file name
+				"scan matching map file with BMP (for human)"
 		};
 
 
-		// laser point log
+		// file output directory
 		static const gnd::conf::parameter_array<char, 256> ConfIni_OutputDir = {
 				"file-output-directory",
 				"./",		// file name
 				"file output directory"
+		};
+
+		// file output directory
+		static const gnd::conf::parameter<bool> ConfIni_DebugOdometryErrorMap = {
+				"debug-odometry-error-map",
+				false
 		};
 
 	} // <--- namespace psm
@@ -340,7 +366,7 @@ namespace psm {
 		struct proc_configuration {
 			proc_configuration();
 
-			gnd::conf::parameter_array<char, 256>	smmapdir;			///< scan matching map directory path
+			gnd::conf::parameter_array<char, 256>	init_psm_map;			///< scan matching map directory path
 			gnd::conf::parameter_array<char, 256>	cmap;				///< correction map path
 			gnd::conf::parameter_array<char, 256>	odm_name;			///< odometry position estimation log file name
 			gnd::conf::parameter<int>				odm_id;				///< corrected position log id
@@ -350,18 +376,18 @@ namespace psm {
 			gnd::conf::parameter<int>				corrected_id;		///< corrected position log id
 			gnd::conf::parameter<double>			culling;			///< laser scanner data decimate parameter [m]
 			gnd::conf::parameter<double>			cycle;				///< operation cycle
-			gnd::conf::parameter<double>			fail_dist;			///< failure test parameter (distance threshold)
-			gnd::conf::parameter<double>			fail_orient;		///< failure test parameter (orient threshold)
+			gnd::conf::parameter<double>			failure_dist;			///< failure test parameter (distance threshold)
+			gnd::conf::parameter<double>			failure_orient;		///< failure test parameter (orient threshold)
 			gnd::conf::parameter<double>			use_range_dist;		///< matching data parameter (distance threshold)
 			gnd::conf::parameter<double>			use_range_orient;	///< matching data parameter (orient threshold)
 
-			gnd::conf::parameter<double>			rest_cycle;			///< resting mode cycle
-			gnd::conf::parameter<double>			rest_dist;			///< resting threshold (position distance) [m]
-			gnd::conf::parameter<double>			rest_orient;		///< resting threshold (position orientation) [deg]
-			gnd::conf::parameter<bool>				slam;				///< slam mode flag
-			gnd::conf::parameter<double>			mapupdate_time;		///< map update parameter (time threshold)
-			gnd::conf::parameter<double>			mapupdate_dist;		///< map update parameter (distance threshold)
-			gnd::conf::parameter<double>			mapupdate_orient;	///< map update parameter (orient threshold)
+			gnd::conf::parameter<double>			pause_time;			///< resting mode cycle
+			gnd::conf::parameter<double>			pause_dist;			///< resting threshold (position distance) [m]
+			gnd::conf::parameter<double>			pause_orient;		///< resting threshold (position orientation) [deg]
+			gnd::conf::parameter<bool>				map_update;				///< slam mode flag
+			gnd::conf::parameter<double>			map_update_time;		///< map update parameter (time threshold)
+			gnd::conf::parameter<double>			map_update_dist;		///< map update parameter (distance threshold)
+			gnd::conf::parameter<double>			map_update_orient;	///< map update parameter (orient threshold)
 
 
 			gnd::conf::parameter_array<char, 256>	optimizer;			///< kind of optimizer
@@ -370,7 +396,10 @@ namespace psm {
 			gnd::conf::parameter<int>				ini_map_cnt;		///< number of scan data for first map building
 			gnd::conf::parameter<int>				ini_match_cnt;		///< count of initial position estimation. in these matching result is not resister on odometry error map
 			gnd::conf::parameter<bool>				ndt;				///< ndt mode
-			gnd::conf::parameter<bool>				debug_show;			///< debug show mode
+			gnd::conf::parameter<bool>				cui_show;			///< debug show mode
+
+			gnd::conf::parameter_array<char, 256>	psm_map;			///< psm map directory
+			gnd::conf::parameter<bool>				bmp;				///< psm map (bmp)
 
 			gnd::conf::parameter<double>			pos_gridsizex;		///< road map position size
 			gnd::conf::parameter<double>			pos_gridsizey;		///< road map position size
@@ -381,6 +410,7 @@ namespace psm {
 			gnd::conf::parameter_array<char, 256>	laserpoint_log;		///< laser point log
 
 			gnd::conf::parameter_array<char, 256>	output_dir;			///< file output directory
+			gnd::conf::parameter<bool>				debug_odo_err_map;	///< file output directory
 		};
 
 		/**
@@ -415,28 +445,31 @@ namespace psm {
 			::memcpy(&conf->ls_id,				&ConfIni_LaserScannerSSMID,		sizeof(ConfIni_LaserScannerSSMID) );
 			::memcpy(&conf->corrected_name,		&ConfIni_CorrectedPosSSMName,	sizeof( ConfIni_CorrectedPosSSMName) );
 			::memcpy(&conf->corrected_id,		&ConfIni_CorrectedPosSSMID,		sizeof( ConfIni_CorrectedPosSSMID) );
-			::memcpy(&conf->smmapdir,			&ConfIni_ScanMatchingMapDir,	sizeof(ConfIni_ScanMatchingMapDir) );
+			::memcpy(&conf->init_psm_map,		&ConfIni_ScanMatchingMapDir,	sizeof(ConfIni_ScanMatchingMapDir) );
 			::memcpy(&conf->cmap,				&ConfIni_CorrectionMapPath,		sizeof(ConfIni_CorrectionMapPath) );
 			::memcpy(&conf->culling,			&ConfIni_Culling,				sizeof(ConfIni_Culling) );
 			::memcpy(&conf->cycle,				&ConfIni_Cycle,					sizeof(ConfIni_Cycle) );
-			::memcpy(&conf->fail_dist,			&ConfIni_FailDist,				sizeof(ConfIni_FailDist) );
-			::memcpy(&conf->fail_orient,		&ConfIni_FailOrient,			sizeof(ConfIni_FailOrient) );
+			::memcpy(&conf->failure_dist,		&ConfIni_FailDist,				sizeof(ConfIni_FailDist) );
+			::memcpy(&conf->failure_orient,		&ConfIni_FailOrient,			sizeof(ConfIni_FailOrient) );
 			::memcpy(&conf->use_range_dist,		&ConfIni_LaserUseDist,			sizeof(ConfIni_LaserUseDist) );
 			::memcpy(&conf->use_range_orient,	&ConfIni_LaserUseOrient,		sizeof(ConfIni_LaserUseOrient) );
-			::memcpy(&conf->rest_cycle,			&ConfIni_RestCycle,				sizeof(ConfIni_RestCycle) );
-			::memcpy(&conf->rest_dist,			&ConfIni_RestDist,				sizeof(ConfIni_RestDist) );
-			::memcpy(&conf->rest_orient,		&ConfIni_RestOrient,			sizeof(ConfIni_RestOrient) );
-			::memcpy(&conf->slam,				&ConfIni_SLAM,					sizeof(ConfIni_SLAM) );
-			::memcpy(&conf->mapupdate_time,		&ConfIni_MapUpdateTime,			sizeof(ConfIni_MapUpdateTime) );
-			::memcpy(&conf->mapupdate_dist,		&ConfIni_MapUpdateDist,			sizeof(ConfIni_MapUpdateDist) );
-			::memcpy(&conf->mapupdate_orient,	&ConfIni_MapUpdateOrient,		sizeof(ConfIni_MapUpdateOrient) );
+			::memcpy(&conf->pause_time,			&ConfIni_RestCycle,				sizeof(ConfIni_RestCycle) );
+			::memcpy(&conf->pause_dist,			&ConfIni_RestDist,				sizeof(ConfIni_RestDist) );
+			::memcpy(&conf->pause_orient,		&ConfIni_RestOrient,			sizeof(ConfIni_RestOrient) );
+			::memcpy(&conf->map_update,			&ConfIni_SLAM,					sizeof(ConfIni_SLAM) );
+			::memcpy(&conf->map_update_time,	&ConfIni_MapUpdateTime,			sizeof(ConfIni_MapUpdateTime) );
+			::memcpy(&conf->map_update_dist,	&ConfIni_MapUpdateDist,			sizeof(ConfIni_MapUpdateDist) );
+			::memcpy(&conf->map_update_orient,	&ConfIni_MapUpdateOrient,		sizeof(ConfIni_MapUpdateOrient) );
 			::memcpy(&conf->optimizer,			&ConfIni_Optimizer,				sizeof(ConfIni_Optimizer) );
 			::memcpy(&conf->converge_dist,		&ConfIni_ConvergeDist,			sizeof(ConfIni_ConvergeDist) );
 			::memcpy(&conf->converge_orient,	&ConfIni_ConvergeOrient,		sizeof(ConfIni_ConvergeOrient) );
 			::memcpy(&conf->ini_map_cnt,		&ConfIni_InitMapCnt,			sizeof(ConfIni_InitMapCnt) );
 			::memcpy(&conf->ini_match_cnt,		&ConfIni_InitMatchingCnt,		sizeof(ConfIni_InitMatchingCnt) );
 			::memcpy(&conf->ndt,				&ConfIni_NDT,					sizeof(ConfIni_NDT) );
-			::memcpy(&conf->debug_show,			&ConfIni_DebugShowMode,			sizeof(ConfIni_DebugShowMode) );
+			::memcpy(&conf->cui_show,			&ConfIni_DebugShowMode,			sizeof(ConfIni_DebugShowMode) );
+
+			::memcpy(&conf->psm_map,			&ConfIni_PSMMap,				sizeof(ConfIni_PSMMap) );
+			::memcpy(&conf->bmp,				&ConfIni_BMP,					sizeof(ConfIni_BMP) );
 
 			::memcpy(&conf->pos_gridsizex,		&ConfIni_PosGridSizeX,			sizeof(ConfIni_PosGridSizeX) );
 			::memcpy(&conf->pos_gridsizey,		&ConfIni_PosGridSizeY,			sizeof(ConfIni_PosGridSizeY) );
@@ -446,6 +479,7 @@ namespace psm {
 			::memcpy(&conf->trajectory4route,	&ConfIni_Trajectory4Route,		sizeof(ConfIni_Trajectory4Route) );
 			::memcpy(&conf->laserpoint_log,		&ConfIni_LaserPointLog,			sizeof(ConfIni_LaserPointLog) );
 			::memcpy(&conf->output_dir,			&ConfIni_OutputDir,				sizeof(ConfIni_OutputDir) );
+			::memcpy(&conf->debug_odo_err_map,	&ConfIni_DebugOdometryErrorMap,	sizeof(ConfIni_DebugOdometryErrorMap) );
 
 			return 0;
 		}
@@ -461,25 +495,25 @@ namespace psm {
 			gnd_assert(!src, -1, "invalid null pointer");
 			gnd_assert(!dest, -1, "invalid null pointer");
 
-			gnd::conf::get_parameter( src, &dest->smmapdir );
+			gnd::conf::get_parameter( src, &dest->init_psm_map );
 			gnd::conf::get_parameter( src, &dest->cmap );
 			gnd::conf::get_parameter( src, &dest->culling );
 			gnd::conf::get_parameter( src, &dest->cycle );
-			gnd::conf::get_parameter( src, &dest->fail_dist );
-			if( !gnd::conf::get_parameter( src, &dest->fail_orient) )
-				dest->fail_orient.value = gnd_deg2ang(dest->fail_orient.value);
+			gnd::conf::get_parameter( src, &dest->failure_dist );
+			if( !gnd::conf::get_parameter( src, &dest->failure_orient) )
+				dest->failure_orient.value = gnd_deg2ang(dest->failure_orient.value);
 			gnd::conf::get_parameter( src, &dest->use_range_dist );
 			if( !gnd::conf::get_parameter( src, &dest->use_range_orient) )
 				dest->use_range_orient.value = gnd_deg2ang(dest->use_range_orient.value);
-			gnd::conf::get_parameter( src, &dest->rest_cycle );
-			gnd::conf::get_parameter( src, &dest->rest_dist );
-			if( !gnd::conf::get_parameter( src, &dest->rest_orient ) )
-				dest->rest_orient.value = gnd_deg2ang(dest->rest_orient.value);
-			gnd::conf::get_parameter( src, &dest->slam );
-			gnd::conf::get_parameter( src, &dest->mapupdate_time );
-			gnd::conf::get_parameter( src, &dest->mapupdate_dist );
-			if( !gnd::conf::get_parameter( src, &dest->mapupdate_orient) )
-				dest->converge_orient.value = gnd_deg2ang(dest->mapupdate_orient.value);
+			gnd::conf::get_parameter( src, &dest->pause_time );
+			gnd::conf::get_parameter( src, &dest->pause_dist );
+			if( !gnd::conf::get_parameter( src, &dest->pause_orient ) )
+				dest->pause_orient.value = gnd_deg2ang(dest->pause_orient.value);
+			gnd::conf::get_parameter( src, &dest->map_update );
+			gnd::conf::get_parameter( src, &dest->map_update_time );
+			gnd::conf::get_parameter( src, &dest->map_update_dist );
+			if( !gnd::conf::get_parameter( src, &dest->map_update_orient) )
+				dest->converge_orient.value = gnd_deg2ang(dest->map_update_orient.value);
 			gnd::conf::get_parameter( src, &dest->optimizer );
 			gnd::conf::get_parameter( src, &dest->converge_dist );
 			if( !gnd::conf::get_parameter( src, &dest->converge_orient) )
@@ -487,7 +521,11 @@ namespace psm {
 			gnd::conf::get_parameter( src, &dest->ini_map_cnt );
 			gnd::conf::get_parameter( src, &dest->ini_match_cnt );
 			gnd::conf::get_parameter( src, &dest->ndt );
-			gnd::conf::get_parameter( src, &dest->debug_show );
+			gnd::conf::get_parameter( src, &dest->cui_show );
+
+			gnd::conf::get_parameter( src, &dest->psm_map );
+			gnd::conf::get_parameter( src, &dest->bmp );
+
 			gnd::conf::get_parameter( src, &dest->pos_gridsizex );
 			gnd::conf::get_parameter( src, &dest->pos_gridsizey );
 			gnd::conf::get_parameter( src, &dest->ang_rsl );
@@ -503,6 +541,7 @@ namespace psm {
 			gnd::conf::get_parameter( src, &dest->trajectory4route );
 			gnd::conf::get_parameter( src, &dest->laserpoint_log );
 			gnd::conf::get_parameter( src, &dest->output_dir );
+			gnd::conf::get_parameter( src, &dest->debug_odo_err_map );
 
 			return 0;
 		}
@@ -517,46 +556,6 @@ namespace psm {
 			gnd_assert(!src, -1, "invalid null pointer");
 
 			{ // ---> operation
-				gnd::conf::set_parameter(dest, &src->smmapdir);
-				gnd::conf::set_parameter(dest, &src->cmap );
-				gnd::conf::set_parameter(dest, &src->culling);
-				gnd::conf::set_parameter(dest, &src->cycle);
-				gnd::conf::set_parameter(dest, &src->fail_dist);
-				src->fail_orient.value = gnd_ang2deg(src->fail_orient.value);
-				gnd::conf::set_parameter(dest, &src->fail_orient);
-				src->fail_orient.value = gnd_deg2ang(src->fail_orient.value);
-				gnd::conf::set_parameter(dest, &src->use_range_dist);
-				src->use_range_orient.value = gnd_ang2deg(src->use_range_orient.value);
-				gnd::conf::set_parameter(dest, &src->use_range_orient);
-				src->use_range_orient.value = gnd_deg2ang(src->use_range_orient.value);
-
-				gnd::conf::set_parameter(dest, &src->rest_cycle);
-				gnd::conf::set_parameter(dest, &src->rest_dist);
-				src->rest_orient.value = gnd_ang2deg(src->rest_orient.value);
-				gnd::conf::set_parameter(dest, &src->rest_orient );
-				src->rest_orient.value = gnd_deg2ang(src->rest_orient.value);
-				gnd::conf::set_parameter(dest, &src->slam);
-				gnd::conf::set_parameter(dest, &src->mapupdate_time);
-				gnd::conf::set_parameter(dest, &src->mapupdate_dist);
-				src->mapupdate_orient.value = gnd_ang2deg(src->mapupdate_orient.value);
-				gnd::conf::set_parameter(dest, &src->mapupdate_orient);
-				src->mapupdate_orient.value = gnd_deg2ang(src->mapupdate_orient.value);
-				gnd::conf::set_parameter(dest, &src->optimizer);
-				gnd::conf::set_parameter(dest, &src->converge_dist);
-				src->converge_orient.value = gnd_ang2deg(src->converge_orient.value);
-				gnd::conf::set_parameter(dest, &src->converge_orient);
-				src->converge_orient.value = gnd_deg2ang(src->converge_orient.value);
-
-				gnd::conf::set_parameter(dest, &src->ini_map_cnt );
-				gnd::conf::set_parameter(dest, &src->ini_match_cnt );
-				gnd::conf::set_parameter(dest, &src->ndt);
-				gnd::conf::set_parameter(dest, &src->debug_show );
-
-				gnd::conf::set_parameter(dest, &src->pos_gridsizex );
-				gnd::conf::set_parameter(dest, &src->pos_gridsizey );
-
-				gnd::conf::set_parameter(dest, &src->ang_rsl );
-
 				gnd::conf::set_parameter(dest, &src->odm_name);
 				gnd::conf::set_parameter(dest, &src->odm_id);
 				gnd::conf::set_parameter(dest, &src->ls_name);
@@ -564,10 +563,59 @@ namespace psm {
 				gnd::conf::set_parameter(dest, &src->corrected_name);
 				gnd::conf::set_parameter(dest, &src->corrected_id);
 
+				// scan matching parameter
+				gnd::conf::set_parameter(dest, &src->cycle);
+				gnd::conf::set_parameter(dest, &src->culling);
+				gnd::conf::set_parameter(dest, &src->optimizer);
+				gnd::conf::set_parameter(dest, &src->converge_dist);
+				src->converge_orient.value = gnd_ang2deg(src->converge_orient.value);
+				gnd::conf::set_parameter(dest, &src->converge_orient);
+				src->converge_orient.value = gnd_deg2ang(src->converge_orient.value);
+
+				gnd::conf::set_parameter(dest, &src->failure_dist);
+				src->failure_orient.value = gnd_ang2deg(src->failure_orient.value);
+				gnd::conf::set_parameter(dest, &src->failure_orient);
+				src->failure_orient.value = gnd_deg2ang(src->failure_orient.value);
+
+				gnd::conf::set_parameter(dest, &src->pause_time);
+				gnd::conf::set_parameter(dest, &src->pause_dist);
+				src->pause_orient.value = gnd_ang2deg(src->pause_orient.value);
+				gnd::conf::set_parameter(dest, &src->pause_orient );
+				src->pause_orient.value = gnd_deg2ang(src->pause_orient.value);
+
+				gnd::conf::set_parameter(dest, &src->ini_map_cnt );
+				gnd::conf::set_parameter(dest, &src->ini_match_cnt );
+				gnd::conf::set_parameter(dest, &src->ndt);
+
+				gnd::conf::set_parameter(dest, &src->use_range_dist);
+				src->use_range_orient.value = gnd_ang2deg(src->use_range_orient.value);
+				gnd::conf::set_parameter(dest, &src->use_range_orient);
+				src->use_range_orient.value = gnd_deg2ang(src->use_range_orient.value);
+
+				gnd::conf::set_parameter(dest, &src->map_update);
+				gnd::conf::set_parameter(dest, &src->map_update_time);
+				gnd::conf::set_parameter(dest, &src->map_update_dist);
+				src->map_update_orient.value = gnd_ang2deg(src->map_update_orient.value);
+				gnd::conf::set_parameter(dest, &src->map_update_orient);
+				src->map_update_orient.value = gnd_deg2ang(src->map_update_orient.value);
+
+				gnd::conf::set_parameter(dest, &src->output_dir );
+
+				gnd::conf::set_parameter(dest, &src->psm_map );
+				gnd::conf::set_parameter(dest, &src->bmp );
+
+				gnd::conf::set_parameter(dest, &src->pos_gridsizex );
+				gnd::conf::set_parameter(dest, &src->pos_gridsizey );
+				gnd::conf::set_parameter(dest, &src->ang_rsl );
+
 				gnd::conf::set_parameter(dest, &src->trajectory_log );
 				gnd::conf::set_parameter(dest, &src->trajectory4route );
 				gnd::conf::set_parameter(dest, &src->laserpoint_log );
-				gnd::conf::set_parameter(dest, &src->output_dir );
+
+				gnd::conf::set_parameter(dest, &src->cui_show );
+				gnd::conf::set_parameter(dest, &src->init_psm_map);
+				gnd::conf::set_parameter(dest, &src->cmap );
+
 				return 0;
 			} // <--- operation
 		}

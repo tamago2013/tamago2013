@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 				::fprintf(stderr, " %d. load correction map from \"\x1b[4m%s\x1b[0m\"\n", phase++, pconf.cmap.value);
 			}
 			::fprintf(stderr, " %d. create optimizer class \"\x1b[4m%s\x1b[0m\"\n", phase++, pconf.optimizer.value);
-			if( pconf.slam.value && *pconf.smmapdir.value ) {
+			if( pconf.map_update.value && *pconf.init_psm_map.value ) {
 				::fprintf(stderr, " %d. Map Data Load\n", phase++);
 				::fprintf(stderr, " %d. Build %sMap\n", phase++, pconf.ndt.value ? "NDT " : "");
 			}
@@ -210,29 +210,29 @@ int main(int argc, char* argv[]) {
 
 
 		// ---> build map
-		if( !::is_proc_shutoff() && pconf.slam.value && *pconf.smmapdir.value ){
+		if( !::is_proc_shutoff() && pconf.map_update.value && *pconf.init_psm_map.value ){
 			::fprintf(stderr, "\n");
-			::fprintf(stderr, " => load scan matching map from \"\x1b[4m%s\x1b[0m\"\n", pconf.smmapdir.value);
-			if( gnd::psm::read_counting_map(&cnt_smmap, pconf.smmapdir.value) < 0){
+			::fprintf(stderr, " => load scan matching map from \"\x1b[4m%s\x1b[0m\"\n", pconf.init_psm_map.value);
+			if( gnd::psm::read_counting_map(&cnt_smmap, pconf.init_psm_map.value) < 0){
 				::proc_shutoff();
-				::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to load scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.smmapdir.value);
+				::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to load scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.init_psm_map.value);
 			}
 			else if( !pconf.ndt.value){
 				if( gnd::psm::build_map(&smmap, &cnt_smmap, gnd_mm2dist(1)) < 0) {
 					::proc_shutoff();
-					::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.smmapdir.value);
+					::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.init_psm_map.value);
 				}
 				else {
-					::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m: load scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.smmapdir.value);
+					::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m: load scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.init_psm_map.value);
 				}
 			}
 			else {
 				if(gnd::psm::build_ndt_map(&smmap, &cnt_smmap, gnd_mm2dist(1)) < 0){
 					::proc_shutoff();
-					::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.smmapdir.value);
+					::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.init_psm_map.value);
 				}
 				else {
-					::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m: load scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.smmapdir.value);
+					::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m: load scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.init_psm_map.value);
 				}
 			}
 		} // <--- build map
@@ -483,7 +483,7 @@ int main(int argc, char* argv[]) {
 		int cnt_opt = 0;								// optimization loop counter
 		int cnt_correct = 0;
 
-		gnd::matrix::fixed<3,1> move_opt;				// position estimation movement by optimization
+		gnd::vector::fixed_column<3> move_opt;			// position estimation movement by optimization
 		double change_dist = 0;							// change value on distance between previous and current frame
 		double change_orient = 0;						// change value on orientation between previous and current frame
 
@@ -526,7 +526,7 @@ int main(int argc, char* argv[]) {
 		} // <--- memory allocate counting map
 
 
-		if( !(*pconf.smmapdir.value) ){ // ---> map initialization
+		if( !(*pconf.init_psm_map.value) ){ // ---> map initialization
 			int cnt_ls = 0;
 
 			::fprintf(stderr, "-------------------- map initialize  --------------------\n");
@@ -539,51 +539,51 @@ int main(int argc, char* argv[]) {
 						if( !ssm_odometry.readTime( ssm_sokuikiraw.time ) ) continue;
 
 						{ // ---> compute the movement estimation
-							gnd::matrix::fixed<4,1> odov_cprev;			// current odometry position vector on previous odometry coordinate
+							gnd::vector::fixed_column<4> odov_cprev;		// current odometry position vector on previous odometry coordinate
 
 							{ // ---> compute current odometry position on previous odometry coordinate
 								gnd::matrix::fixed<4,4> coordm_r2podo;		// coordinate matrix of previous odometry position
-								gnd::matrix::fixed<4,1> ws4x1;
+								gnd::vector::fixed_column<4> ws4x1;
 
 								// get previous odometry coordinate matrix
 								coordtree.get_convert_matrix(0, coordid_odm, &coordm_r2podo);
 
 								// multiply previous odometry coordinate matrix with current position vector
-								ws4x1[0][0] = ssm_odometry.data.x;
-								ws4x1[1][0] = ssm_odometry.data.y;
-								ws4x1[2][0] = 0;
-								ws4x1[3][0] = 1;
+								ws4x1[0] = ssm_odometry.data.x;
+								ws4x1[1] = ssm_odometry.data.y;
+								ws4x1[2] = 0;
+								ws4x1[3] = 1;
 								gnd::matrix::prod(&coordm_r2podo, &ws4x1, &odov_cprev);
 							} // <--- compute current odometry position on previous odometry coordinate
 
 							// get movement estimation by odometry
-							move_est.x = odov_cprev[0][0];
-							move_est.y = odov_cprev[1][0];
+							move_est.x = odov_cprev[0];
+							move_est.y = odov_cprev[1];
 							move_est.theta = ssm_odometry.data.theta - prev_odometry.theta;
 						} // <--- compute the movement estimation
 
 
 						{ // ---> add movement estimation
-							gnd::matrix::fixed<4,1> pos_odmest;
+							gnd::vector::fixed_column<4> pos_odmest;
 
 							{ // ---> compute position estimation by odometry on global coordinate
 								gnd::matrix::fixed<4,4> coordm_rbt2gl;		// coordinate convert matrix from robot to global
-								gnd::matrix::fixed<4,1> ws4x1;
+								gnd::vector::fixed_column<4> ws4x1;
 
 								// set search position on sensor-coordinate
 								coordtree.get_convert_matrix(coordid_rbt, coordid_gl, &coordm_rbt2gl);
 
-								ws4x1[0][0] = move_est.x;
-								ws4x1[1][0] = move_est.y;
-								ws4x1[2][0] = 0;
-								ws4x1[3][0] = 1;
+								ws4x1[0] = move_est.x;
+								ws4x1[1] = move_est.y;
+								ws4x1[2] = 0;
+								ws4x1[3] = 1;
 
 								gnd::matrix::prod(&coordm_rbt2gl, &ws4x1, &pos_odmest);
 							} // <--- compute position estimation by odometry on global coordinate
 
 							// set position
-							ssm_position_write.data.x = pos_odmest[0][0];
-							ssm_position_write.data.y = pos_odmest[1][0];
+							ssm_position_write.data.x = pos_odmest[0];
+							ssm_position_write.data.y = pos_odmest[1];
 							ssm_position_write.data.theta += move_est.theta;
 						} // <--- add movement estimation
 					}  // <--- 1. compute position estimation from odometry
@@ -612,8 +612,8 @@ int main(int argc, char* argv[]) {
 
 					gnd::matrix::set_zero(&move_opt);
 					{ // ---> 3. entry laser scanner reading
-						gnd::matrix::fixed<3,1> delta;
-						gnd::matrix::fixed<2,1> reflect_prevent;
+						gnd::vector::fixed_column<3> delta;
+						gnd::vector::fixed_column<2> reflect_prevent;
 
 						// clear previous entered sensor reading
 						gnd::matrix::set_zero(&reflect_prevent);
@@ -621,8 +621,8 @@ int main(int argc, char* argv[]) {
 						// ---> scanning loop for sokuikiraw-data
 						for(size_t i = 0; i < ssm_sokuikiraw.data.numPoints(); i++){
 							// ---> entry laser scanner reflection
-							gnd::matrix::fixed<4,1> reflect_csns, reflect_cgl;
-							gnd::matrix::fixed<3,1> ws3x1;
+							gnd::vector::fixed_column<4> reflect_csns, reflect_cgl;
+							gnd::vector::fixed_column<3> ws3x1;
 							gnd::matrix::fixed<3,3> ws3x3;
 
 							// if range data is null because of no reflection
@@ -637,13 +637,13 @@ int main(int argc, char* argv[]) {
 
 							{ // ---> compute laser scanner reading position on robot coordinate
 								// set search position on sensor-coordinate
-								reflect_csns[0][0] = ssm_sokuikiraw.data[i].r * ::cos(ssm_sokuikiraw.data[i].th);
-								reflect_csns[1][0] = ssm_sokuikiraw.data[i].r * ::sin(ssm_sokuikiraw.data[i].th);
-								reflect_csns[2][0] = 0;
-								reflect_csns[3][0] = 1;
+								reflect_csns[0] = ssm_sokuikiraw.data[i].r * ::cos(ssm_sokuikiraw.data[i].th);
+								reflect_csns[1] = ssm_sokuikiraw.data[i].r * ::sin(ssm_sokuikiraw.data[i].th);
+								reflect_csns[2] = 0;
+								reflect_csns[3] = 1;
 
 								// data decimation with distance threshold
-								if( gnd_square(reflect_csns[0][0] - reflect_prevent[0][0]) + gnd_square(reflect_csns[1][0] - reflect_prevent[1][0]) < culling_sqdist ){
+								if( gnd_square(reflect_csns[0] - reflect_prevent[0]) + gnd_square(reflect_csns[1] - reflect_prevent[1]) < culling_sqdist ){
 									continue;
 								}
 								else {
@@ -656,9 +656,16 @@ int main(int argc, char* argv[]) {
 							} // <--- compute laser scanner reading position on robot coordinate
 
 							// data entry
-							gnd::psm::counting_map(&cnt_smmap, reflect_cgl[0][0], reflect_cgl[1][0]);
+							gnd::psm::counting_map(&cnt_smmap, reflect_cgl[0], reflect_cgl[1]);
+
+							// log
+							if( llog_fp )	::fprintf(llog_fp, "%lf %lf\n", reflect_cgl[0], reflect_cgl[1]);
 						} // <--- scanning loop for sokuikiraw-data
+
+						// log
+						if( llog_fp )	::fprintf(llog_fp, "\n" );
 					} // <--- 3. entry laser scanner reading
+
 
 
 					prev_odometry = ssm_odometry.data;
@@ -697,7 +704,7 @@ int main(int argc, char* argv[]) {
 			timer_clock.begin(CLOCK_REALTIME,
 					pconf.cycle.value < ClockCycle ? pconf.cycle.value :  ClockCycle);
 			::fprintf(stderr, "\n");
-			if( pconf.debug_show.value ) {
+			if( pconf.cui_show.value ) {
 				timer_show.begin(CLOCK_REALTIME, ShowCycle, -ShowCycle);
 				// console clear
 				nline_show = 0;
@@ -714,7 +721,7 @@ int main(int argc, char* argv[]) {
 		{ // ---> timer
 			// set parameter-cycle
 			timer_clock.begin(CLOCK_REALTIME, pconf.cycle.value );
-			if( pconf.debug_show.value )	timer_show.begin(CLOCK_REALTIME, ShowCycle, -ShowCycle);
+			if( pconf.cui_show.value )	timer_show.begin(CLOCK_REALTIME, ShowCycle, -ShowCycle);
 			else 							::fprintf(stderr, "  > ");
 		} // <--- timer
 
@@ -811,7 +818,7 @@ int main(int argc, char* argv[]) {
 				nline_show++; ::fprintf(stderr, "\x1b[K        position : %4.03lf[m], %4.03lf[m], %4.02lf[deg]\n",
 						ssm_position_write.data.x, ssm_position_write.data.y, gnd_ang2deg( ssm_position_write.data.theta ) );
 				nline_show++; ::fprintf(stderr, "\x1b[K        optimize : %4.03lf[m], %4.03lf[m], %4.02lf[deg]\n",
-						move_opt[0][0], move_opt[1][0], gnd_ang2deg( move_opt[2][0] ) );
+						move_opt[0], move_opt[1], gnd_ang2deg( move_opt[2] ) );
 				nline_show++; ::fprintf(stderr, "\x1b[K        move est : %4.03lf[m], %4.03lf[m], %4.02lf[deg]\n",
 						move_est.x, move_est.y, gnd_ang2deg( move_est.theta ) );
 				//				::fprintf(stderr, "      cycle : %.03lf\n", timer_operate.cycle() );
@@ -903,7 +910,6 @@ int main(int argc, char* argv[]) {
 								 0, 0, 1);
 						coordtree.set_coordinate(coordid_rbt, &coordm);
 					} // <--- update coordinate
-
 				} // <--- update
 			} // <--- update position
 
@@ -928,8 +934,8 @@ int main(int argc, char* argv[]) {
 
 				gnd::matrix::set_zero(&move_opt);
 				{ // ---> 3. optimization iteration by matching laser scanner reading to map(likelihood field)
-					gnd::matrix::fixed<3,1> delta;
-					gnd::matrix::fixed<2,1> reflect_prevent;
+					gnd::vector::fixed_column<3>	delta;
+					gnd::vector::fixed_column<2>	reflect_prevent;
 
 					// clear previous entered sensor reading
 					gnd::matrix::set_zero(&reflect_prevent);
@@ -937,9 +943,9 @@ int main(int argc, char* argv[]) {
 					// ---> scanning loop for sokuikiraw-data
 					for(size_t i = 0; i < ssm_sokuikiraw.data.numPoints(); i++){
 						// ---> entry laser scanner reflection
-						gnd::matrix::fixed<4,1> reflect_csns, reflect_crbt;
-						gnd::matrix::fixed<3,1> ws3x1;
-						gnd::matrix::fixed<3,3> ws3x3;
+						gnd::vector::fixed_column<4> reflect_csns, reflect_crbt;
+						gnd::vector::fixed_column<3> ws3x1;
+						gnd::matrix::fixed<3,3>		 ws3x3;
 
 						// if range data is null because of no reflection
 						if( ssm_sokuikiraw.data[i].status == ssm::laser::STATUS_NO_REFLECTION)	continue;
@@ -952,13 +958,13 @@ int main(int argc, char* argv[]) {
 
 						{ // ---> compute laser scanner reading position on robot coordinate
 							// set search position on sensor-coordinate
-							reflect_csns[0][0] = ssm_sokuikiraw.data[i].r * ::cos( ssm_sokuikiraw.data[i].th );
-							reflect_csns[1][0] = ssm_sokuikiraw.data[i].r * ::sin( ssm_sokuikiraw.data[i].th );
-							reflect_csns[2][0] = 0;
-							reflect_csns[3][0] = 1;
+							reflect_csns[0] = ssm_sokuikiraw.data[i].r * ::cos( ssm_sokuikiraw.data[i].th );
+							reflect_csns[1] = ssm_sokuikiraw.data[i].r * ::sin( ssm_sokuikiraw.data[i].th );
+							reflect_csns[2] = 0;
+							reflect_csns[3] = 1;
 
 							// data decimation with distance threshold
-							if( gnd_square(reflect_csns[0][0] - reflect_prevent[0][0]) + gnd_square(reflect_csns[1][0] - reflect_prevent[1][0]) < culling_sqdist ){
+							if( gnd_square(reflect_csns[0] - reflect_prevent[0]) + gnd_square(reflect_csns[1] - reflect_prevent[1]) < culling_sqdist ){
 								continue;
 							}
 							else {
@@ -971,7 +977,7 @@ int main(int argc, char* argv[]) {
 						} // <--- compute laser scanner reading position on robot coordinate
 
 						// data entry
-						optimizer->set_scan_point( reflect_crbt[0][0] , reflect_crbt[1][0] );
+						optimizer->set_scan_point( reflect_crbt[0], reflect_crbt[1] );
 						// <--- entry laser scanner reflection
 					} // <--- scanning loop for sokuikiraw-data
 
@@ -986,15 +992,15 @@ int main(int argc, char* argv[]) {
 						// store previous optimization position likelihood
 
 						{ // ---> step iteration of optimization
-							gnd::matrix::fixed<3,1> ws3x1;
+							gnd::vector::fixed_column<3> ws3x1;
 							if( (ret = optimizer->iterate(&delta, &ws3x1, &lkl)) < 0 ){
 								break;
 							}
 
 							// get optimized position
-							pos_opt.x = ws3x1[0][0];
-							pos_opt.y = ws3x1[1][0];
-							pos_opt.theta = ws3x1[2][0];
+							pos_opt.x = ws3x1[0];
+							pos_opt.y = ws3x1[1];
+							pos_opt.theta = ws3x1[2];
 							// get movement by optimization
 							gnd::matrix::add(&move_opt, &delta, &move_opt);
 						} // <--- step iteration of optimization
@@ -1011,20 +1017,20 @@ int main(int argc, char* argv[]) {
 				// ---> 4. optimization error test and write position ssm-data
 				// check --- 1st. function error, 2nd. distance, 3rd. orient difference
 				if( ret >= 0 &&
-						gnd_square( ssm_position_read.data.x - pos_opt.x ) + gnd_square( ssm_position_read.data.y - pos_opt.y ) < gnd_square( pconf.fail_dist.value ) &&
-						::fabs( gnd_rad_normalize( ssm_position_read.data.theta - pos_opt.theta) ) < pconf.fail_orient.value ) {
+						gnd_square( ssm_position_read.data.x - pos_opt.x ) + gnd_square( ssm_position_read.data.y - pos_opt.y ) < gnd_square( pconf.failure_dist.value ) &&
+						::fabs( gnd_rad_normalize( ssm_position_read.data.theta - pos_opt.theta) ) < pconf.failure_orient.value ) {
 
 
 					if( (cnt_correct >= pconf.ini_match_cnt.value ||
-							( change_dist * change_dist > pconf.rest_dist.value * pconf.rest_dist.value &&
-									change_orient > ::fabs(pconf.rest_orient.value) ) ) && change_dist > 0 ) {
+							( change_dist * change_dist > pconf.pause_dist.value * pconf.pause_dist.value &&
+									change_orient > ::fabs(pconf.pause_orient.value) ) ) && change_dist > 0 ) {
 						gnd::odometry::correction::counting(&cmap, pos_opt.x, pos_opt.y, pos_opt.theta,
 								change_dist, (ssm_position_read.data.x - pos_opt.x), (ssm_position_read.data.y - pos_opt.y), (ssm_position_read.data.theta - pos_opt.theta) );
 					}
 
-					ssm_position_write.data.x += move_opt[0][0];
-					ssm_position_write.data.y += move_opt[1][0];
-					ssm_position_write.data.theta += move_opt[2][0];
+					ssm_position_write.data.x += move_opt[0];
+					ssm_position_write.data.y += move_opt[1];
+					ssm_position_write.data.theta += move_opt[2];
 					cnt_correct++;
 
 
@@ -1069,23 +1075,23 @@ int main(int argc, char* argv[]) {
 					coordtree.get_convert_matrix(coordid_sns_sm, coordid_gl, &coordm_sns2gl);
 
 					// map update check, 1st. time, 2nd. position, 3rd. orient
-					mapupdate = ssm_sokuikiraw.time - time_premap > pconf.mapupdate_time.value ||
-							gnd_square( ssm_position_write.data.x - pos_premap.x) + gnd_square( ssm_position_write.data.y - pos_premap.y) > gnd_square(pconf.mapupdate_dist.value) ||
-							::fabs( ssm_position_write.data.theta - pos_premap.theta ) > pconf.mapupdate_orient.value;
+					mapupdate = ssm_sokuikiraw.time - time_premap > pconf.map_update_time.value ||
+							gnd_square( ssm_position_write.data.x - pos_premap.x) + gnd_square( ssm_position_write.data.y - pos_premap.y) > gnd_square(pconf.map_update_dist.value) ||
+							::fabs( ssm_position_write.data.theta - pos_premap.theta ) > pconf.map_update_orient.value;
 
 					if( mapupdate ) cnt_mapupdate++;
-					if( mapupdate && !pconf.slam.value ){ // ---> clear
+					if( mapupdate && !pconf.map_update.value ){ // ---> clear
 						gnd::psm::clear_counting_map(&cnt_smmap);
 					} // <--- clear
 
 					{// ---> scanning loop for sokuikiraw-data
-						gnd::matrix::fixed<4,1> reflect_csns;
-						gnd::matrix::fixed<4,1> reflect_cgl;
-						gnd::matrix::fixed<2,1> reflect_prevent;
+						gnd::vector::fixed_column<4> reflect_csns;
+						gnd::vector::fixed_column<4> reflect_cgl;
+						gnd::vector::fixed_column<2> reflect_prevent;
 
 						// ---> scanning loop of laser scanner reading
 						for(size_t i = 0; i < ssm_sokuikiraw.data.numPoints(); i++){
-							gnd::matrix::fixed<3,1> ws3x1;
+							gnd::vector::fixed_column<3> ws3x1;
 							gnd::matrix::fixed<3,3> ws3x3;
 
 							// if range data is null because of no reflection
@@ -1107,7 +1113,7 @@ int main(int argc, char* argv[]) {
 								gnd::matrix::set(&reflect_csns, 3, 0, 1);
 
 								// data decimation with distance threshold
-								if( gnd_square(reflect_csns[0][0] - reflect_prevent[0][0]) + gnd_square(reflect_csns[1][0] - reflect_prevent[1][0]) < culling_sqdist ){
+								if( gnd_square(reflect_csns[0] - reflect_prevent[0]) + gnd_square(reflect_csns[1] - reflect_prevent[1]) < culling_sqdist ){
 									continue;
 								}
 								else {
@@ -1121,16 +1127,16 @@ int main(int argc, char* argv[]) {
 
 							// ---> enter laser scanner reading to map
 							if( mapupdate ) {
-								if( pconf.slam.value ){
+								if( pconf.map_update.value ){
 									if( pconf.ndt.value ) {
-										gnd::psm::update_ndt_map(&cnt_smmap, &smmap, reflect_cgl[0][0], reflect_cgl[1][0], gnd_mm2dist(1));
+										gnd::psm::update_ndt_map(&cnt_smmap, &smmap, reflect_cgl[0], reflect_cgl[1], gnd_mm2dist(1));
 									}
 									else {
-										gnd::psm::update_map(&cnt_smmap, &smmap, reflect_cgl[0][0], reflect_cgl[1][0], gnd_mm2dist(1));
+										gnd::psm::update_map(&cnt_smmap, &smmap, reflect_cgl[0], reflect_cgl[1], gnd_mm2dist(1));
 									}
 								}
 								else {
-									gnd::psm::counting_map(&cnt_smmap, reflect_cgl[0][0], reflect_cgl[1][0]);
+									gnd::psm::counting_map(&cnt_smmap, reflect_cgl[0], reflect_cgl[1]);
 								}
 								// update
 								time_premap = ssm_sokuikiraw.time;
@@ -1138,7 +1144,7 @@ int main(int argc, char* argv[]) {
 							} // <--- enter laser scanner reading to map
 
 							// log
-							if( llog_fp )	::fprintf(llog_fp, "%lf %lf\n", reflect_cgl[0][0], reflect_cgl[1][0]);
+							if( llog_fp )	::fprintf(llog_fp, "%lf %lf\n", reflect_cgl[0], reflect_cgl[1]);
 						} // <--- scanning loop of laser scanner reading
 
 						// log
@@ -1149,7 +1155,7 @@ int main(int argc, char* argv[]) {
 
 					// ---> rebuild map
 					if( mapupdate ) {
-						if( pconf.slam.value ){
+						if( pconf.map_update.value ){
 						}
 						else {
 							if( !pconf.ndt.value ){
@@ -1188,9 +1194,7 @@ int main(int argc, char* argv[]) {
 		delete optimizer;
 
 		// slam
-		if( pconf.slam.value ) {
-			gnd::bmp32_t bmp;
-			gnd::bmp8_t bmp8;
+		if( pconf.map_update.value ) {
 
 			// ---> build map
 			if( pconf.ndt.value ) {
@@ -1200,12 +1204,12 @@ int main(int argc, char* argv[]) {
 				gnd::psm::build_map(&smmap, &cnt_smmap, gnd_mm2dist(10));
 			} // <--- build map
 
-			{ // ---> write intermediate file
+			if( pconf.psm_map.value[0] ){ // ---> write psm map
 				char dname[512];
 				bool flg = false;
 
 				::fprintf(stderr, " => write intermediate file\n");
-				::sprintf(dname, "%s/%s/", *pconf.output_dir.value ? pconf.output_dir.value : "./", "smmap");
+				::sprintf(dname, "%s/%s/", *pconf.output_dir.value ? pconf.output_dir.value : "./", pconf.psm_map.value);
 
 				errno = 0;
 				if( mkdir(dname, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH ) < 0) {
@@ -1239,16 +1243,18 @@ int main(int argc, char* argv[]) {
 				else {
 					::fprintf(stderr, "  ... \x1b[1mOK\x1b[0m: save counting map data\n");
 				}
+			} // <--- write psm map
 
-			} // <--- write intermediate file
 
-			// bmp file building
-			gnd::psm::build_bmp32(&bmp, &smmap, gnd_m2dist( 1.0 / 10));
 
-			{ // ---> file out
+			if( pconf.bmp.value ) { // ---> bmp (32bit)
+				gnd::bmp32_t bmp;
+
+				// bmp file building
+				gnd::psm::build_bmp32(&bmp, &smmap, gnd_m2dist( 1.0 / 10));
 				{ // ---> bmp
 					char fname[512];
-					::fprintf(stderr, " => start map file out \n");
+					::fprintf(stderr, " => write psm-image in bmp(32bit)\n");
 
 					if( ::snprintf(fname, sizeof(fname), "%s/%s.%s", pconf.output_dir.value, "out", "bmp" ) == sizeof(fname) ){
 						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open. file name is too long\n");
@@ -1277,17 +1283,16 @@ int main(int argc, char* argv[]) {
 					fprintf(fp, "%lf %lf\n", x, y);
 					fclose(fp);
 				} // --->  origin
-			} // <--- fileout
+			} // <--- bmp (32bit)
 
 
-			// bmp file building
-			::fprintf(stderr, " => bmp map building\n");
-			gnd::psm::build_bmp8(&bmp8, &smmap, gnd_m2dist( 1.0 / 10));
+			if( pconf.bmp.value ) { // ---> bmp (8bit)
+				gnd::bmp8_t bmp8;
 
-			{ // ---> file out
+				gnd::psm::build_bmp8(&bmp8, &smmap, gnd_m2dist( 1.0 / 10));
 				{ // ---> bmp
 					char fname[512];
-					::fprintf(stderr, " => start map file out \n");
+					::fprintf(stderr, " => write psm-image in bmp(8bit)\n");
 
 					if( ::snprintf(fname, sizeof(fname), "%s/%s.%s", pconf.output_dir.value, "out8", "bmp" ) == sizeof(fname) ){
 						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open. file name is too long\n");
@@ -1311,15 +1316,15 @@ int main(int argc, char* argv[]) {
 					else if( !(fp = fopen(fname, "w")) ) {
 						::fprintf(stderr, "  ... \x1b[1m\x1b[31mError\x1b[39m\x1b[0m: fail to open \"\x1b[4m%s\x1b[0m\"\n", fname);
 					}
-					bmp.pget_origin(&x, &y);
+					bmp8.pget_origin(&x, &y);
 					fprintf(fp, "%lf %lf\n", x, y);
 					fclose(fp);
 				} // --->  origin
-			} // <--- fileout
-
+			} // ---> bmp (8bit)
 		}
 
-		{ // ---> file out
+
+		if(pconf.debug_odo_err_map.value) { // ---> file out
 			gnd::odometry::correction::vxl *p;
 			double x, y, t;
 			char fname[128];

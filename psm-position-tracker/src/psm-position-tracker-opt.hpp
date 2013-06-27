@@ -108,7 +108,7 @@ namespace psm {
 				} return RWriteConf;
 
 				// entry map file directory
-				case 'm': ::strcpy(pconf->smmapdir.value, optarg);			break;
+				case 'm': ::strcpy(pconf->init_psm_map.value, optarg);			break;
 				// entry sokuiki ssm-data id
 				case 'S': ::strcpy( pconf->ls_name.value, optarg);		break;
 				// entry sokuiki ssm-data id
@@ -130,15 +130,15 @@ namespace psm {
 				case 'l':
 					if(optarg){
 						if( ::strlen(optarg) == ::strlen("true") && ::strncmp(optarg, "true", ::strlen("true")) == 0 )
-							pconf->slam.value = true;
+							pconf->map_update.value = true;
 						else if( ::strlen(optarg) == ::strlen("false") && ::strncmp(optarg, "false", ::strlen("false")) == 0 )
-							pconf->slam.value = false;
+							pconf->map_update.value = false;
 						else if( ::strlen(optarg) == ::strlen("on") && ::strncmp(optarg, "on", ::strlen("on")) == 0 )
-							pconf->slam.value = true;
+							pconf->map_update.value = true;
 						else if( ::strlen(optarg) == ::strlen("off") && ::strncmp(optarg, "off", ::strlen("off")) == 0 )
-							pconf->slam.value = false;
+							pconf->map_update.value = false;
 						else {
-							pconf->slam.value = ::atoi(optarg);
+							pconf->map_update.value = ::atoi(optarg);
 						}
 					}
 				break;
