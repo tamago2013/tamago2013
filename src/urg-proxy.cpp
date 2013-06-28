@@ -16,7 +16,7 @@
 #include "ssm-laser.hpp"
 
 #include "gnd-shutoff.hpp"
-#include "gnd-time.hpp"
+#include "gnd-timer.hpp"
 #include "gnd-config-file.hpp"
 #include "gnd-util.h"
 #include "gnd-matrix-coordinate.hpp"
