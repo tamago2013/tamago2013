@@ -20,7 +20,7 @@
 #include "psm-particle-evaluator-conf.hpp"
 
 #include "gnd-util.h"
-#include "gnd-time.hpp"
+#include "gnd-timer.hpp"
 #include "gnd-shutoff.hpp"
 #include "gnd-bmp.hpp"
 #include "gnd-gridmap.hpp"
