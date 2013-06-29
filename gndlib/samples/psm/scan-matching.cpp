@@ -11,7 +11,7 @@
 #include "gnd-config-file.hpp"
 
 #ifdef __linux__
-#include "gnd-time.hpp"
+#include "gnd-timer.hpp"
 
 #define TIMER_INIT() 			gnd::stopwatch _sw_
 #define TIMER_BEGIN() 			_sw_.begin( CLOCK_REALTIME )
