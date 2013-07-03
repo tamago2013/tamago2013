@@ -628,20 +628,20 @@ private:
 	static void _ssmWrite( void *assmp, const void *adata, void *userData ){
 //		ssmdata_t *ssmp = static_cast<ssmdata_t *>( assmp );
 		const particle_set_c *data = static_cast<const particle_set_c*>(adata);
-		int n = data->size();
+		uint64_t n = data->size();
 
-		::memcpy( assmp, &n, sizeof(int));
-		::memcpy( (char*)assmp + sizeof(int), data->const_begin(),
+		::memcpy( assmp, &n, sizeof(uint64_t));
+		::memcpy( (char*)assmp + sizeof(uint64_t), data->const_begin(),
 				data->size() * sizeof(ssmdata_t));
 	}
 
 	static void _ssmRead( const void *assmp, void *adata, void *auserData )
 	{
-		const ssmdata_t *ssmp = static_cast<const ssmdata_t *>( (const void*) ((const char*)assmp + sizeof(int)));
+		const ssmdata_t *ssmp = static_cast<const ssmdata_t *>( (const void*) ((const char*)assmp + sizeof(uint64_t)));
 		particle_set_c *data = static_cast<particle_set_c *>( adata );
 		uint64_t n;
 
-		::memcpy( &n, static_cast<const char *>(assmp), sizeof(int) );
+		::memcpy( &n, static_cast<const char *>(assmp), sizeof(uint64_t) );
 		if( data->nalloc() < n )	data->allocate(n);
 		data->clear();
 		data->push_back( ssmp,  n );
