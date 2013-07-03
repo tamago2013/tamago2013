@@ -15,6 +15,8 @@ PUTDIR=${REPOS_TOP}/visualizer
 if [ -f ${CONF} ]	; then
 	echo "cp ${CONF} ${PUTDIR}"
 	cp ${CONF} ${PUTDIR}
+else
+	echo "missing visualizer conf"	
 fi
 
 # psm-position-tracker
@@ -23,6 +25,8 @@ PUTDIR=${REPOS_TOP}/psm-position-tracker
 if [ -f ${CONF} ]	; then
 	echo "cp ${CONF} ${PUTDIR}"
 	cp ${CONF} ${PUTDIR}
+else
+	echo "missing psm position tracker conf"	
 fi
 
 
@@ -32,6 +36,8 @@ PUTDIR=${REPOS_TOP}/multilogger
 if [ -f ${CONF} ]	; then
 	echo "cp ${CONF} ${PUTDIR}"
 	cp ${CONF} ${PUTDIR}
+else
+	echo "missing logging list"	
 fi
 
 
@@ -41,15 +47,53 @@ PUTDIR=${REPOS_TOP}/urg-proxy
 if [ -f ${CONF} ]	; then
 	echo "cp ${CONF} ${PUTDIR}"
 	cp ${CONF} ${PUTDIR}
+else
+	echo "missing urg device conf"	
 fi
 
 
-# urg-proxy
+# ls-coordinate-converter
 CONF=${DIR}/ls-coordinate-converter.conf
 PUTDIR=${REPOS_TOP}/ls-coordinate-converter
 if [ -f ${CONF} ]	; then
 	echo "cp ${CONF} ${PUTDIR}"
 	cp ${CONF} ${PUTDIR}
+else
+	echo "missing laser scanner coordinate converter conf"	
 fi
+
+
+# particle-localizer
+CONF=${DIR}/particle-localizer.conf
+PUTDIR=${REPOS_TOP}/particle-localizer
+if [ -f ${CONF} ]	; then
+	echo "cp ${CONF} ${PUTDIR}"
+	cp ${CONF} ${PUTDIR}
+else
+	echo "missing particle localizer conf"	
+fi
+
+
+# psm-particle-evaluator
+CONF=${DIR}/psm-particle-evaluator.conf
+PUTDIR=${REPOS_TOP}/psm-particle-evaluator
+if [ -f ${CONF} ]	; then
+	echo "cp ${CONF} ${PUTDIR}"
+	cp ${CONF} ${PUTDIR}
+else
+	echo "missing psm particle evaluator conf"	
+fi
+
+
+# ysd-path-planner
+CONF=${DIR}/ysd-path-planner.conf
+PUTDIR=${REPOS_TOP}/ysd-path-planner
+if [ -f ${CONF} ]	; then
+	echo "cp ${CONF} ${PUTDIR}"
+	cp ${CONF} ${PUTDIR}
+else
+	echo "missing ysd path planner conf"	
+fi
+
 
 
