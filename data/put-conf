@@ -1,0 +1,55 @@
+#!/bin/bash
+
+DIR=$1
+REPOS_TOP=..
+
+if [ ! -d ${DIR} ] ; then 
+	echo "Error: missing dirctory path operand"
+	echo "Usage: ./put-conf <dir>"
+	exit 1
+fi
+
+# visualizer
+CONF=${DIR}/Visualizer.conf
+PUTDIR=${REPOS_TOP}/visualizer
+if [ -f ${CONF} ]	; then
+	echo "cp ${CONF} ${PUTDIR}"
+	cp ${CONF} ${PUTDIR}
+fi
+
+# psm-position-tracker
+CONF=${DIR}/psm-pos-tracker.conf
+PUTDIR=${REPOS_TOP}/psm-position-tracker
+if [ -f ${CONF} ]	; then
+	echo "cp ${CONF} ${PUTDIR}"
+	cp ${CONF} ${PUTDIR}
+fi
+
+
+# multilogger
+CONF=${DIR}/logging.list
+PUTDIR=${REPOS_TOP}/multilogger
+if [ -f ${CONF} ]	; then
+	echo "cp ${CONF} ${PUTDIR}"
+	cp ${CONF} ${PUTDIR}
+fi
+
+
+# urg-proxy
+CONF=${DIR}/urg-dev.conf
+PUTDIR=${REPOS_TOP}/urg-proxy
+if [ -f ${CONF} ]	; then
+	echo "cp ${CONF} ${PUTDIR}"
+	cp ${CONF} ${PUTDIR}
+fi
+
+
+# urg-proxy
+CONF=${DIR}/ls-coordinate-converter.conf
+PUTDIR=${REPOS_TOP}/ls-coordinate-converter
+if [ -f ${CONF} ]	; then
+	echo "cp ${CONF} ${PUTDIR}"
+	cp ${CONF} ${PUTDIR}
+fi
+
+
