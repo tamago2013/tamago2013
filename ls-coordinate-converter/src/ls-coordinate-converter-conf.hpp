@@ -9,6 +9,7 @@
 #define LS_COORDINATE_CONVERTER_CONF_HPP_
 
 #include "gnd-config-file.hpp"
+#include "ssm-laser.hpp"
 
 // ---> type declaration
 namespace gnd {
@@ -57,6 +58,51 @@ namespace gnd {
 				"laser scanner fs data storage life on ssm"
 		};
 
+
+
+
+		// laser scanner gl data ssm name
+		static const gnd::conf::parameter_array<char, 256> ConfIni_GLSSMName = {
+				"ssm-name-gl",
+				"",		// ssm name
+				"laser scanner gl data ssm name"
+		};
+
+		// position data ssm name
+		static const gnd::conf::parameter_array<char, 256> ConfIni_GLPosSSMName = {
+				"ssm-name-position",
+				"",							// ssm name
+				"position data ssm namefor coordinate convert to global coodinate"
+		};
+
+		// laser scanner fs data ssm name
+		static const gnd::conf::parameter<int> ConfIni_GLPosSSMID = {
+				"ssm-id-position",
+				-1,							// ssm id
+				"position data ssm id for coordinate convert to global coodinate"
+		};
+
+		// laser scanner fs data ssm id
+		static const gnd::conf::parameter<int> ConfIni_GLSSMID = {
+				"ssm-id-gl",
+				-1,
+				"laser scanner gl data ssm id. if this value is less than 0, fs id is same to raw"
+		};
+
+		// laser scanner fs storage life
+		static const gnd::conf::parameter<double> ConfIni_GLStorageLife = {
+				"storage-life-gl",
+				5,	 // [sec]
+				"laser scanner gl data storage life on ssm"
+		};
+
+		// gl log
+		static const gnd::conf::parameter_array<char, 256> ConfIni_GLLogFile= {
+				"scan-gl-logtxt",
+				"",							// ssm name
+				"scan data log on global coordinate (txt format)"
+		};
+
 	}
 } // <--- constant value definition
 
@@ -98,6 +144,12 @@ namespace gnd {
 			gnd::conf::parameter_array<char, 256>	fs_name;
 			gnd::conf::parameter<int>				fs_id;
 			gnd::conf::parameter<double>			fs_storage;
+			gnd::conf::parameter_array<char, 256>	gl_name;
+			gnd::conf::parameter<int>				gl_id;
+			gnd::conf::parameter_array<char, 256>	gl_pos_name;
+			gnd::conf::parameter<int>				gl_pos_id;
+			gnd::conf::parameter<double>			gl_storage;
+			gnd::conf::parameter_array<char, 256>	gl_txtlog;
 		};
 
 		typedef struct proc_configuration proc_configuration;
@@ -125,11 +177,17 @@ namespace gnd {
 		int proc_conf_initialize(proc_configuration *conf){
 			gnd_assert(!conf, -1, "invalid null pointer");
 
-			::memcpy(&conf->raw_name,	&ConfIni_RawSSMName,	sizeof(ConfIni_RawSSMName) );
-			::memcpy(&conf->raw_id,		&ConfIni_RawSSMID,		sizeof(ConfIni_RawSSMID) );
-			::memcpy(&conf->fs_name,	&ConfIni_FSSSMName,		sizeof(ConfIni_FSSSMName) );
-			::memcpy(&conf->fs_id,		&ConfIni_FSSSMID,		sizeof(ConfIni_FSSSMID) );
-			::memcpy(&conf->fs_storage,	&ConfIni_FSStorageLife,	sizeof(ConfIni_FSStorageLife) );
+			::memcpy(&conf->raw_name,		&ConfIni_RawSSMName,	sizeof(ConfIni_RawSSMName) );
+			::memcpy(&conf->raw_id,			&ConfIni_RawSSMID,		sizeof(ConfIni_RawSSMID) );
+			::memcpy(&conf->fs_name,		&ConfIni_FSSSMName,		sizeof(ConfIni_FSSSMName) );
+			::memcpy(&conf->fs_id,			&ConfIni_FSSSMID,		sizeof(ConfIni_FSSSMID) );
+			::memcpy(&conf->fs_storage,		&ConfIni_FSStorageLife,	sizeof(ConfIni_FSStorageLife) );
+			::memcpy(&conf->gl_name,		&ConfIni_GLSSMName,		sizeof(ConfIni_GLSSMName) );
+			::memcpy(&conf->gl_pos_name,	&ConfIni_GLPosSSMName,	sizeof(ConfIni_GLPosSSMName) );
+			::memcpy(&conf->gl_pos_id,		&ConfIni_GLPosSSMID,	sizeof(ConfIni_GLPosSSMID) );
+			::memcpy(&conf->gl_id,			&ConfIni_GLSSMID,		sizeof(ConfIni_GLSSMID) );
+			::memcpy(&conf->gl_storage,		&ConfIni_GLStorageLife,	sizeof(ConfIni_GLStorageLife) );
+			::memcpy(&conf->gl_txtlog,		&ConfIni_GLLogFile,		sizeof(ConfIni_GLLogFile) );
 
 			return 0;
 		}
@@ -148,6 +206,12 @@ namespace gnd {
 			gnd::conf::get_parameter(src, &dest->fs_name);
 			gnd::conf::get_parameter(src, &dest->fs_id);
 			gnd::conf::get_parameter(src, &dest->fs_storage);
+			gnd::conf::get_parameter(src, &dest->gl_name);
+			gnd::conf::get_parameter(src, &dest->gl_id);
+			gnd::conf::get_parameter(src, &dest->gl_pos_name);
+			gnd::conf::get_parameter(src, &dest->gl_pos_id);
+			gnd::conf::get_parameter(src, &dest->gl_storage);
+			gnd::conf::get_parameter(src, &dest->gl_txtlog);
 			return 0;
 		}
 
@@ -166,6 +230,12 @@ namespace gnd {
 			gnd::conf::set_parameter(dest, &src->fs_name);
 			gnd::conf::set_parameter(dest, &src->fs_id);
 			gnd::conf::set_parameter(dest, &src->fs_storage);
+			gnd::conf::set_parameter(dest, &src->gl_name);
+			gnd::conf::set_parameter(dest, &src->gl_id);
+			gnd::conf::set_parameter(dest, &src->gl_pos_name);
+			gnd::conf::set_parameter(dest, &src->gl_pos_id);
+			gnd::conf::set_parameter(dest, &src->gl_storage);
+			gnd::conf::set_parameter(dest, &src->gl_txtlog);
 			return 0;
 		}
 
