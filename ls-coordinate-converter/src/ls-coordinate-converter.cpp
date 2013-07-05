@@ -96,7 +96,7 @@ int main(int argc, char* argv[], char* env[]) {
 
 				ssm_sokuiki_raw.setBlocking(true);
 
-				gnd::matrix::inverse(&ssm_sokuiki_raw.property.coordm, &cconvert_mat);
+				gnd::matrix::copy(&cconvert_mat, &ssm_sokuiki_raw.property.coordm);
 				::fprintf(stderr, " ... \x1b[1mOK\x1b[0m\n");
 			}
 		} // <--- open sokuiki raw ssmdata

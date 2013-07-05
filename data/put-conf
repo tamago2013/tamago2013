@@ -53,7 +53,7 @@ fi
 
 
 # ls-coordinate-converter
-CONF=${DIR}/front-urg-coordinate-converter.conf
+CONF=${DIR}/front-ls-coordinate-converter.conf
 PUTDIR=${REPOS_TOP}/ls-coordinate-converter/
 if [ -f ${CONF} ]	; then
 	echo "apply ${CONF} to ${PUTDIR}"
@@ -62,7 +62,7 @@ else
 	echo "missing front laser scanner coordinate converter conf"	
 fi
 
-CONF=${DIR}/upward-urg-coordinate-converter.conf
+CONF=${DIR}/upward-ls-coordinate-converter.conf
 PUTDIR=${REPOS_TOP}/ls-coordinate-converter/
 if [ -f ${CONF} ]	; then
 	echo "apply ${CONF} to ${PUTDIR}"
