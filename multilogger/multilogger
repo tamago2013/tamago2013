@@ -32,8 +32,8 @@ while read LINE
 do
 	NAME=`echo ${LINE} | cut -d : -f 1`
 	ID=`echo ${LINE} | cut -d : -f 2`
-	echo ssm-logger -n ${NAME} -i ${ID} -l ${LOGDIR}/${NAME}.log 		2>&1 | tee -a ${LOGDIR}/logger.err & 
-	ssm-logger -n ${NAME} -i ${ID} -l ${LOGDIR}/${NAME}.log 		2>&1 | tee -a ${LOGDIR}/logger.err &
+	echo ssm-logger -n ${NAME} -i ${ID} -l ${LOGDIR}/${NAME}-${ID}.log 		2>&1 | tee -a ${LOGDIR}/logger.err & 
+	ssm-logger -n ${NAME} -i ${ID} -l ${LOGDIR}/${NAME}-${ID}.log 		2>&1 | tee -a ${LOGDIR}/logger.err &
 done < ${1}	
 
 
