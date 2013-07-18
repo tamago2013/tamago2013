@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'window.hpp'
 **
-** Created: Thu Jul 18 10:35:45 2013
+** Created: Thu Jul 18 12:19:34 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_MainWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       6,   14, // methods
+       5,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -31,19 +31,18 @@ static const uint qt_meta_data_MainWindow[] = {
        0,       // signalCount
 
  // slots: signature, parameters, type, tag, flags
-      12,   11,   11,   11, 0x09,
-      22,   11,   11,   11, 0x08,
+      12,   11,   11,   11, 0x08,
+      20,   11,   11,   11, 0x08,
       28,   11,   11,   11, 0x08,
-      38,   11,   11,   11, 0x08,
-      46,   11,   11,   11, 0x08,
-      54,   11,   11,   11, 0x08,
+      36,   11,   11,   11, 0x08,
+      44,   11,   11,   11, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_MainWindow[] = {
-    "MainWindow\0\0onTimer()\0aaa()\0bbb(bool)\0"
-    "fps01()\0fps05()\0fps10()\0"
+    "MainWindow\0\0fps01()\0fps05()\0fps10()\0"
+    "fps20()\0fps30()\0"
 };
 
 void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -52,15 +51,15 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         Q_ASSERT(staticMetaObject.cast(_o));
         MainWindow *_t = static_cast<MainWindow *>(_o);
         switch (_id) {
-        case 0: _t->onTimer(); break;
-        case 1: _t->aaa(); break;
-        case 2: _t->bbb((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 3: _t->fps01(); break;
-        case 4: _t->fps05(); break;
-        case 5: _t->fps10(); break;
+        case 0: _t->fps01(); break;
+        case 1: _t->fps05(); break;
+        case 2: _t->fps10(); break;
+        case 3: _t->fps20(); break;
+        case 4: _t->fps30(); break;
         default: ;
         }
     }
+    Q_UNUSED(_a);
 }
 
 const QMetaObjectExtraData MainWindow::staticMetaObjectExtraData = {
@@ -95,9 +94,9 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 6)
+        if (_id < 5)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 6;
+        _id -= 5;
     }
     return _id;
 }

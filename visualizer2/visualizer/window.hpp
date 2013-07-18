@@ -15,24 +15,22 @@ class MainWindow : public QMainWindow
         
     protected slots:
 
-        void onTimer();
 
     private slots:
 
-        void aaa();
-        void bbb(bool){}
-
-        void fps01() { glwidget->setfps( 1); }
-        void fps05() { glwidget->setfps( 5); }
-        void fps10() { glwidget->setfps(10); }
+        void fps01() { fps=1;  glwidget->setfps(fps); }
+        void fps05() { fps=5;  glwidget->setfps(fps); }
+        void fps10() { fps=10; glwidget->setfps(fps); }
+        void fps20() { fps=20; glwidget->setfps(fps); }
+        void fps30() { fps=30; glwidget->setfps(fps); }
 
     private:
 
+        int fps;
+
         GLWidget *glwidget;
 
-        QMenu *file_menu;
-        QAction *new_act;
-        QAction *open_act;
+        void status_message();
 };
 
 #endif
