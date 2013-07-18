@@ -10,8 +10,7 @@ INCLUDEPATH += \
 HEADERS += \
     glwidget.hpp \
     camera.hpp \
-    window.hpp \
-    stream.hpp
+    window.hpp
 
 SOURCES += \
     main.cpp \

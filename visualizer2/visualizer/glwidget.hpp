@@ -7,6 +7,7 @@
 #include <QtOpenGL/QGLWidget>
 #include "camera.hpp"
 #include "ssm-laser.hpp"
+#include "ssm-adapter.hpp"
 
 class GLWidget : public QGLWidget
 {
@@ -50,7 +51,7 @@ class GLWidget : public QGLWidget
         int mouse_prev_y;
 
         // SSM
-        SSMSOKUIKIData3D urg;
+        SSMAdapter<SSMSOKUIKIData3D, ssm::SOKUIKIData3D, ssm::SOKUIKIData3DProperty> urg;
 };
 
 #endif

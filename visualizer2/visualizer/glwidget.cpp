@@ -16,10 +16,9 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
     timer->start(100);
 
     initSSM();
-    /*
-    urg.open("sokuiki_fs", 3);
-    urg.getProperty();
-    */
+    urg.set("sokuiki_fs", 3);
+    urg.open();
+    //urg.getProperty();
 }
 
 GLWidget::~GLWidget()
