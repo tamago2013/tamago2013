@@ -12,12 +12,27 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     resize(800, 600);
     setWindowTitle("visualizer");
 
-    m_glWidget = new GLWidget();
-    setCentralWidget(m_glWidget);
+    glwidget = new GLWidget();
+    setCentralWidget(glwidget);
 
-    m_timer = new QTimer();
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(onTimer()));
-    m_timer->start(50);
+    QMenu *fps_menu;
+    fps_menu = menuBar()->addMenu(tr("&FPS"));
+
+    QAction *fps_action;
+    fps_action = new QAction(tr("1 fps"), this);
+    fps_action->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_1) );
+    connect(fps_action, SIGNAL(triggered()), this, SLOT(fps01()));
+    fps_menu->addAction(fps_action);
+
+    fps_action = new QAction(tr("5 fps"), this);
+    fps_action->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_2) );
+    connect(fps_action, SIGNAL(triggered()), this, SLOT(fps05()));
+    fps_menu->addAction(fps_action);
+
+    fps_action = new QAction(tr("10 fps"), this);
+    fps_action->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_3) );
+    connect(fps_action, SIGNAL(triggered()), this, SLOT(fps10()));
+    fps_menu->addAction(fps_action);
 
     /*
     new_act = new QAction(tr("&New"), this);
@@ -52,6 +67,6 @@ void MainWindow::aaa()
 
 void MainWindow::onTimer()
 {
-    m_glWidget->update();
+    glwidget->update();
 }
 

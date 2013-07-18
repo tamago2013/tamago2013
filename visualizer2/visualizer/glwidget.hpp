@@ -3,6 +3,7 @@
 
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QTimer>
 #include <QtOpenGL/QGLWidget>
 #include "camera.hpp"
 #include "ssm-laser.hpp"
@@ -27,7 +28,14 @@ class GLWidget : public QGLWidget
         void mouseReleaseEvent(QMouseEvent *event);
         void wheelEvent(QWheelEvent *event);
 
+    public:
+
+        void setfps(int fps) { timer->start(1000/fps); }
+
     private:
+
+        // FPS制御
+        QTimer *timer;
 
         // 画面サイズ関連
         int    width;

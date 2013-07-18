@@ -1,7 +1,6 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
-#include <QTimer>
 #include <QMainWindow>
 #include "glwidget.hpp"
 
@@ -23,10 +22,13 @@ class MainWindow : public QMainWindow
         void aaa();
         void bbb(bool){}
 
+        void fps01() { glwidget->setfps( 1); }
+        void fps05() { glwidget->setfps( 5); }
+        void fps10() { glwidget->setfps(10); }
+
     private:
 
-        QTimer *m_timer;
-        GLWidget *m_glWidget;
+        GLWidget *glwidget;
 
         QMenu *file_menu;
         QAction *new_act;

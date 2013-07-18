@@ -11,16 +11,22 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
 {
     printf("GL constructor\n");
 
+    timer = new QTimer();
+    connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+    timer->start(100);
+
     initSSM();
+    /*
     urg.open("sokuiki_fs", 3);
     urg.getProperty();
+    */
 }
 
 GLWidget::~GLWidget()
 {
     printf("GL destructor\n");
 
-    urg.close();
+    //urg.close();
     endSSM();
 }
 
@@ -84,6 +90,7 @@ void GLWidget::paintGL()
     }
     glEnd();
 
+    /*
     urg.readNew();
     qglColor(Qt::red);
     glBegin(GL_POINTS);
@@ -98,7 +105,7 @@ void GLWidget::paintGL()
         glVertex3dv( ref.vec );
     }
     glEnd();
-
+    */
 
     glFlush();
 }
