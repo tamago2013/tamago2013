@@ -130,7 +130,7 @@ int main(int argc, char* argv[], char* env[]) {
 
 
 			// ---> open position ssm
-			if( !ssm_position.openWait( pconf.gl_name.value, pconf.gl_id.value, 0.0, SSM_READ ) ){
+			if( !ssm_position.openWait( pconf.gl_pos_name.value, pconf.gl_pos_id.value, 0.0, SSM_READ ) ){
 				::proc_shutoff();
 				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: fail to open ssm-data \"\x1b[4m%s\x1b[0m\" id %d\n", pconf.gl_name.value, pconf.gl_id.value);
 			}
