@@ -96,8 +96,8 @@ namespace gnd {
 
 				// write configure
 				case 'G': {
-					proc_conf_write( optarg ? optarg : "ls-coordiante-converter.conf", param);
-					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "ls-coordniante-converter.conf");
+					proc_conf_write( optarg ? optarg : "ls-coordinate-converter.conf", param);
+					::fprintf(stdout, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "ls-coordinate-converter.conf");
 				} return RWriteConf;
 				// write configure
 
