@@ -1,10 +1,6 @@
-#include <GL/gl.h>
 #include <GL/glu.h>
 #include "camera.hpp"
 using namespace tkg;
-
-#include <iostream>
-using namespace std;
 
 Camera::Camera()
 {
@@ -20,14 +16,23 @@ void Camera::update()
     gluLookAt(cam.x, cam.y, cam.z,  pos.x, pos.y, pos.z, vec.x, vec.y, vec.z);
 }
 
+void Camera::scale(double d)
+{
+    dist += d;
+}
+
 void Camera::rotate(double x, double y)
 {
     roth += x;
     rotv += y;
 }
 
-void Camera::zoom(double d)
+void Camera::translate(double x, double y)
 {
-    cout << d << endl;
-    dist += d;
+    point3 tmp(y*dist/2, x*dist/2, 0);
+    tmp.rotY(rotv); // not grounding
+    tmp.rotZ(roth);
+    pos = pos + tmp;
+    //if(grounding==1) { camCent.z=0; }
 }
+

@@ -9,8 +9,9 @@ class Camera
 
         Camera();
         void update();
-        void rotate(double x, double y);
-        void zoom  (double d);
+        void scale    (double d);
+        void rotate   (double x, double y);
+        void translate(double x, double y);
 
     private:
 
