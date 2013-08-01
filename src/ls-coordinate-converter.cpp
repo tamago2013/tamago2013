@@ -17,7 +17,7 @@
 #include "gnd-matrix-base.hpp"
 #include "gnd-vector-base.hpp"
 #include "gnd-matrix-coordinate.hpp"
-#include "gnd-time.hpp"
+#include "gnd-timer.hpp"
 #include "gnd-shutoff.hpp"
 #include "gnd-util.h"
 
