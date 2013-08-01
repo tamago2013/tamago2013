@@ -1,31 +1,21 @@
-#include "glwidget.hpp"
 #include <GL/glu.h>
-
-#include <cstdio>
-using namespace std;
-
-#include "geometry.hpp"
+#include "glwidget.hpp"
 using namespace tkg;
 
 GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
 {
     printf("GL constructor\n");
+    setFocusPolicy(Qt::StrongFocus);
 
     timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(100);
-
-    initSSM();
-    urg.set("sokuiki_fs", 3);
-    urg.open();
-    //urg.getProperty();
 }
 
 GLWidget::~GLWidget()
 {
     printf("GL destructor\n");
 
-    //urg.close();
     endSSM();
 }
 
@@ -89,6 +79,9 @@ void GLWidget::paintGL()
     }
     glEnd();
 
+    // 各種データの描画
+    smanager.draw();
+
     /*
     urg.readNew();
     qglColor(Qt::red);
@@ -109,26 +102,58 @@ void GLWidget::paintGL()
     glFlush();
 }
 
+void GLWidget::keyPressEvent(QKeyEvent *event)
+{
+    double dx = 0;
+    double dy = 0;
+    printf("%d\n", event->key());
+    if(event->key() == Qt::Key_Up   ) dy -= 0.1;
+    if(event->key() == Qt::Key_Down ) dy += 0.1;
+    if(event->key() == Qt::Key_Left ) dx -= 0.1;
+    if(event->key() == Qt::Key_Right) dx += 0.1;
+
+
+
+    if(event->modifiers() & Qt::ControlModifier)
+    {
+        camera.scale(dy*10);
+    }
+    else if(event->modifiers() & Qt::ShiftModifier)
+    {
+        camera.rotate(dx,dy);
+    }
+    else // (NoModifier)
+    {
+        camera.translate(dx,dy);
+    }
+}
+
+void GLWidget::keyReleaseEvent(QKeyEvent *event)
+{
+
+}
+
+void GLWidget::wheelEvent(QWheelEvent *event)
+{
+    double dd = (double) event->delta() / 120;
+    camera.scale(-dd);
+}
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     double dx = (double) (mouse_prev_x - event->x()) / width;
     double dy = (double) (mouse_prev_y - event->y()) / height;
 
-    /*
-    if(btn==0)
+    if(mouse_prev_b == Qt::LeftButton)
     {
-        triple tmp(dy*camDist/2, dx*camDist/2, 0);
-        if(grounding==0) tmp.rotY(camRotV);
-        tmp.rotZ(camRotH);
-        camCent = camCent + tmp;
-        if(grounding==1) { camCent.z=0; }
-        pmx=mx; pmy=my;
+        camera.translate(dx,dy);
     }
-    */
+
+    if(mouse_prev_b == Qt::RightButton)
     {
         camera.rotate(dx,dy);
     }
+
 
     mouse_prev_x = event->x();
     mouse_prev_y = event->y();
@@ -138,16 +163,13 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     mouse_prev_x = event->x();
     mouse_prev_y = event->y();
+    mouse_prev_b = event->button();
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     mouse_prev_x = event->x();
     mouse_prev_y = event->y();
+    mouse_prev_b = event->button();
 }
 
-void GLWidget::wheelEvent(QWheelEvent *event)
-{
-    double dd = (double) event->delta() / 120;
-    camera.zoom(-dd);
-}

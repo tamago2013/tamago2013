@@ -1,13 +1,13 @@
 #ifndef GLWIDGET_HPP
 #define GLWIDGET_HPP
 
+#include <QtOpenGL/QGLWidget>
+#include <QTimer>
+#include <QKeyEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
-#include <QTimer>
-#include <QtOpenGL/QGLWidget>
 #include "camera.hpp"
-#include "ssm-laser.hpp"
-#include "ssm-adapter.hpp"
+#include "stream.hpp"
 
 class GLWidget : public QGLWidget
 {
@@ -24,6 +24,8 @@ class GLWidget : public QGLWidget
         void resizeGL(int, int);    //  ウィジットリサイズ時のハンドラ
         void paintGL();             //  描画処理
 
+        void keyPressEvent(QKeyEvent *event);
+        void keyReleaseEvent(QKeyEvent *event);
         void mouseMoveEvent(QMouseEvent *event);
         void mousePressEvent(QMouseEvent *event);
         void mouseReleaseEvent(QMouseEvent *event);
@@ -49,9 +51,10 @@ class GLWidget : public QGLWidget
         // マウス制御クラスに移動予定
         int mouse_prev_x;
         int mouse_prev_y;
+        int mouse_prev_b;
 
-        // SSM
-        SSMAdapter<SSMSOKUIKIData3D, ssm::SOKUIKIData3D, ssm::SOKUIKIData3DProperty> urg;
+        // データの管理暮らす
+        StreamManager smanager;
 };
 
 #endif

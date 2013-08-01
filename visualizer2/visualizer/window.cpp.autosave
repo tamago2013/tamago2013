@@ -7,6 +7,7 @@
 using namespace std;
 
 #include <QLabel>
+#include <QWidget>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -14,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     resize(800, 600);
     setWindowTitle("visualizer");
 
+    QWidget *widget = new QWidget(this);
+    widget->
 
     QLabel *my_label = new QLabel(this);
     my_label->setFrameStyle( QFrame::Panel | QFrame::Sunken );
