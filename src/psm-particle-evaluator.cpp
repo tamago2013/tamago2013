@@ -253,6 +253,7 @@ int main(int argc, char *argv[], char **env) {
 	if( !::is_proc_shutoff() ){ // ---> operation
 		Spur_Odometry prev;				// previous position
 		uint32_t nalloc = 0;
+		double sleep_time;
 		int cnt_eval = 0;
 		int nline_show = 0;
 		uint32_t i;
@@ -274,6 +275,8 @@ int main(int argc, char *argv[], char **env) {
 			timer_clock.begin(CLOCK_REALTIME,
 					pconf.cycle.value / 2.0 < psm::peval::Frame ? pconf.cycle.value / 2.0 : psm::peval::Frame);
 			timer_show.begin(CLOCK_REALTIME, psm::peval::ShowUpdateCycle, -psm::peval::ShowUpdateCycle);
+			if( pconf.sleeping_time.value > 0)
+				timer_sleeping.begin(CLOCK_REALTIME, pconf.sleeping_time.value, -pconf.sleeping_time.value);
 		} // <--- initialize timer
 
 		// ---> operation loop
@@ -364,6 +367,8 @@ int main(int argc, char *argv[], char **env) {
 				nline_show++;	::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", psm::peval::ProcName);
 				nline_show++;	::fprintf(stderr, "\x1b[K       count : %d\n", cnt_eval );
 				nline_show++;	::fprintf(stderr, "\x1b[K       cycle : %lf [s]\n", timer_operate.cycle() );
+				nline_show++;	::fprintf(stderr, "\x1b[K        prev : %lf %lf, %lf\n", prev.x, prev.y, gnd_ang2deg(prev.theta) );
+				nline_show++;	::fprintf(stderr, "\x1b[K       sleep : %lf [s]\n", sleep_time );
 				//				::fprintf(stderr, "     average : %.03lf\n", est_ave );
 				//				::fprintf(stderr, "   max - min : max %.03lf, min %.03lf\n", est_max, est_min );
 				//				::fprintf(stderr, "perform eval : %.03lf\n", perform);
@@ -378,30 +383,24 @@ int main(int argc, char *argv[], char **env) {
 			if( timer_operate.clock() > 0 && ssm_sokuikiraw.readNew()) {
 				// ---> check sleeping mode
 				if( ssm_odometry.isOpen() ) {
-					if( timer_sleeping.clock() < 0 ) {
+					if( timer_sleeping.clock(&sleep_time) <= 0 ) {
 						double sqdist = 0,
 								diff_orient = 0;
 						if( !ssm_odometry.readTime( ssm_sokuikiraw.time) ){
-							timer_sleeping.begin(CLOCK_REALTIME, pconf.sleeping_time.value);
 							continue;
 						}
 						// check moving distance
 						sqdist = gnd_square( ssm_odometry.data.x - prev.x ) + gnd_square( ssm_odometry.data.y - prev.y );
-						if( sqdist < gnd_square( pconf.sleeping_dist.value) ){
-							timer_sleeping.begin(CLOCK_REALTIME, pconf.sleeping_time.value);
-							continue;
-						}
-						// check moving orientation
 						diff_orient = ::fabs( ssm_odometry.data.theta - prev.theta);
-						if( diff_orient < pconf.sleeping_orient.value ){
-							timer_sleeping.begin(CLOCK_REALTIME, pconf.sleeping_time.value);
+						if( sqdist < gnd_square( pconf.sleeping_dist.value) && diff_orient < pconf.sleeping_orient.value){
 							continue;
 						}
 					}
 					else {
-						continue;
 					}
 					// set sleeping timer
+					timer_sleeping.begin(CLOCK_REALTIME, pconf.sleeping_time.value);
+					prev = ssm_odometry.data;
 				} // <--- check sleeping mode
 
 
@@ -487,7 +486,7 @@ int main(int argc, char *argv[], char **env) {
 
 						// normalization
 						if(eval < 0 || cnt <= 0)	eval = 0;
-						else 						eval = eval / (double) (0x8000 * cnt );
+						else 						eval = (eval / (double) (0x8000 * cnt )) * (1.0 - pconf.mfailure.value) + pconf.mfailure.value;
 
 						ssm_evaluation.data.value[i] = eval;
 
