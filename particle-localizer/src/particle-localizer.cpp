@@ -492,6 +492,7 @@ int main(int argc, char* argv[], char *envp[]) {
 					::fprintf(stderr, "  kinematics : %.05lf %.05lf %.05lf\n",
 							ssm_particle.data.pos.prop.wheel_odm.wheel_mean, ssm_particle.data.pos.prop.wheel_odm.wheel_ratio,
 							pconf.gyro.value ? 1 / gnd_rad2deg( ssm_particle.data.pos.prop.wheel_odm.tread_ratio ) : ssm_particle.data.pos.prop.wheel_odm.tread_ratio );
+					::fprintf(stderr, " counter rot : left %s, right %s\n", pconf.k_lwheel_crot.value ? "on" : "off", pconf.k_rwheel_crot.value ?  "on" : "off" );
 					::fprintf(stderr, "    odometry : %s-odometry\n", pconf.gyro.value ? "gyro" : "wheel" );
 
 					::fprintf(stderr, "\n");
@@ -509,13 +510,15 @@ int main(int argc, char* argv[], char *envp[]) {
 
 			// read ssm motor
 			if( mtr.readNext() ){
+				int cnt1 = (pconf.k_lwheel_crot.value ? -1 : 1) * mtr.data.counter1;
+				int cnt2 = (pconf.k_rwheel_crot.value ? -1 : 1) * mtr.data.counter2;
 				// compute pertilecs motion
 				if( !pconf.gyro.value ) {
-					ssm_particle.data.odometry_motion(mtr.data.counter1, mtr.data.counter2);
+					ssm_particle.data.odometry_motion(cnt1, cnt2);
 				}
 				else {
 					if( !ad.readTime(mtr.time) ) continue;
-					ssm_particle.data.gyro_odometry_motion(mtr.data.counter1, mtr.data.counter2, ad.data.ad[0] * pconf.gyro_vol.value / (1 << pconf.gyro_bits.value), mtr.time - prev_time);
+					ssm_particle.data.gyro_odometry_motion(cnt1, cnt2, ad.data.ad[0] * pconf.gyro_vol.value / (1 << pconf.gyro_bits.value), mtr.time - prev_time);
 				}
 
 				ssm_particle.write( mtr.time );
@@ -527,8 +530,8 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 				{ // ---> compute velocity and angular velocity
-					double wr = ( 2.0 * M_PI * ( (double) mtr.data.counter1 ) ) / ( revl_ratio ),
-							wl = ( 2.0 * M_PI * ( (double) mtr.data.counter2 ) ) / ( revl_ratio );
+					double wr = ( 2.0 * M_PI * ( (double) cnt1 ) ) / ( revl_ratio ),
+							wl = ( 2.0 * M_PI * ( (double) cnt2 ) ) / ( revl_ratio );
 					double wr2 = wr * ( 2.0 - ssm_particle.data.pos.prop.wheel_odm.wheel_ratio );
 					double wl2 = wl * ssm_particle.data.pos.prop.wheel_odm.wheel_ratio;
 					// robot translation quantity
@@ -570,9 +573,9 @@ int main(int argc, char* argv[], char *envp[]) {
 				}
 
 				// increment encoder count
-				enc_cnt_pos += abs(mtr.data.counter1) + abs(mtr.data.counter2);
-				enc_cnt_knm += abs(mtr.data.counter1) + abs(mtr.data.counter2);
-				enc_cnt_wknm += abs(mtr.data.counter1) + abs(mtr.data.counter2);
+				enc_cnt_pos += abs(cnt1) + abs(cnt2);
+				enc_cnt_knm += abs(cnt1) + abs(cnt2);
+				enc_cnt_wknm += abs(cnt1) + abs(cnt2);
 			}
 
 			// ---> resampling
