@@ -492,6 +492,7 @@ int main(int argc, char* argv[], char *envp[]) {
 					::fprintf(stderr, "  kinematics : %.05lf %.05lf %.05lf\n",
 							ssm_particle.data.pos.prop.wheel_odm.wheel_mean, ssm_particle.data.pos.prop.wheel_odm.wheel_ratio,
 							pconf.gyro.value ? 1 / gnd_rad2deg( ssm_particle.data.pos.prop.wheel_odm.tread_ratio ) : ssm_particle.data.pos.prop.wheel_odm.tread_ratio );
+					::fprintf(stderr, " counter rot : left %s, right %s\n", pconf.k_lwheel_crot.value ? "on" : "off", pconf.k_rwheel_crot.value ?  "on" : "off" );
 					::fprintf(stderr, "    odometry : %s-odometry\n", pconf.gyro.value ? "gyro" : "wheel" );
 
 					::fprintf(stderr, "\n");
@@ -511,7 +512,9 @@ int main(int argc, char* argv[], char *envp[]) {
 			if( mtr.readNext() ){
 				// compute pertilecs motion
 				if( !pconf.gyro.value ) {
-					ssm_particle.data.odometry_motion(mtr.data.counter1, mtr.data.counter2);
+					int cnt1 = (pconf.k_lwheel_crot.value ? -1 : 1) * mtr.data.counter1;
+					int cnt2 = (pconf.k_rwheel_crot.value ? -1 : 1) * mtr.data.counter2;
+					ssm_particle.data.odometry_motion(cnt1, cnt2);
 				}
 				else {
 					if( !ad.readTime(mtr.time) ) continue;
