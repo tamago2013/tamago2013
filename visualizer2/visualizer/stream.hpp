@@ -12,17 +12,6 @@ class StreamBase
 };
 */
 
-class Stream : SSMApiBase
-{
-    public:
-
-         Stream() { api = NULL; }
-        ~Stream() { delete api; }
-
-
-        SSMApiBase *api;
-};
-
 class StreamManager
 {
     static const int MAX_LASER_STREAM = 4;
