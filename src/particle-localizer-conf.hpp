@@ -34,11 +34,27 @@ namespace Localizer {
 	};
 
 	/*
+	 * @brief right wheel radius parameter
+	 */
+	static const gnd::conf::parameter<bool> ConfIni_KRightWheelCRot = {
+			"right-wheel-counter-rot",
+			false
+	};
+
+	/*
 	 * @brief left wheel radius parameter
 	 */
 	static const gnd::conf::parameter<double> ConfIni_KLeftWheel = {
 			"kinematics-left-wheel-radius",
 			0
+	};
+
+	/*
+	 * @brief left wheel radius parameter
+	 */
+	static const gnd::conf::parameter<bool> ConfIni_KLeftWheelCRot = {
+			"left-wheel-counter-rot",
+			false
 	};
 
 	/*
@@ -258,7 +274,9 @@ namespace Localizer {
 		gnd::conf::parameter_array<char, 512>						kfile;
 
 		gnd::conf::parameter<double>								k_rwheel;
+		gnd::conf::parameter<bool>									k_rwheel_crot;
 		gnd::conf::parameter<double>								k_lwheel;
+		gnd::conf::parameter<bool>									k_lwheel_crot;
 		gnd::conf::parameter<double>								k_tread;
 		gnd::conf::parameter<double>								k_gear;
 		gnd::conf::parameter<double>								k_encoder;
@@ -490,8 +508,10 @@ namespace Localizer {
 		gnd_assert(!conf, -1, "invalid null pointer");
 
 		::memcpy(&conf->kfile,						&ConfIni_KFile,							sizeof(ConfIni_KFile));
-		::memcpy(&conf->k_lwheel	,				&ConfIni_KLeftWheel,					sizeof(ConfIni_KLeftWheel));
+		::memcpy(&conf->k_lwheel,					&ConfIni_KLeftWheel,					sizeof(ConfIni_KLeftWheel));
+		::memcpy(&conf->k_lwheel_crot,				&ConfIni_KLeftWheelCRot,					sizeof(ConfIni_KLeftWheelCRot));
 		::memcpy(&conf->k_rwheel,					&ConfIni_KRightWheel,					sizeof(ConfIni_KRightWheel));
+		::memcpy(&conf->k_rwheel_crot,				&ConfIni_KRightWheelCRot,				sizeof(ConfIni_KRightWheelCRot));
 		::memcpy(&conf->k_tread,					&ConfIni_KTread,						sizeof(ConfIni_KTread));
 		::memcpy(&conf->k_gear,						&ConfIni_KGear,							sizeof(ConfIni_KGear));
 		::memcpy(&conf->k_encoder,					&ConfIni_KEncoder,						sizeof(ConfIni_KEncoder));
@@ -629,7 +649,9 @@ namespace Localizer {
 
 		gnd::conf::get_parameter(src, &dest->kfile);
 		gnd::conf::get_parameter(src, &dest->k_rwheel);
+		gnd::conf::get_parameter(src, &dest->k_rwheel_crot);
 		gnd::conf::get_parameter(src, &dest->k_lwheel);
+		gnd::conf::get_parameter(src, &dest->k_lwheel_crot);
 		gnd::conf::get_parameter(src, &dest->k_tread);
 		gnd::conf::get_parameter(src, &dest->k_gear);
 		gnd::conf::get_parameter(src, &dest->k_encoder);
@@ -677,7 +699,9 @@ namespace Localizer {
 
 		gnd::conf::set_parameter(dest, &src->kfile);
 		gnd::conf::set_parameter(dest, &src->k_rwheel);
+		gnd::conf::set_parameter(dest, &src->k_rwheel_crot);
 		gnd::conf::set_parameter(dest, &src->k_lwheel);
+		gnd::conf::set_parameter(dest, &src->k_lwheel_crot);
 		gnd::conf::set_parameter(dest, &src->k_tread);
 		gnd::conf::set_parameter(dest, &src->k_gear);
 		gnd::conf::set_parameter(dest, &src->k_encoder);
