@@ -1,16 +1,22 @@
 #include <QApplication>
+#include <QTextCodec>
+#include "main.hpp"
 #include "window.hpp"
+
+MainWindow *window;
 
 int main(int argc, char *argv[])
 {
-    // 初期化
+    int retval;
     QApplication app(argc, argv);
-    MainWindow *window = new MainWindow();
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());
 
-    // メインループ
-    int ret = app.exec();
+    window = new MainWindow();
+    window->show();
+    window->init();
 
-    // 終了
-    if(window) delete window;
-    return ret;
+    retval = app.exec();
+
+    delete window;
+    return retval;
 }

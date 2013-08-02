@@ -1,4 +1,0 @@
-#ifndef MSGWIDGET_HPP
-#define MSGWIDGET_HPP
-
-#endif // MSGWIDGET_HPP

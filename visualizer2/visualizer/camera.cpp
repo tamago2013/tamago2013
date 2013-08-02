@@ -4,6 +4,7 @@ using namespace tkg;
 
 Camera::Camera()
 {
+    mode = 2;
     roth = 0.0;
     rotv = 0.0;
     dist = 15.0;
@@ -36,3 +37,13 @@ void Camera::translate(double x, double y)
     //if(grounding==1) { camCent.z=0; }
 }
 
+void Camera::setpos(double x, double y, double t)
+{
+    if(mode>=1) pos = point3(x,y,0);
+    if(mode>=2) roth = t+3.141592;
+}
+
+void Camera::setmode(int m)
+{
+    mode = m;
+}

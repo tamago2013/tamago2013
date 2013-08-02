@@ -1,5 +1,5 @@
-#ifndef GLWIDGET_HPP
-#define GLWIDGET_HPP
+#ifndef WIDGET_GL_HPP
+#define WIDGET_GL_HPP
 
 #include <QtOpenGL/QGLWidget>
 #include <QTimer>
@@ -7,17 +7,27 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include "camera.hpp"
-#include "ssmviewer.hpp"
-#include "mapviewer.hpp"
 
-class GLWidget : public QGLWidget
+class ViewerSSM;
+class ViewerMap;
+
+class WidgetGL : public QGLWidget
 {
     Q_OBJECT
 
     public:
 
-        GLWidget(QWidget *parent = 0);
-        ~GLWidget();
+         WidgetGL();
+        ~WidgetGL();
+
+         bool init();
+         ViewerMap* get_vmap() { return vmap; }
+         ViewerSSM* get_vssm() { return vssm; }
+         Camera*  get_camera() { return camera; }
+
+    public slots:
+
+         void setfps(int fps);
 
     protected:
 
@@ -27,19 +37,19 @@ class GLWidget : public QGLWidget
 
         void keyPressEvent(QKeyEvent *event);
         void keyReleaseEvent(QKeyEvent *event);
+        void wheelEvent(QWheelEvent *event);
         void mouseMoveEvent(QMouseEvent *event);
         void mousePressEvent(QMouseEvent *event);
         void mouseReleaseEvent(QMouseEvent *event);
-        void wheelEvent(QWheelEvent *event);
-
-    public:
-
-        void setfps(int fps) { timer->start(1000/fps); }
 
     private:
 
         // FPS制御
         QTimer *timer;
+
+        // データの管理クラス
+        ViewerMap *vmap;
+        ViewerSSM *vssm;
 
         // 画面サイズ関連
         int    width;
@@ -47,16 +57,13 @@ class GLWidget : public QGLWidget
         double aspect;
 
         // カメラ
-        Camera camera;
+        Camera *camera;
 
         // マウス制御クラスに移動予定
         int mouse_prev_x;
         int mouse_prev_y;
         int mouse_prev_b;
 
-        // データの管理暮らす
-        MapViewer mapviewer;
-        SSMViewer ssmviewer;
 };
 
-#endif
+#endif // WIDGET_GL_HPP

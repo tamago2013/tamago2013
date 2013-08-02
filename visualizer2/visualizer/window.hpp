@@ -2,7 +2,9 @@
 #define MAINWINDOW_HPP
 
 #include <QMainWindow>
-#include "glwidget.hpp"
+#include <QMenu>
+#include "widget-gl.hpp"
+#include "widget-msg.hpp"
 
 class MainWindow : public QMainWindow
 {
@@ -10,27 +12,31 @@ class MainWindow : public QMainWindow
 
     public:
 
-        MainWindow(QWidget *parent = 0);
+         MainWindow();
         ~MainWindow();
-        
-    protected slots:
 
+         bool init();
+
+         void test_add_menu_SSM(QObject* obj, const char* str);
 
     private slots:
 
-        void fps01() { fps=1;  glwidget->setfps(fps); }
-        void fps05() { fps=5;  glwidget->setfps(fps); }
-        void fps10() { fps=10; glwidget->setfps(fps); }
-        void fps20() { fps=20; glwidget->setfps(fps); }
-        void fps30() { fps=30; glwidget->setfps(fps); }
+        void fps01() { fps=1;  viewer->setfps(fps); }
+        void fps05() { fps=5;  viewer->setfps(fps); }
+        void fps10() { fps=10; viewer->setfps(fps); }
+        void fps20() { fps=20; viewer->setfps(fps); }
+        void fps30() { fps=30; viewer->setfps(fps); }
+
+    public:
+
+        WidgetGL  *viewer;
+        WidgetMSG *status;
+        WidgetMSG *message;
 
     private:
 
         int fps;
-
-        GLWidget *glwidget;
-
-        void status_message();
+        QMenu *ssm_menu;
 };
 
 #endif

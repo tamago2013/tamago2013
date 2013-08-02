@@ -8,23 +8,24 @@ INCLUDEPATH += \
     ../../ssmtype
 
 HEADERS += \
-    glwidget.hpp \
     camera.hpp \
     window.hpp \
     config.hpp \
     controller.hpp \
     main.hpp \
-    msgwidget.hpp \
-    mapviewer.hpp \
-    ssmviewer.hpp
+    widget-gl.hpp \
+    widget-msg.hpp \
+    viewer-ssm.hpp \
+    viewer-map.hpp
 
 SOURCES += \
     main.cpp \
-    glwidget.cpp \
     window.cpp \
     camera.cpp \
-    mapviewer.cpp \
-    ssmviewer.cpp
+    widget-gl.cpp \
+    viewer-map.cpp \
+    viewer-ssm.cpp \
+    widget-msg.cpp
 
 LIBS += \
     -lGLU \
