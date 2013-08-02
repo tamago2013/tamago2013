@@ -7,6 +7,8 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
     printf("GL constructor\n");
     setFocusPolicy(Qt::StrongFocus);
 
+    mapviewer.read_cmap("/home/ena8781/roboken/map/tc2013");
+
     timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(100);
@@ -48,7 +50,7 @@ void GLWidget::paintGL()
     // カメラの設定
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, aspect, 0.1, 100);
+    gluPerspective(45.0, aspect, 0.1, 500);
     camera.update();
 
     // モデルの描画
@@ -80,24 +82,8 @@ void GLWidget::paintGL()
     glEnd();
 
     // 各種データの描画
-    smanager.draw();
-
-    /*
-    urg.readNew();
-    qglColor(Qt::red);
-    glBegin(GL_POINTS);
-    for(int i=0; i<urg.property.numPoints; i++)
-    {
-        if(urg.data[i].isError()) continue;
-
-        //triple ref(sdata[i].data[j].reflect.vec);
-        //ref.rotZ(glpos.data.theta);
-        //setColor(color, map_a*(map_b+ref.z));
-        point3 ref(urg.data[i].reflect.vec);
-        glVertex3dv( ref.vec );
-    }
-    glEnd();
-    */
+    mapviewer.draw();
+    ssmviewer.draw();
 
     glFlush();
 }

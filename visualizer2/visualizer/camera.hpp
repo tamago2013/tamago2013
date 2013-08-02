@@ -1,7 +1,7 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
-#include "geometry.hpp"
+#include "tkg-geometry.hpp"
 
 class Camera
 {

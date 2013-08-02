@@ -11,17 +11,20 @@ HEADERS += \
     glwidget.hpp \
     camera.hpp \
     window.hpp \
-    stream.hpp \
     config.hpp \
     controller.hpp \
-    main.hpp
+    main.hpp \
+    msgwidget.hpp \
+    mapviewer.hpp \
+    ssmviewer.hpp
 
 SOURCES += \
     main.cpp \
     glwidget.cpp \
     window.cpp \
     camera.cpp \
-    stream.cpp
+    mapviewer.cpp \
+    ssmviewer.cpp
 
 LIBS += \
     -lGLU \

@@ -30,7 +30,7 @@ void Camera::rotate(double x, double y)
 void Camera::translate(double x, double y)
 {
     point3 tmp(y*dist/2, x*dist/2, 0);
-    tmp.rotY(rotv); // not grounding
+    //tmp.rotY(rotv); // not grounding
     tmp.rotZ(roth);
     pos = pos + tmp;
     //if(grounding==1) { camCent.z=0; }

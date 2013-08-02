@@ -7,7 +7,8 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include "camera.hpp"
-#include "stream.hpp"
+#include "ssmviewer.hpp"
+#include "mapviewer.hpp"
 
 class GLWidget : public QGLWidget
 {
@@ -20,9 +21,9 @@ class GLWidget : public QGLWidget
 
     protected:
 
-        void initializeGL();        //  OpenGL 初期化
-        void resizeGL(int, int);    //  ウィジットリサイズ時のハンドラ
-        void paintGL();             //  描画処理
+        void initializeGL();
+        void paintGL();
+        void resizeGL(int, int);
 
         void keyPressEvent(QKeyEvent *event);
         void keyReleaseEvent(QKeyEvent *event);
@@ -54,7 +55,8 @@ class GLWidget : public QGLWidget
         int mouse_prev_b;
 
         // データの管理暮らす
-        StreamManager smanager;
+        MapViewer mapviewer;
+        SSMViewer ssmviewer;
 };
 
 #endif

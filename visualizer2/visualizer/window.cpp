@@ -7,6 +7,7 @@
 using namespace std;
 
 #include <QLabel>
+#include <QLayout>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -15,17 +16,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setWindowTitle("visualizer");
 
 
-    QLabel *my_label = new QLabel(this);
-    my_label->setFrameStyle( QFrame::Panel | QFrame::Sunken );
-    my_label->setText("Hello World.\nIt's fun to creat a program.");
-    my_label->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-    my_label->setGeometry(50,10,300,50);
-
-
     glwidget = new GLWidget(this);
     setCentralWidget(glwidget);
 
-    //setCentralWidget(my_label);
+    /*
+    QLabel *my_label = new QLabel(this);
+    my_label->setFrameStyle( QFrame::Panel | QFrame::Sunken );
+    my_label->setText("Hello World.\nIt's fun to creat a program.");
+    my_label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    my_label->setFixedWidth(200);
+
+    QHBoxLayout* topLayout = new QHBoxLayout(this);
+    layout->addWidget(glwidget);
+    layout->addWidget(my_label);
+
+    QWidget *window = new QWidget();
+    window->setLayout(topLayout);
+    setCentralWidget(window);
+    */
 
     QMenu *fps_menu;
     fps_menu = menuBar()->addMenu(tr("&FPS"));
