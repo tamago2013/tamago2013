@@ -17,12 +17,68 @@
 namespace Localizer {
 
 	/*
-	 * @brief configure parameter for number of particles
+	 * @brief kinematics parameter file
 	 */
 	static const gnd::conf::parameter_array<char, 512> ConfIni_KFile = {
-			"k-param",
+			"kinematics-file",
 			"",
 			"kinematics parameter file path"
+	};
+
+	/*
+	 * @brief right wheel radius parameter
+	 */
+	static const gnd::conf::parameter<double> ConfIni_KRightWheel = {
+			"kinematics-right-wheel-radius",
+			0
+	};
+
+	/*
+	 * @brief right wheel radius parameter
+	 */
+	static const gnd::conf::parameter<bool> ConfIni_KRightWheelCRot = {
+			"right-wheel-counter-rot",
+			false
+	};
+
+	/*
+	 * @brief left wheel radius parameter
+	 */
+	static const gnd::conf::parameter<double> ConfIni_KLeftWheel = {
+			"kinematics-left-wheel-radius",
+			0
+	};
+
+	/*
+	 * @brief left wheel radius parameter
+	 */
+	static const gnd::conf::parameter<bool> ConfIni_KLeftWheelCRot = {
+			"left-wheel-counter-rot",
+			false
+	};
+
+	/*
+	 * @brief tread radius parameter
+	 */
+	static const gnd::conf::parameter<double> ConfIni_KTread = {
+			"kinematics-tread",
+			0
+	};
+
+	/*
+	 * @brief tread radius parameter
+	 */
+	static const gnd::conf::parameter<double> ConfIni_KGear = {
+			"kinematics-gear",
+			0,
+	};
+
+	/*
+	 * @brief tread radius parameter
+	 */
+	static const gnd::conf::parameter<double> ConfIni_KEncoder = {
+			"kinematics-encoder-count-rev",
+			0,
 	};
 
 	/*
@@ -37,8 +93,8 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter remain resampling ratio
 	 */
-	static const gnd::conf::parameter<double> ConfIni_RemainRatio = {
-			"remain-ratio",
+	static const gnd::conf::parameter<double> ConfIni_ResampleRate_Remain = {
+			"resample-rate-remain",
 			0.35,
 			"re-sampling parameter"
 	};
@@ -46,8 +102,8 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter random error resampling ratio
 	 */
-	static const gnd::conf::parameter<double> ConfIni_RandomErrorRatio = {
-			"random-error-rate",
+	static const gnd::conf::parameter<double> ConfIni_ResampleRate_RandomError = {
+			"resample-rate-random-error",
 			0.1,
 			"re-sampling parameter "
 	};
@@ -55,64 +111,64 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter random error covariance
 	 */
-	static const gnd::conf::parameter_array< double , PARTICLE_POS_DIM > ConfIni_RandomErrorCovar = {
-			"random-error-covar",
+	static const gnd::conf::parameter_array< double , PARTICLE_POS_DIM > ConfIni_RandomError = {
+			"random-error",
 			{ gnd_mm2dist(100), gnd_mm2dist(100), gnd_deg2ang(5) }
 	};
 
 	/*
 	 * @brief configure parameter random error covariance
 	 */
-	static const gnd::conf::parameter_array< double, PARTICLE_POS_DIM > ConfIni_RandomErrorStaticCovar = {
-			"random-error-static-covar",
-			{ gnd_mm2dist(2.5), gnd_mm2dist(2.5), gnd_deg2ang(0.5) }
+	static const gnd::conf::parameter_array< double, PARTICLE_POS_DIM > ConfIni_RandomErrorOffset = {
+			"random-error-offset",
+			{ gnd_mm2dist(10), gnd_mm2dist(10), gnd_deg2ang(0.5) }
 	};
 
 	/*
 	 * @brief configure parameter kinematics ratio
 	 */
-	static const gnd::conf::parameter<double> ConfIni_KinematicsRatio = {
-			"kinematics-ratio",
+	static const gnd::conf::parameter<double> ConfIni_ResampleRate_SysError = {
+			"resample-rate-systematic-error",
 			0.3
 	};
 
 	/*
 	 * @brief configure parameter kinematics covariance
 	 */
-	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_KinematicsCovar = {
-			"kinematics-covar",
+	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_SysError = {
+			"systematic-error",
 			{ 1.0e-5, 1.0e-5, 1.0e-5 }
 	};
 
 	/*
 	 * @brief configure parameter wide kinematics sampling
 	 */
-	static const gnd::conf::parameter<double> ConfIni_WideKinematicsRatio = {
-			"wide-kinematics-ratio",
+	static const gnd::conf::parameter<double> ConfIni_ResampleRate_SysError2 = {
+			"resample-rate-sys-error2",
 			0.2
 	};
 
 	/*
 	 * @brief configure parameter wide kinematics covariance
 	 */
-	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_WideKinematicsCovar = {
-			"wide-kinematics-covar",
+	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_SysError2 = {
+			"systematic-error2",
 			{ 1.0e-3, 1.0e-3, 1.0e-3 }
 	};
 
 	/*
 	 * @brief configure parameter reset kinematics sampling ratio
 	 */
-	static const gnd::conf::parameter<double> ConfIni_ResetKinematicsRatio = {
-			"reset-kinematics-ratio",
+	static const gnd::conf::parameter<double> ConfIni_ResampleRate_ResetSysError = {
+			"resample-rate-reset-sys-error",
 			0.05
 	};
 
 	/*
 	 * @brief configure parameter reset kinematics sampling covariance
 	 */
-	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_ResetKinematicsCovar = {
-			"reset-kinematics-covar",
+	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_ResetSysError = {
+			"reset-systematic-error",
 			{ 1.0e-5, 1.0e-5, 1.0e-5 }
 	};
 
@@ -130,16 +186,16 @@ namespace Localizer {
 	/*
 	 * @brief configure parameter random error covariance
 	 */
-	static const gnd::conf::parameter_array< double, PARTICLE_POS_DIM > ConfIni_PositionCovar_Ini = {
-			"ini-pos-covar",
-			{ gnd_m2dist(1.0), gnd_m2dist(1.0), gnd_m2dist(1.0) }
+	static const gnd::conf::parameter_array< double, PARTICLE_POS_DIM > ConfIni_Initial_PositionError = {
+			"initial-pos-error",
+			{ gnd_m2dist(1.0), gnd_m2dist(1.0), gnd_deg2ang(1.0) }
 	};
 
 	/*
 	 * @brief configure parameter random error covariance
 	 */
-	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_KinematicsCovar_Ini = {
-			"ini-kinematics-covar",
+	static const gnd::conf::parameter_array< double, PARTICLE_PROP_DIM > ConfIni_Initial_SysErrorParam = {
+			"initial-systematic-error",
 			{ 1.0e-5, 1.0e-5, 1.0e-5 }
 	};
 
@@ -217,6 +273,14 @@ namespace Localizer {
 		 */
 		gnd::conf::parameter_array<char, 512>						kfile;
 
+		gnd::conf::parameter<double>								k_rwheel;
+		gnd::conf::parameter<bool>									k_rwheel_crot;
+		gnd::conf::parameter<double>								k_lwheel;
+		gnd::conf::parameter<bool>									k_lwheel_crot;
+		gnd::conf::parameter<double>								k_tread;
+		gnd::conf::parameter<double>								k_gear;
+		gnd::conf::parameter<double>								k_encoder;
+
 		/*
 		 * @brief number of particles
 		 */
@@ -225,87 +289,88 @@ namespace Localizer {
 		/*
 		 * @brief initial position
 		 */
-		gnd::conf::parameter_array<double, PARTICLE_POS_DIM>		pos_ini;
+		gnd::conf::parameter_array<double, PARTICLE_POS_DIM>		pos_err_ini;
+
 		/*
 		 * @brief initial position variance
 		 */
-		gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM>		pos_ini_covar;
+		gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM>		poserr_cover_ini;
 
 		/*
 		 * @brief initial kinematics covariance
 		 */
-		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		knm_ini;
+		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		sys_err_ini;
 		/*
 		 * @brief initial kinematics variance parameter
 		 */
-		gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM>	knm_ini_covar;
+		gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM>	syserr_cover_ini;
 
 		/*
 		 * @brief remain re-sampling rate
 		 */
-		gnd::conf::parameter<double>								remain;
+		gnd::conf::parameter<double>								resmp_rate_remain;
 		/*
 		 * @brief position error re-sampling rate
 		 */
-		gnd::conf::parameter<double>								poserr;
+		gnd::conf::parameter<double>								resmp_rate_randerr;
 
 		/*
 		 * @brief position error variance parameter
 		 */
-		gnd::conf::parameter_array<double, PARTICLE_POS_DIM>		poserr_covar_conf;
+		gnd::conf::parameter_array<double, PARTICLE_POS_DIM>		randerr_conf;
 		/*
 		 * @brief position error covariance
 		 */
-		gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM>		poserr_covar;
+		gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM>		randerr_covar;
 
 		/*
 		 * @brief position error static variance parameter
 		 */
-		gnd::conf::parameter_array<double, PARTICLE_POS_DIM>		poserr_covar_static_conf;
+		gnd::conf::parameter_array<double, PARTICLE_POS_DIM>		randerr_offset_conf;
 		/*
 		 * @brief position error static covariance
 		 */
-		gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM>		poserr_covar_static;
+		gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM>		randerr_covar_offset;
 
 		/*
 		 * @brief kinematic re-sampling rate
 		 */
-		gnd::conf::parameter<double>								knm;
+		gnd::conf::parameter<double>								resmp_rate_syserr;
 
 		/*
 		 * @brief kinematic variance parameter
 		 */
-		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		knm_covar_conf;
+		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		syserr_conf;
 		/*
 		 * @brief kinematic covariance
 		 */
-		gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM>	knm_covar;
+		gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM>	syserr_cover;
 
 		/*
 		 * @brief wide kinematic variance parameter
 		 */
-		gnd::conf::parameter<double>								wknm;
+		gnd::conf::parameter<double>								resmp_rate_syserr2;
 		/*
 		 * @brief wide kinematic variance parameter
 		 */
-		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		wknm_covar_conf;
+		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		syserr2_conf;
 		/*
 		 * @brief wide kinematic covariance
 		 */
-		gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM>	wknm_covar;
+		gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM>	syserr2_covar;
 
 		/*
 		 * @brief reset kinematic variance parameter
 		 */
-		gnd::conf::parameter<double>								reset_knm;
+		gnd::conf::parameter<double>								resmp_rate_resetsyserr;
 		/*
 		 * @brief reset kinematic variance parameter
 		 */
-		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		reset_knm_covar_conf;
+		gnd::conf::parameter_array<double, PARTICLE_PROP_DIM>		reset_syserr_conf;
 		/*
 		 * @brief reset kinematic variance parameter
 		 */
-		gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM>	reset_knm_covar;
+		gnd::matrix::fixed<PARTICLE_PROP_DIM, PARTICLE_PROP_DIM>	reset_syserr_covar;
 
 		/*
 		 * @brief number of random sampling particle
@@ -385,21 +450,21 @@ namespace Localizer {
 		{
 			double sum = 0;
 
-			sum += conf->remain.value;
-			sum += conf->poserr.value;
-			sum += conf->knm.value;
-			sum += conf->wknm.value;
-			sum += conf->reset_knm.value;
+			sum += conf->resmp_rate_remain.value;
+			sum += conf->resmp_rate_randerr.value;
+			sum += conf->resmp_rate_syserr.value;
+			sum += conf->resmp_rate_syserr2.value;
+			sum += conf->resmp_rate_resetsyserr.value;
 
 			if( sum <= 0 ){
 				return -1;
 			}
 			else {
-				conf->remain.value /= sum;
-				conf->poserr.value /= sum;
-				conf->knm.value /= sum;
-				conf->wknm.value /= sum;
-				conf->reset_knm.value /= sum;
+				conf->resmp_rate_remain.value /= sum;
+				conf->resmp_rate_randerr.value /= sum;
+				conf->resmp_rate_syserr.value /= sum;
+				conf->resmp_rate_syserr2.value /= sum;
+				conf->resmp_rate_resetsyserr.value /= sum;
 			}
 		}
 		return 0;
@@ -412,24 +477,24 @@ namespace Localizer {
 	{
 		gnd_assert(!conf, -1, "invalid null pointer");
 
-		gnd::matrix::set_unit( &conf->pos_ini_covar );
+		gnd::matrix::set_unit( &conf->poserr_cover_ini );
 		for(size_t i = 0; i < 2; i++)
-			gnd::matrix::set(&conf->pos_ini_covar, i, i, gnd_square( conf->pos_ini.value[i] ) );
-		gnd::matrix::set(&conf->pos_ini_covar, 2, 2, gnd_square( gnd_deg2ang( conf->pos_ini.value[2] ) ) );
+			gnd::matrix::set(&conf->poserr_cover_ini, i, i, gnd_square( conf->pos_err_ini.value[i] ) );
+		gnd::matrix::set(&conf->poserr_cover_ini, 2, 2, gnd_square( gnd_deg2ang( conf->pos_err_ini.value[2] ) ) );
 
-		gnd::matrix::set_unit( &conf->knm_ini_covar );
+		gnd::matrix::set_unit( &conf->syserr_cover_ini );
 		for(size_t i = 0; i < 3; i++)
-			gnd::matrix::set(&conf->knm_ini_covar, i, i, gnd_square( conf->knm_ini.value[i] ) );
+			gnd::matrix::set(&conf->syserr_cover_ini, i, i, gnd_square( conf->sys_err_ini.value[i] ) );
 
-		gnd::matrix::set_unit( &conf->poserr_covar );
+		gnd::matrix::set_unit( &conf->randerr_covar );
 		for(size_t i = 0; i < 2; i++)
-			gnd::matrix::set(&conf->poserr_covar, i, i, gnd_square( conf->poserr_covar_conf.value[i] ) );
-		gnd::matrix::set(&conf->poserr_covar, 2, 2, gnd_square( gnd_deg2ang( conf->poserr_covar_conf.value[2] ) ) );
+			gnd::matrix::set(&conf->randerr_covar, i, i, gnd_square( conf->randerr_conf.value[i] ) );
+		gnd::matrix::set(&conf->randerr_covar, 2, 2, gnd_square( gnd_deg2ang( conf->randerr_conf.value[2] ) ) );
 
-		gnd::matrix::set_unit( &conf->poserr_covar_static );
+		gnd::matrix::set_unit( &conf->randerr_covar_offset );
 		for(size_t i = 0; i < 2; i++)
-			gnd::matrix::set(&conf->poserr_covar_static, i, i, gnd_square( conf->poserr_covar_static_conf.value[i] ) );
-		gnd::matrix::set(&conf->poserr_covar_static, 2, 2, gnd_square( gnd_deg2ang( conf->poserr_covar_static_conf.value[2] ) ) );
+			gnd::matrix::set(&conf->randerr_covar_offset, i, i, gnd_square( conf->randerr_offset_conf.value[i] ) );
+		gnd::matrix::set(&conf->randerr_covar_offset, 2, 2, gnd_square( gnd_deg2ang( conf->randerr_offset_conf.value[2] ) ) );
 
 		return 0;
 	}
@@ -442,23 +507,30 @@ namespace Localizer {
 	int proc_conf_initialize(proc_configuration *conf){
 		gnd_assert(!conf, -1, "invalid null pointer");
 
-		::memcpy(&conf->kfile,						&ConfIni_KFile,						sizeof(ConfIni_KFile));
+		::memcpy(&conf->kfile,						&ConfIni_KFile,							sizeof(ConfIni_KFile));
+		::memcpy(&conf->k_lwheel,					&ConfIni_KLeftWheel,					sizeof(ConfIni_KLeftWheel));
+		::memcpy(&conf->k_lwheel_crot,				&ConfIni_KLeftWheelCRot,					sizeof(ConfIni_KLeftWheelCRot));
+		::memcpy(&conf->k_rwheel,					&ConfIni_KRightWheel,					sizeof(ConfIni_KRightWheel));
+		::memcpy(&conf->k_rwheel_crot,				&ConfIni_KRightWheelCRot,				sizeof(ConfIni_KRightWheelCRot));
+		::memcpy(&conf->k_tread,					&ConfIni_KTread,						sizeof(ConfIni_KTread));
+		::memcpy(&conf->k_gear,						&ConfIni_KGear,							sizeof(ConfIni_KGear));
+		::memcpy(&conf->k_encoder,					&ConfIni_KEncoder,						sizeof(ConfIni_KEncoder));
 
-		::memcpy(&conf->particles,					&ConfIni_Particles,					sizeof(ConfIni_Particles));
-		::memcpy(&conf->remain,						&ConfIni_RemainRatio,				sizeof(ConfIni_RemainRatio));
+		::memcpy(&conf->particles,					&ConfIni_Particles,						sizeof(ConfIni_Particles));
+		::memcpy(&conf->resmp_rate_remain,			&ConfIni_ResampleRate_Remain,			sizeof(ConfIni_ResampleRate_Remain));
 
-		::memcpy(&conf->pos_ini,					&ConfIni_PositionCovar_Ini,			sizeof(ConfIni_PositionCovar_Ini));
-		::memcpy(&conf->knm_ini,					&ConfIni_KinematicsCovar_Ini,		sizeof(ConfIni_KinematicsCovar_Ini));
+		::memcpy(&conf->pos_err_ini,				&ConfIni_Initial_PositionError,			sizeof(ConfIni_Initial_PositionError));
+		::memcpy(&conf->sys_err_ini,				&ConfIni_Initial_SysErrorParam,			sizeof(ConfIni_Initial_SysErrorParam));
 
-		::memcpy(&conf->poserr_covar_conf,			&ConfIni_RandomErrorCovar,			sizeof(ConfIni_RandomErrorCovar));
-		::memcpy(&conf->poserr,						&ConfIni_RandomErrorRatio,			sizeof(ConfIni_RandomErrorRatio));
-		::memcpy(&conf->poserr_covar_static_conf,	&ConfIni_RandomErrorStaticCovar,	sizeof(ConfIni_RandomErrorStaticCovar));
-		::memcpy(&conf->knm,						&ConfIni_KinematicsRatio,			sizeof(ConfIni_KinematicsRatio));
-		::memcpy(&conf->knm_covar_conf,				&ConfIni_KinematicsCovar,			sizeof(ConfIni_KinematicsCovar));
-		::memcpy(&conf->wknm,						&ConfIni_WideKinematicsRatio,		sizeof(ConfIni_WideKinematicsRatio));
-		::memcpy(&conf->wknm_covar_conf,			&ConfIni_WideKinematicsCovar,		sizeof(ConfIni_WideKinematicsCovar));
-		::memcpy(&conf->reset_knm,					&ConfIni_ResetKinematicsRatio,		sizeof(ConfIni_ResetKinematicsRatio));
-		::memcpy(&conf->reset_knm_covar_conf,		&ConfIni_ResetKinematicsCovar,		sizeof(ConfIni_ResetKinematicsCovar));
+		::memcpy(&conf->randerr_conf,				&ConfIni_RandomError,					sizeof(ConfIni_RandomError));
+		::memcpy(&conf->resmp_rate_randerr,			&ConfIni_ResampleRate_RandomError,		sizeof(ConfIni_ResampleRate_RandomError));
+		::memcpy(&conf->randerr_offset_conf,		&ConfIni_RandomErrorOffset,				sizeof(ConfIni_RandomErrorOffset));
+		::memcpy(&conf->resmp_rate_syserr,			&ConfIni_ResampleRate_SysError,			sizeof(ConfIni_ResampleRate_SysError));
+		::memcpy(&conf->syserr_conf,				&ConfIni_SysError,						sizeof(ConfIni_SysError));
+		::memcpy(&conf->resmp_rate_syserr2,			&ConfIni_ResampleRate_SysError2,		sizeof(ConfIni_ResampleRate_SysError2));
+		::memcpy(&conf->syserr2_conf,				&ConfIni_SysError2,						sizeof(ConfIni_SysError2));
+		::memcpy(&conf->resmp_rate_resetsyserr,		&ConfIni_ResampleRate_ResetSysError,	sizeof(ConfIni_ResampleRate_ResetSysError));
+		::memcpy(&conf->reset_syserr_conf,			&ConfIni_ResetSysError,					sizeof(ConfIni_ResetSysError));
 
 		::memcpy(&conf->random_sampling,			&ConfIni_RandomSampling,			sizeof(ConfIni_RandomSampling));
 
@@ -483,85 +555,85 @@ namespace Localizer {
 		double wheel_ratio = wl / wheel_mean;
 		double tread_ratio = tread / wheel_mean;
 
-		{ // ---> initlaize kinematics error
-			gnd::matrix::set_unit(&conf->knm_ini_covar);
+		{ // ---> initlaize systematic error
+			gnd::matrix::set_unit(&conf->syserr_cover_ini);
 			if( !conf->gyro.value ){
-				gnd::matrix::set(&conf->knm_ini_covar, 0, 0,
-						gnd_square( conf->knm_ini.value[0] * gnd_square(wheel_mean) )  );
-				gnd::matrix::set(&conf->knm_ini_covar, 1, 1,
-						gnd_square( conf->knm_ini.value[1] * gnd_square(wheel_ratio) )  );
-				gnd::matrix::set(&conf->knm_ini_covar, 2, 2,
-						gnd_square( conf->knm_ini.value[2] * gnd_square(tread_ratio) )  );
+				gnd::matrix::set(&conf->syserr_cover_ini, 0, 0,
+						gnd_square( conf->sys_err_ini.value[0] * gnd_square(wheel_mean) )  );
+				gnd::matrix::set(&conf->syserr_cover_ini, 1, 1,
+						gnd_square( conf->sys_err_ini.value[1] * gnd_square(wheel_ratio) )  );
+				gnd::matrix::set(&conf->syserr_cover_ini, 2, 2,
+						gnd_square( conf->sys_err_ini.value[2] * gnd_square(tread_ratio) )  );
 			}
 			else {
-				gnd::matrix::set(&conf->knm_ini_covar, 0, 0,
-						gnd_square( conf->knm_ini.value[0] * gnd_square(wheel_mean) )  );
-				gnd::matrix::set(&conf->knm_ini_covar, 1, 1,
-						gnd_square( conf->knm_ini.value[1] * conf->gyro_bias.value )  );
-				gnd::matrix::set(&conf->knm_ini_covar, 2, 2,
-						gnd_square( conf->knm_ini.value[2] * conf->gyro_sf.value )  );
+				gnd::matrix::set(&conf->syserr_cover_ini, 0, 0,
+						gnd_square( conf->sys_err_ini.value[0] * gnd_square(wheel_mean) )  );
+				gnd::matrix::set(&conf->syserr_cover_ini, 1, 1,
+						gnd_square( conf->sys_err_ini.value[1] * conf->gyro_bias.value )  );
+				gnd::matrix::set(&conf->syserr_cover_ini, 2, 2,
+						gnd_square( conf->sys_err_ini.value[2] * conf->gyro_sf.value )  );
 			}
-		} // <--- initlaize kinematics error
+		} // <--- initlaize systematic error
 
-		{ // ---> kinematic sampling
-			gnd::matrix::set_unit(&conf->knm_covar);
+		{ // ---> resampleing for systematic error
+			gnd::matrix::set_unit(&conf->syserr_cover);
 			if( !conf->gyro.value ){
-				gnd::matrix::set(&conf->knm_covar, 0, 0,
-						gnd_square( conf->knm_covar_conf.value[0] * gnd_square(wheel_mean) )  );
-				gnd::matrix::set(&conf->knm_covar, 1, 1,
-						gnd_square( conf->knm_covar_conf.value[1] * gnd_square(wheel_ratio) )  );
-				gnd::matrix::set(&conf->knm_covar, 2, 2,
-						gnd_square( conf->knm_covar_conf.value[2] * gnd_square(tread_ratio) )  );
+				gnd::matrix::set(&conf->syserr_cover, 0, 0,
+						gnd_square( conf->syserr_conf.value[0] * gnd_square(wheel_mean) )  );
+				gnd::matrix::set(&conf->syserr_cover, 1, 1,
+						gnd_square( conf->syserr_conf.value[1] * gnd_square(wheel_ratio) )  );
+				gnd::matrix::set(&conf->syserr_cover, 2, 2,
+						gnd_square( conf->syserr_conf.value[2] * gnd_square(tread_ratio) )  );
 			}
 			else {
-				gnd::matrix::set(&conf->knm_covar, 0, 0,
-						gnd_square( conf->knm_covar_conf.value[0] * gnd_square(wheel_mean) )  );
-				gnd::matrix::set(&conf->knm_covar, 1, 1,
-						gnd_square( conf->knm_covar_conf.value[1] * conf->gyro_bias.value )  );
-				gnd::matrix::set(&conf->knm_covar, 2, 2,
-						gnd_square( conf->knm_covar_conf.value[2] * conf->gyro_sf.value )  );
+				gnd::matrix::set(&conf->syserr_cover, 0, 0,
+						gnd_square( conf->syserr_conf.value[0] * gnd_square(wheel_mean) )  );
+				gnd::matrix::set(&conf->syserr_cover, 1, 1,
+						gnd_square( conf->syserr_conf.value[1] * conf->gyro_bias.value )  );
+				gnd::matrix::set(&conf->syserr_cover, 2, 2,
+						gnd_square( conf->syserr_conf.value[2] * conf->gyro_sf.value )  );
 			}
-		} // <--- kinematic sampling
+		} // <--- resampleing for systematic error
 
-		{ // ---> kinematic wide sampling
-			gnd::matrix::set_unit(&conf->wknm_covar);
+		{ // ---> resampleing for systematic error
+			gnd::matrix::set_unit(&conf->syserr2_covar);
 			if( !conf->gyro.value ){
-				gnd::matrix::set(&conf->wknm_covar, 0, 0,
-						gnd_square( conf->wknm_covar_conf.value[0] * gnd_square(wheel_mean) )  );
-				gnd::matrix::set(&conf->wknm_covar, 1, 1,
-						gnd_square( conf->wknm_covar_conf.value[1] * gnd_square(wheel_ratio) )  );
-				gnd::matrix::set(&conf->wknm_covar, 2, 2,
-						gnd_square( conf->wknm_covar_conf.value[2] * gnd_square(tread_ratio) )  );
+				gnd::matrix::set(&conf->syserr2_covar, 0, 0,
+						gnd_square( conf->syserr2_conf.value[0] * gnd_square(wheel_mean) )  );
+				gnd::matrix::set(&conf->syserr2_covar, 1, 1,
+						gnd_square( conf->syserr2_conf.value[1] * gnd_square(wheel_ratio) )  );
+				gnd::matrix::set(&conf->syserr2_covar, 2, 2,
+						gnd_square( conf->syserr2_conf.value[2] * gnd_square(tread_ratio) )  );
 			}
 			else {
-				gnd::matrix::set(&conf->wknm_covar, 0, 0,
-						gnd_square( conf->wknm_covar_conf.value[0] * gnd_square(wheel_mean) )  );
-				gnd::matrix::set(&conf->wknm_covar, 1, 1,
-						gnd_square( conf->wknm_covar_conf.value[1] * conf->gyro_bias.value )  );
-				gnd::matrix::set(&conf->wknm_covar, 2, 2,
-						gnd_square( conf->wknm_covar_conf.value[2] * conf->gyro_sf.value )  );
+				gnd::matrix::set(&conf->syserr2_covar, 0, 0,
+						gnd_square( conf->syserr2_conf.value[0] * gnd_square(wheel_mean) )  );
+				gnd::matrix::set(&conf->syserr2_covar, 1, 1,
+						gnd_square( conf->syserr2_conf.value[1] * conf->gyro_bias.value )  );
+				gnd::matrix::set(&conf->syserr2_covar, 2, 2,
+						gnd_square( conf->syserr2_conf.value[2] * conf->gyro_sf.value )  );
 			}
-		} // <--- kinematic wide sampling
+		} // <--- resampleing for systematic error
 
-		{ // ---> reset kinematic sampling
-			gnd::matrix::set_unit(&conf->reset_knm_covar);
+		{ // ---> resampleing for systematic error reset
+			gnd::matrix::set_unit(&conf->reset_syserr_covar);
 			if( !conf->gyro.value ){
-				gnd::matrix::set(&conf->reset_knm_covar, 0, 0,
-						gnd_square( conf->reset_knm_covar_conf.value[0] * gnd_square(wheel_mean) )  );
-				gnd::matrix::set(&conf->reset_knm_covar, 1, 1,
-						gnd_square( conf->reset_knm_covar_conf.value[1] * gnd_square(wheel_ratio) )  );
-				gnd::matrix::set(&conf->reset_knm_covar, 2, 2,
-						gnd_square( conf->reset_knm_covar_conf.value[2] * gnd_square(tread_ratio) )  );
+				gnd::matrix::set(&conf->reset_syserr_covar, 0, 0,
+						gnd_square( conf->reset_syserr_conf.value[0] * gnd_square(wheel_mean) )  );
+				gnd::matrix::set(&conf->reset_syserr_covar, 1, 1,
+						gnd_square( conf->reset_syserr_conf.value[1] * gnd_square(wheel_ratio) )  );
+				gnd::matrix::set(&conf->reset_syserr_covar, 2, 2,
+						gnd_square( conf->reset_syserr_conf.value[2] * gnd_square(tread_ratio) )  );
 			}
 			else {
-				gnd::matrix::set(&conf->reset_knm_covar, 0, 0,
-						gnd_square( conf->reset_knm_covar_conf.value[0] * gnd_square(wheel_mean) )  );
-				gnd::matrix::set(&conf->reset_knm_covar, 1, 1,
-						gnd_square( conf->reset_knm_covar_conf.value[1] * conf->gyro_bias.value )  );
-				gnd::matrix::set(&conf->reset_knm_covar, 2, 2,
-						gnd_square( conf->reset_knm_covar_conf.value[2] * conf->gyro_sf.value )  );
+				gnd::matrix::set(&conf->reset_syserr_covar, 0, 0,
+						gnd_square( conf->reset_syserr_conf.value[0] * gnd_square(wheel_mean) )  );
+				gnd::matrix::set(&conf->reset_syserr_covar, 1, 1,
+						gnd_square( conf->reset_syserr_conf.value[1] * conf->gyro_bias.value )  );
+				gnd::matrix::set(&conf->reset_syserr_covar, 2, 2,
+						gnd_square( conf->reset_syserr_conf.value[2] * conf->gyro_sf.value )  );
 			}
-		} // <--- reset kinematic sampling
+		} // <--- resampleing for systematic error reset
 		return 0;
 	}
 
@@ -576,18 +648,34 @@ namespace Localizer {
 		gnd_assert(!dest, -1, "invalid null pointer");
 
 		gnd::conf::get_parameter(src, &dest->kfile);
+		gnd::conf::get_parameter(src, &dest->k_rwheel);
+		gnd::conf::get_parameter(src, &dest->k_rwheel_crot);
+		gnd::conf::get_parameter(src, &dest->k_lwheel);
+		gnd::conf::get_parameter(src, &dest->k_lwheel_crot);
+		gnd::conf::get_parameter(src, &dest->k_tread);
+		gnd::conf::get_parameter(src, &dest->k_gear);
+		gnd::conf::get_parameter(src, &dest->k_encoder);
 		gnd::conf::get_parameter(src, &dest->particles);
-		gnd::conf::get_parameter(src, &dest->pos_ini);
-		gnd::conf::get_parameter(src, &dest->knm_ini);
-		gnd::conf::get_parameter(src, &dest->remain);
-		gnd::conf::get_parameter(src, &dest->poserr);
-		gnd::conf::get_parameter(src, &dest->poserr_covar_conf);
-		gnd::conf::get_parameter(src, &dest->knm);
-		gnd::conf::get_parameter(src, &dest->knm_covar_conf);
-		gnd::conf::get_parameter(src, &dest->wknm);
-		gnd::conf::get_parameter(src, &dest->wknm_covar_conf);
-		gnd::conf::get_parameter(src, &dest->reset_knm);
-		gnd::conf::get_parameter(src, &dest->reset_knm_covar_conf);
+		if( gnd::conf::get_parameter(src, &dest->pos_err_ini ) >= 3) {
+			dest->pos_err_ini.value[2] = gnd_deg2ang(dest->pos_err_ini.value[2]);
+		}
+		gnd::conf::get_parameter(src, &dest->sys_err_ini);
+		gnd::conf::get_parameter(src, &dest->resmp_rate_remain);
+		gnd::conf::get_parameter(src, &dest->resmp_rate_randerr);
+
+		if( gnd::conf::get_parameter(src, &dest->randerr_conf ) >= 3) {
+			dest->randerr_conf.value[2] = gnd_deg2ang(dest->randerr_conf.value[2]);
+		}
+
+		gnd::conf::get_parameter(src, &dest->randerr_offset_conf );
+
+		gnd::conf::get_parameter(src, &dest->syserr_conf );
+		gnd::conf::get_parameter(src, &dest->resmp_rate_syserr2);
+		gnd::conf::get_parameter(src, &dest->syserr2_conf );
+
+		gnd::conf::get_parameter(src, &dest->resmp_rate_resetsyserr);
+		gnd::conf::get_parameter(src, &dest->reset_syserr_conf );
+
 		gnd::conf::get_parameter(src, &dest->random_sampling);
 		gnd::conf::get_parameter(src, &dest->pws_id);
 		gnd::conf::get_parameter(src, &dest->ssm_id);
@@ -610,18 +698,38 @@ namespace Localizer {
 		gnd_assert(!dest, -1, "invalid null pointer");
 
 		gnd::conf::set_parameter(dest, &src->kfile);
+		gnd::conf::set_parameter(dest, &src->k_rwheel);
+		gnd::conf::set_parameter(dest, &src->k_rwheel_crot);
+		gnd::conf::set_parameter(dest, &src->k_lwheel);
+		gnd::conf::set_parameter(dest, &src->k_lwheel_crot);
+		gnd::conf::set_parameter(dest, &src->k_tread);
+		gnd::conf::set_parameter(dest, &src->k_gear);
+		gnd::conf::set_parameter(dest, &src->k_encoder);
 		gnd::conf::set_parameter(dest, &src->particles);
-		gnd::conf::set_parameter(dest, &src->pos_ini);
-		gnd::conf::set_parameter(dest, &src->knm_ini);
-		gnd::conf::set_parameter(dest, &src->remain);
-		gnd::conf::set_parameter(dest, &src->poserr);
-		gnd::conf::set_parameter(dest, &src->poserr_covar_conf);
-		gnd::conf::set_parameter(dest, &src->knm);
-		gnd::conf::set_parameter(dest, &src->knm_covar_conf);
-		gnd::conf::set_parameter(dest, &src->wknm);
-		gnd::conf::set_parameter(dest, &src->wknm_covar_conf);
-		gnd::conf::set_parameter(dest, &src->reset_knm);
-		gnd::conf::set_parameter(dest, &src->reset_knm_covar_conf);
+		src->pos_err_ini.value[2] = gnd_ang2deg(src->pos_err_ini.value[2]);
+		gnd::conf::set_parameter(dest, &src->pos_err_ini);
+		src->pos_err_ini.value[2] = gnd_deg2ang(src->pos_err_ini.value[2]);
+		gnd::conf::set_parameter(dest, &src->sys_err_ini);
+		gnd::conf::set_parameter(dest, &src->resmp_rate_remain);
+		gnd::conf::set_parameter(dest, &src->resmp_rate_randerr);
+
+		src->randerr_conf.value[2] = gnd_ang2deg(src->randerr_conf.value[2]);
+		gnd::conf::set_parameter(dest, &src->randerr_conf);
+		src->randerr_conf.value[2] = gnd_deg2ang(src->randerr_conf.value[2]);
+
+		src->randerr_offset_conf.value[2] = gnd_ang2deg(src->randerr_offset_conf.value[2]);
+		gnd::conf::set_parameter(dest, &src->randerr_offset_conf);
+		src->randerr_offset_conf.value[2] = gnd_deg2ang(src->randerr_offset_conf.value[2]);
+
+
+		gnd::conf::set_parameter(dest, &src->resmp_rate_syserr);
+		gnd::conf::set_parameter(dest, &src->syserr_conf);
+
+		gnd::conf::set_parameter(dest, &src->resmp_rate_syserr2);
+		gnd::conf::set_parameter(dest, &src->syserr2_conf);
+
+		gnd::conf::set_parameter(dest, &src->resmp_rate_resetsyserr);
+		gnd::conf::set_parameter(dest, &src->reset_syserr_conf);
 		gnd::conf::set_parameter(dest, &src->random_sampling);
 		gnd::conf::set_parameter(dest, &src->pws_id);
 		gnd::conf::set_parameter(dest, &src->ssm_id);

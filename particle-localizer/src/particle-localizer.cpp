@@ -44,8 +44,8 @@ int main(int argc, char* argv[], char *envp[]) {
 	SSMParticleEvaluation ssm_estimation;
 
 	gnd::cui_reader gcui;
-	Localizer::proc_configuration param;
-	Localizer::proc_option opt(&param);
+	Localizer::proc_configuration pconf;
+	Localizer::proc_option opt(&pconf);
 	gnd::matrix::fixed<1, PARTICLE_DIM> myu_ini;
 
 	double wheel_mean = 0,
@@ -87,7 +87,7 @@ int main(int argc, char* argv[], char *envp[]) {
 		::fprintf(stderr, " %d. create ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, SNAME_PARTICLES );
 		::fprintf(stderr, " %d. create ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, SNAME_PARTICLES_EVALUATION );
 		::fprintf(stderr, " %d. open ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, SNAME_PWS_MOTOR );
-		if( param.gyro.value)
+		if( pconf.gyro.value)
 			::fprintf(stderr, " %d. open ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, SNAME_YPSPUR_AD );
 		::fprintf(stderr, "\n");
 
@@ -97,18 +97,18 @@ int main(int argc, char* argv[], char *envp[]) {
 			::fprintf(stderr, " => get initial kinematics parameter\n");
 
 			{ // ---> set-zero kinematics property
-				odm_prop.radius_l = 0;
-				odm_prop.radius_r = 0;
-				odm_prop.tread = 0;
-				gear = 0;
-				count_rev = 0;
+				odm_prop.radius_l = pconf.k_lwheel.value;
+				odm_prop.radius_r = pconf.k_rwheel.value;
+				odm_prop.tread = pconf.k_tread.value;
+				gear = pconf.k_gear.value;
+				count_rev = pconf.k_encoder.value;
 			} // <--- set-zero kinematics property
 
 			// read kinematics configure file
-			if(*param.kfile.value != '\0'){
-				::fprintf(stderr, "    load kinematics parameter file \"\x1b[4m%s\x1b[0m\"\n", param.kfile.value);
+			if(*pconf.kfile.value != '\0'){
+				::fprintf(stderr, "    load kinematics parameter file \"\x1b[4m%s\x1b[0m\"\n", pconf.kfile.value);
 				read_kinematics_config(&odm_prop.radius_r, &odm_prop.radius_l, &odm_prop.tread,
-						&gear, &count_rev, param.kfile.value);
+						&gear, &count_rev, pconf.kfile.value);
 			}
 
 			// check kinematic parameter
@@ -157,7 +157,7 @@ int main(int argc, char* argv[], char *envp[]) {
 				wheel_ratio = odm_prop.radius_l / wheel_mean;
 				tread_ratio = odm_prop.tread / wheel_mean;
 
-				if( !param.gyro.value ){
+				if( !pconf.gyro.value ){
 
 					myu_ini[0][PARTICLE_WHEEL_MEAN] = wheel_mean;
 					myu_ini[0][PARTICLE_WHEEL_RATIO] = wheel_ratio;
@@ -165,8 +165,8 @@ int main(int argc, char* argv[], char *envp[]) {
 				}
 				else {
 					myu_ini[0][PARTICLE_WHEEL_MEAN] = wheel_mean;
-					myu_ini[0][PARTICLE_GYRO_BIAS] = param.gyro_bias.value;
-					myu_ini[0][PARTICLE_GYRO_SF] = param.gyro_sf.value;
+					myu_ini[0][PARTICLE_GYRO_BIAS] = pconf.gyro_bias.value;
+					myu_ini[0][PARTICLE_GYRO_SF] = pconf.gyro_sf.value;
 				}
 				ssm_particle.data.init_kinematics(count_rev, gear);
 
@@ -180,8 +180,8 @@ int main(int argc, char* argv[], char *envp[]) {
 		 // ---> get configure
 		if( !is_proc_shutoff() ){
 
-			Localizer::proc_conf_sampling_ratio_normalize(&param);
-			Localizer::proc_conf_set_kinematics_parameter(&param, wheel_mean, wheel_ratio, tread_ratio);
+			Localizer::proc_conf_sampling_ratio_normalize(&pconf);
+			Localizer::proc_conf_set_kinematics_parameter(&pconf, wheel_mean, wheel_ratio, tread_ratio);
 
 			{ // ---> initlaize min cov
 				gnd::matrix::fixed<3, 3> min_cov;
@@ -192,11 +192,11 @@ int main(int argc, char* argv[], char *envp[]) {
 				gnd::matrix::set(&min_cov, 1, 1, 1.0e-20);
 				gnd::matrix::set(&min_cov, 2, 2, 1.0e-20);
 
-				gnd::matrix::add(&param.poserr_covar,			&min_cov,		&param.poserr_covar);
-				gnd::matrix::add(&param.knm_covar,				&min_cov,		&param.knm_covar);
-				gnd::matrix::add(&param.poserr_covar_static,	&min_cov,		&param.poserr_covar_static);
-				gnd::matrix::add(&param.knm_covar,				&min_cov,		&param.knm_covar);
-				gnd::matrix::add(&param.wknm_covar, 			&min_cov, 		&param.wknm_covar);
+				gnd::matrix::add(&pconf.randerr_covar,			&min_cov,		&pconf.randerr_covar);
+				gnd::matrix::add(&pconf.syserr_cover,				&min_cov,		&pconf.syserr_cover);
+				gnd::matrix::add(&pconf.randerr_covar_offset,	&min_cov,		&pconf.randerr_covar_offset);
+				gnd::matrix::add(&pconf.syserr_cover,				&min_cov,		&pconf.syserr_cover);
+				gnd::matrix::add(&pconf.syserr2_covar, 			&min_cov, 		&pconf.syserr2_covar);
 
 			} // <--- initlaize min cov
 		} // <--- get configure
@@ -204,8 +204,8 @@ int main(int argc, char* argv[], char *envp[]) {
 
 		// ---> set initialize position covariance matrix
 		if( !is_proc_shutoff() ){
-			ssm_estimation.property.n = param.particles.value + param.random_sampling.value;
-			ssm_estimation.data.n = param.particles.value + param.random_sampling.value;
+			ssm_estimation.property.n = pconf.particles.value + pconf.random_sampling.value;
+			ssm_estimation.data.n = pconf.particles.value + pconf.random_sampling.value;
 			ssm_estimation.data.value = new double [ssm_estimation.data.n];
 		} // <--- set initialize position covariance matrix
 
@@ -244,10 +244,10 @@ int main(int argc, char* argv[], char *envp[]) {
 
 			// create initialize position
 			ssm_particle.data.init_particle(&myu_ini,
-					&param.pos_ini_covar, &param.knm_ini_covar, param.particles.value + param.random_sampling.value);
+					&pconf.poserr_cover_ini, &pconf.syserr_cover_ini, pconf.particles.value + pconf.random_sampling.value);
 
 			// set property
-			ssm_particle.property.n = param.particles.value + param.random_sampling.value;
+			ssm_particle.property.n = pconf.particles.value + pconf.random_sampling.value;
 
 			// set position
 			ssm_position.data.x = ssm_particle.data.pos.odo.x;
@@ -332,7 +332,7 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 		// ---> ssm ad open
-		if( param.gyro.value && !is_proc_shutoff() ){
+		if( pconf.gyro.value && !is_proc_shutoff() ){
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => open ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_YPSPUR_AD );
 			if( !is_proc_shutoff() && !ad.openWait( SNAME_YPSPUR_AD, 0, 0.0) ){
@@ -370,11 +370,11 @@ int main(int argc, char* argv[], char *envp[]) {
 		static const double eval_alpha_slow = 1.0 / 180;
 		double eval_ave_fast = 0;
 		static const double eval_alpha_fast = 1.0 / 60;
-		uint32_t nparticle_remain = param.particles.value * param.remain.value;
-		uint32_t nparticle_pos = param.particles.value * param.poserr.value;
-		uint32_t nparticle_knm = param.particles.value * param.knm.value;
-		uint32_t nparticle_wknm = param.particles.value * param.wknm.value;
-		uint32_t nparticle_knm_reset = param.particles.value - nparticle_remain - nparticle_pos
+		uint32_t nparticle_remain = pconf.particles.value * pconf.resmp_rate_remain.value;
+		uint32_t nparticle_pos = pconf.particles.value * pconf.resmp_rate_randerr.value;
+		uint32_t nparticle_knm = pconf.particles.value * pconf.resmp_rate_syserr.value;
+		uint32_t nparticle_wknm = pconf.particles.value * pconf.resmp_rate_syserr2.value;
+		uint32_t nparticle_knm_reset = pconf.particles.value - nparticle_remain - nparticle_pos
 				- nparticle_knm - nparticle_wknm;
 
 		int enc_cnt_pos = 0;
@@ -491,8 +491,9 @@ int main(int argc, char* argv[], char *envp[]) {
 					::fprintf(stderr, "    velocity : v %.02lf  w %.03lf\n", ssm_position.data.v, gnd_ang2deg(ssm_position.data.w) );
 					::fprintf(stderr, "  kinematics : %.05lf %.05lf %.05lf\n",
 							ssm_particle.data.pos.prop.wheel_odm.wheel_mean, ssm_particle.data.pos.prop.wheel_odm.wheel_ratio,
-							param.gyro.value ? 1 / gnd_rad2deg( ssm_particle.data.pos.prop.wheel_odm.tread_ratio ) : ssm_particle.data.pos.prop.wheel_odm.tread_ratio );
-					::fprintf(stderr, "    odometry : %s-odometry\n", param.gyro.value ? "gyro" : "wheel" );
+							pconf.gyro.value ? 1 / gnd_rad2deg( ssm_particle.data.pos.prop.wheel_odm.tread_ratio ) : ssm_particle.data.pos.prop.wheel_odm.tread_ratio );
+					::fprintf(stderr, " counter rot : left %s, right %s\n", pconf.k_lwheel_crot.value ? "on" : "off", pconf.k_rwheel_crot.value ?  "on" : "off" );
+					::fprintf(stderr, "    odometry : %s-odometry\n", pconf.gyro.value ? "gyro" : "wheel" );
 
 					::fprintf(stderr, "\n");
 					::fprintf(stderr, " Push \x1b[1mEnter\x1b[0m to change CUI Mode\n");
@@ -509,13 +510,15 @@ int main(int argc, char* argv[], char *envp[]) {
 
 			// read ssm motor
 			if( mtr.readNext() ){
+				int cnt1 = (pconf.k_lwheel_crot.value ? -1 : 1) * mtr.data.counter1;
+				int cnt2 = (pconf.k_rwheel_crot.value ? -1 : 1) * mtr.data.counter2;
 				// compute pertilecs motion
-				if( !param.gyro.value ) {
-					ssm_particle.data.odometry_motion(mtr.data.counter1, mtr.data.counter2);
+				if( !pconf.gyro.value ) {
+					ssm_particle.data.odometry_motion(cnt1, cnt2);
 				}
 				else {
 					if( !ad.readTime(mtr.time) ) continue;
-					ssm_particle.data.gyro_odometry_motion(mtr.data.counter1, mtr.data.counter2, ad.data.ad[0] * param.gyro_vol.value / (1 << param.gyro_bits.value), mtr.time - prev_time);
+					ssm_particle.data.gyro_odometry_motion(cnt1, cnt2, ad.data.ad[0] * pconf.gyro_vol.value / (1 << pconf.gyro_bits.value), mtr.time - prev_time);
 				}
 
 				ssm_particle.write( mtr.time );
@@ -527,8 +530,8 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 				{ // ---> compute velocity and angular velocity
-					double wr = ( 2.0 * M_PI * ( (double) mtr.data.counter1 ) ) / ( revl_ratio ),
-							wl = ( 2.0 * M_PI * ( (double) mtr.data.counter2 ) ) / ( revl_ratio );
+					double wr = ( 2.0 * M_PI * ( (double) cnt1 ) ) / ( revl_ratio ),
+							wl = ( 2.0 * M_PI * ( (double) cnt2 ) ) / ( revl_ratio );
 					double wr2 = wr * ( 2.0 - ssm_particle.data.pos.prop.wheel_odm.wheel_ratio );
 					double wl2 = wl * ssm_particle.data.pos.prop.wheel_odm.wheel_ratio;
 					// robot translation quantity
@@ -537,11 +540,11 @@ int main(int argc, char* argv[], char *envp[]) {
 					double rq = ( wr2 - wl2 ) / ssm_particle.data.pos.prop.wheel_odm.tread_ratio ;
 
 					ssm_position.data.v = tq / (mtr.time - prev_time);
-					if( !param.gyro.value ){
+					if( !pconf.gyro.value ){
 						ssm_position.data.w = rq / (mtr.time - prev_time);
 					}
 					else {
-						ssm_position.data.w = -(ad.data.ad[0] * param.gyro_vol.value / (1 << param.gyro_bits.value)
+						ssm_position.data.w = -(ad.data.ad[0] * pconf.gyro_vol.value / (1 << pconf.gyro_bits.value)
 								- ssm_particle.data.pos.prop.gyro_odm.bias) * ssm_particle.data.pos.prop.gyro_odm.sf;
 					}
 				} // <--- compute velocity and angular velocity
@@ -570,9 +573,9 @@ int main(int argc, char* argv[], char *envp[]) {
 				}
 
 				// increment encoder count
-				enc_cnt_pos += abs(mtr.data.counter1) + abs(mtr.data.counter2);
-				enc_cnt_knm += abs(mtr.data.counter1) + abs(mtr.data.counter2);
-				enc_cnt_wknm += abs(mtr.data.counter1) + abs(mtr.data.counter2);
+				enc_cnt_pos += abs(cnt1) + abs(cnt2);
+				enc_cnt_knm += abs(cnt1) + abs(cnt2);
+				enc_cnt_wknm += abs(cnt1) + abs(cnt2);
 			}
 
 			// ---> resampling
@@ -630,23 +633,23 @@ int main(int argc, char* argv[], char *envp[]) {
 					{ // ---> resampling position change particle
 						gnd::matrix::fixed<PARTICLE_POS_DIM, PARTICLE_POS_DIM> covp;
 
-						gnd::matrix::scalar_prod( &param.poserr_covar, enc_cnt_pos / (count_rev * gear), &covp);
-						gnd::matrix::add( &covp, &param.poserr_covar_static, &covp );
+						gnd::matrix::scalar_prod( &pconf.randerr_covar, enc_cnt_pos / (count_rev * gear), &covp);
+						gnd::matrix::add( &covp, &pconf.randerr_covar_offset, &covp );
 						ssm_particle.data.resampling_position(&covp, rnoise);
 						enc_cnt_pos = 0;
 					} // <--- resampling position change particle
 
 					// resampling kinematics change particle (global)
 					if(wknm > 0){
-						ssm_particle.data.resampling_kinematics(&param.wknm_covar, wknm);
+						ssm_particle.data.resampling_kinematics(&pconf.syserr2_covar, wknm);
 					}
 					// resampling kinematics change particle (local)
 					if(lknm > 0){
-						ssm_particle.data.resampling_kinematics(&param.knm_covar, lknm);
+						ssm_particle.data.resampling_kinematics(&pconf.syserr_cover, lknm);
 					}
 					// reset kinematics change particle
 					if(knm_reset > 0){
-						ssm_particle.data.resampling_kinematics_reset(&myu_ini, &param.reset_knm_covar , knm_reset);
+						ssm_particle.data.resampling_kinematics_reset(&myu_ini, &pconf.reset_syserr_covar , knm_reset);
 					}
 
 					// save resampling time

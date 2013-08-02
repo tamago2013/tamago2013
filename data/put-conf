@@ -71,6 +71,15 @@ else
 	echo "missing upward laser scanner coordinate converter conf"	
 fi
 
+CONF=${DIR}/vertical-ls-coordinate-converter.conf
+PUTDIR=${REPOS_TOP}/ls-coordinate-converter/
+if [ -f ${CONF} ]	; then
+	echo "apply ${CONF} to ${PUTDIR}"
+	cp ${CONF} ${PUTDIR}
+else
+	echo "missing vertical laser scanner coordinate converter conf"	
+fi
+
 
 
 # particle-localizer

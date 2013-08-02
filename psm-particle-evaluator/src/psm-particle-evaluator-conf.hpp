@@ -94,7 +94,7 @@ namespace psm {
 
 		// odometry-raw-id
 		static const gnd::conf::parameter<int> ConfIni_OdometryID = {
-				"odometry-sokuiki-id",
+				"odometry-ssm-id",
 				-1,		// map file directory
 				"odometry data ssm id (for sleeping mode)"
 		};
@@ -164,6 +164,12 @@ namespace psm {
 				"input data culling parameter"
 		};
 
+		// matching failure
+		static const gnd::conf::parameter<double> ConfIni_MatchingFailureRate = {
+				"matching-failure-rate",
+				0.05,
+		};
+
 	} // <--- namespace psm
 } // <--- namespace peval
 
@@ -197,6 +203,7 @@ namespace psm {
 			gnd::conf::parameter<double>			sleeping_orient;	///< criteria of rest mode (movement orient angle threshold)
 
 			gnd::conf::parameter<double>			cull;				///< reflection point cull
+			gnd::conf::parameter<double>			mfailure;			///< reflection point cull
 
 			proc_configuration();
 		};
@@ -244,6 +251,7 @@ namespace psm {
 			::memcpy(&conf->sleeping_orient,	&ConfIni_SleepingOrient,	sizeof(ConfIni_SleepingOrient));
 
 			::memcpy(&conf->cull,				&ConfIni_Cull,				sizeof(ConfIni_Cull));
+			::memcpy(&conf->mfailure,			&ConfIni_MatchingFailureRate,				sizeof(ConfIni_MatchingFailureRate));
 			return 0;
 		}
 
@@ -263,12 +271,15 @@ namespace psm {
 			gnd::conf::get_parameter(src, &dest->sokuikiraw_id);
 			gnd::conf::get_parameter(src, &dest->particle_name);
 			gnd::conf::get_parameter(src, &dest->particle_id);
+			gnd::conf::get_parameter(src, &dest->odometry_name);
+			gnd::conf::get_parameter(src, &dest->odometry_id);
 			gnd::conf::get_parameter(src, &dest->eval_name);
 			gnd::conf::get_parameter(src, &dest->eval_id);
 			gnd::conf::get_parameter(src, &dest->cycle);
 			gnd::conf::get_parameter(src, &dest->sleeping_time);
 			gnd::conf::get_parameter(src, &dest->sleeping_dist);
 			gnd::conf::get_parameter(src, &dest->cull);
+			gnd::conf::get_parameter(src, &dest->mfailure);
 			if( gnd::conf::get_parameter(src, &dest->sleeping_orient) >= 0 ){
 				// convert unit of angle(deg2rad)
 				dest->sleeping_orient.value = gnd_deg2rad(dest->sleeping_orient.value);
@@ -309,6 +320,7 @@ namespace psm {
 			src->sleeping_orient.value = gnd_deg2rad(src->sleeping_orient.value);
 
 			gnd::conf::set_parameter(dest, &src->cull);
+			gnd::conf::set_parameter(dest, &src->mfailure);
 			return 0;
 		}
 
