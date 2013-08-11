@@ -1,38 +1,38 @@
 /*
- * psm-particle-evaluator-opt.hpp
+ * opsm-particle-evaluator-opt.hpp
  *
  *  Created on: 2012/03/14
  *      Author: tyamada
  */
 
-#ifndef PSM_PARTICLE_EVALUATOR_OPT_HPP_
-#define PSM_PARTICLE_EVALUATOR_OPT_HPP_
+#ifndef OPSM_PARTICLE_EVALUATOR_OPT_HPP_
+#define OPSM_PARTICLE_EVALUATOR_OPT_HPP_
 
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
 
-#include "psm-particle-evaluator.hpp"
+#include "opsm-particle-evaluator.hpp"
 
-#include "psm-particle-evaluator-conf.hpp"
+#include "opsm-particle-evaluator-conf.hpp"
 
 // type declaration
-// ---> namespace psm
-namespace psm {
+// ---> namespace opsm
+namespace opsm {
 	// ---> namespace Particle Evaluator
 	namespace peval {
 		class proc_option_reader;
 
 	} // <--- namespace Particle Evaluator
- }// <--- namespace psm
+ }// <--- namespace opsm
 
 
 // constant declaration
-// ---> namespace psm
-namespace psm {
+// ---> namespace opsm
+namespace opsm {
 	// ---> namespace Particle Evaluator
 	namespace peval {
-		const char ConfFile[] = "psm-particle-evaluator.conf";
+		const char ConfFile[] = "opsm-particle-evaluator.conf";
 		const char ShortOpt[] = "hg:G::m:r:s:p:e:c:";
 		const struct option LongOpt[] = {
 				{"help", 							no_argument,		0,	'h'},
@@ -48,13 +48,13 @@ namespace psm {
 		};
 
 	} // <--- namespace Particle Evaluator
- }// <--- namespace psm
+ }// <--- namespace opsm
 
 
 
 // type definition
-// ---> namespace psm
-namespace psm {
+// ---> namespace opsm
+namespace opsm {
 	// ---> namespace Particle Evaluator
 	namespace peval {
 		class proc_option_reader {
@@ -143,7 +143,7 @@ namespace psm {
 				// write configure
 				case 'G': {
 					proc_conf_write( optarg ? optarg : ConfFile, conf);
-					::fprintf(stderr, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "psm-particle-evaluator.conf");
+					::fprintf(stderr, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "opsm-particle-evaluator.conf");
 				} return RetWriteConf;
 
 				// entry map file
@@ -239,7 +239,7 @@ namespace psm {
 
 
 	} // <--- namespace Particle Evaluator
- }// <--- namespace psm
+ }// <--- namespace opsm
 
 
 
