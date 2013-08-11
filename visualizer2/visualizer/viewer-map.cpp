@@ -1,9 +1,9 @@
 #include <GL/glu.h>
 #include "viewer-map.hpp"
 #include "gnd-bmp.hpp"
-#include "gnd-psm.hpp"
+#include "gnd-opsm.hpp"
 using namespace gnd;
-using namespace gnd::psm;
+using namespace gnd::opsm;
 
 #include <algorithm>
 using namespace std;
@@ -26,7 +26,7 @@ bool ViewerMap::read_cmap(const char *dirname)
     if( dirname == NULL) return false;
     if(*dirname == '\0') return false;
 
-    map_t  psm_map;
+    map_t  opsm_map;
     cmap_t cnt_map;
     bmp8_t bmp_map;
 
@@ -37,12 +37,12 @@ bool ViewerMap::read_cmap(const char *dirname)
     }
 
     // convert?
-    if( gnd::psm::build_map(&psm_map, &cnt_map, gnd_mm2dist(1)) < 0 ) {
+    if( gnd::opsm::build_map(&opsm_map, &cnt_map, gnd_mm2dist(1)) < 0 ) {
         //::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build map\n");
         return false;
     }
 
-    if( build_bmp(&bmp_map, &psm_map, gnd_m2dist(1.0/10)) < 0 )
+    if( build_bmp(&bmp_map, &opsm_map, gnd_m2dist(1.0/10)) < 0 )
     {
         //::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to convert bmp\n");
         return false;
