@@ -7,7 +7,7 @@
 
 
 #include <stdio.h>
-#include "gnd-psm.hpp"
+#include "gnd-opsm.hpp"
 #include "gnd-config-file.hpp"
 
 #ifdef __linux__
@@ -40,8 +40,8 @@
 
 
 int main( int argc, char* argv[] ) {
-	gnd::psm::cmap_t				cmap;					// counting map
-	gnd::psm::map_t					map;					// scan matching map
+	gnd::opsm::cmap_t				cmap;					// counting map
+	gnd::opsm::map_t					map;					// scan matching map
 	gnd::vector::fixed_column<3>	pos;					// matching result
 	FILE							*fp;					// matched scan data (input)
 
@@ -62,7 +62,7 @@ int main( int argc, char* argv[] ) {
 	};
 
 	{ // ---> debug mode
-		gnd::psm::debug_set_log_level(2);
+		gnd::opsm::debug_set_log_level(2);
 		gnd::gridmap::debug_set_log_level(2);
 	} // <--- debug mode
 
@@ -106,14 +106,14 @@ int main( int argc, char* argv[] ) {
 		}
 
 		// read counting map
-		ret = gnd::psm::read_counting_map( &cmap, cmap_dir.value );
+		ret = gnd::opsm::read_counting_map( &cmap, cmap_dir.value );
 		if( ret < 0 ) {
 			::fprintf(stderr, " error: fail to read counting map form directory \"%s\"\n", cmap_dir.value);
 			return 0;
 		}
 
 		// build scan matching map
-		ret = gnd::psm::build_map( &map, &cmap );
+		ret = gnd::opsm::build_map( &map, &cmap );
 
 		if( !scan_file.value[0] ) {
 			::fprintf(stdout, " error: missing scan data\n");
@@ -134,8 +134,8 @@ int main( int argc, char* argv[] ) {
 
 	{ // ---> operation
 		int ret;
-		gnd::psm::mcl						mcl;		// quasi monte calro method class
-		gnd::psm::mcl::initial_parameter	mcl_ini;
+		gnd::opsm::mcl						mcl;		// quasi monte calro method class
+		gnd::opsm::mcl::initial_parameter	mcl_ini;
 
 		gnd::vector::fixed_column<3> 		delta;
 		double 								likelihood;
@@ -280,8 +280,8 @@ int main( int argc, char* argv[] ) {
 		// file close
 		::fclose(fp);
 
-		gnd::psm::destroy_counting_map(&cmap);
-		gnd::psm::destroy_map(&map);
+		gnd::opsm::destroy_counting_map(&cmap);
+		gnd::opsm::destroy_map(&map);
 	} // <--- finalize
 
 
