@@ -1,5 +1,5 @@
 /*
- * psm-position-tracker-cui.hpp
+ * opsm-position-tracker-cui.hpp
  *
  *  Created on: 2012/11/14
  *      Author: tyamada
@@ -10,12 +10,12 @@
 
 #include "gnd-cui.hpp"
 
-#ifndef psm_pt
-#define psm_pt psm::position_tracker
+#ifndef opsm_pt
+#define opsm_pt opsm::position_tracker
 #endif
 
 
-namespace psm {
+namespace opsm {
 	namespace position_tracker {
 
 		static const gnd::cui_command cui_cmd[] = {

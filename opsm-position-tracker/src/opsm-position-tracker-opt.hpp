@@ -1,12 +1,12 @@
 /*
- * psm-position-tracker-opt.hpp
+ * opsm-position-tracker-opt.hpp
  *
  *  Created on: 2011/12/22
  *      Author: tyamada
  */
 
-#ifndef PSM_POSITION_TRACKER_OPT_HPP_
-#define PSM_POSITION_TRACKER_OPT_HPP_
+#ifndef OPSM_POSITION_TRACKER_OPT_HPP_
+#define OPSM_POSITION_TRACKER_OPT_HPP_
 
 
 #include <string.h>
@@ -16,13 +16,13 @@
 #include <ssmtype/spur-odometry.h>
 #include <ssmtype/pws-motor.h>
 
-#include "psm-position-tracker-conf.hpp"
+#include "opsm-position-tracker-conf.hpp"
 
-#ifndef psm_pt
-#define psm_pt psm::position_tracker
+#ifndef opsm_pt
+#define opsm_pt opsm::position_tracker
 #endif
 
-namespace psm {
+namespace opsm {
 	namespace position_tracker {
 
 		class options
@@ -103,12 +103,12 @@ namespace psm {
 
 				// write configure
 				case 'G': {
-					proc_conf_write( optarg ? optarg : "psm-pos-tracker.conf", pconf);
-					::fprintf(stderr, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "psm-pos-tracker.conf");
+					proc_conf_write( optarg ? optarg : "opsm-position-tracker.conf", pconf);
+					::fprintf(stderr, " ... output configuration file \"\x1b[4m%s\x1b[0m\"\n", optarg ? optarg : "opsm-position-tracker.conf");
 				} return RWriteConf;
 
 				// entry map file directory
-				case 'm': ::strcpy(pconf->init_psm_map.value, optarg);			break;
+				case 'm': ::strcpy(pconf->init_opsm_map.value, optarg);			break;
 				// entry sokuiki ssm-data id
 				case 'S': ::strcpy( pconf->ls_name.value, optarg);		break;
 				// entry sokuiki ssm-data id
@@ -224,8 +224,8 @@ namespace psm {
 			return 0;
 		}
 	}; // namespace Optimizer
-}; // namespace psm
+}; // namespace opsm
 
 
 
-#endif /* PSM_POSITION_TRACKER_OPT_HPP_ */
+#endif /* OPSM_POSITION_TRACKER_OPT_HPP_ */
