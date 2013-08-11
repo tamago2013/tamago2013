@@ -1,5 +1,6 @@
 
-TARGET	:=$(notdir $(patsubst %/,%,$(PWD)) )
+#TARGET	:=$(notdir $(patsubst %/,%,$(PWD)) )
+TARGET	:=opsm-position-tracker
 GCC		:=g++
 REMOVE	:=rm -rf
 MAKEDIR	:=mkdir -p
