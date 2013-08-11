@@ -38,7 +38,7 @@ all:rebuild
 build:$(RELEASE_DIR) $(OBJS)
 	$(GCC) -o"$(RELEASE_DIR)$(TARGET)" $(patsubst %,$(RELEASE_DIR)%,$(OBJS)) $(LDFLAGS)
 	@echo "#!$(SHELL_INTRP)" > $(LAUNCHER)
-	@echo "$(LAUNCH_CMD)" >> $(LAUNCHER)
+	@echo "$(LAUNCH_SCRIPT)" >> $(LAUNCHER)
 	@chmod +x $(LAUNCHER)
 	@echo "create launcher"
 

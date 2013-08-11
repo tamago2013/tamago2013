@@ -9,7 +9,7 @@ LAUNCH_CMD		:=./$(RELEASE_DIR)$(TARGET)
 LAUNCH_CONFIG	:=$(PWD)/opsm-position-tracker.conf
 
 #launch command
-LAUNCH_CMD		:=if [ -e $(LAUNCH_CONFIG) ] ; then $(LAUNCH_CMD) -g $(LAUNCH_CONFIG) "$$"@; else $(LAUNCH_CMD) "$$"@ -G $(LAUNCH_CONFIG); fi
+LAUNCH_SCRIPT	:=if [ -e $(LAUNCH_CONFIG) ] ; then $(LAUNCH_CMD) -g $(LAUNCH_CONFIG) "$$"@; else $(LAUNCH_CMD) "$$"@ -G $(LAUNCH_CONFIG); fi
 
 #shell command interpreter
 SHELL_INTRP		:=/bin/bash
