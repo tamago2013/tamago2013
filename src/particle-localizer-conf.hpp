@@ -480,21 +480,14 @@ namespace Localizer {
 		gnd::matrix::set_unit( &conf->poserr_cover_ini );
 		for(size_t i = 0; i < 3; i++)
 			gnd::matrix::set(&conf->poserr_cover_ini, i, i, gnd_square( conf->pos_err_ini.value[i] ) );
-		gnd::matrix::set(&conf->poserr_cover_ini, 2, 2, gnd_square( gnd_deg2ang( conf->pos_err_ini.value[2] ) ) );
-
-		gnd::matrix::set_unit( &conf->randerr_covar );
-		for(size_t i = 0; i < 3; i++)
-			gnd::matrix::set(&conf->syserr_cover_ini, i, i, gnd_square( conf->sys_err_ini.value[i] ) );
 
 		gnd::matrix::set_unit( &conf->randerr_covar );
 		for(size_t i = 0; i < 2; i++)
 			gnd::matrix::set(&conf->randerr_covar, i, i, gnd_square( conf->randerr_conf.value[i] ) );
-		gnd::matrix::set(&conf->randerr_covar, 2, 2, gnd_square( gnd_deg2ang( conf->randerr_conf.value[2] ) ) );
 
 		gnd::matrix::set_unit( &conf->randerr_covar_offset );
 		for(size_t i = 0; i < 3; i++)
 			gnd::matrix::set(&conf->randerr_covar_offset, i, i, gnd_square( conf->randerr_offset_conf.value[i] ) );
-		gnd::matrix::set(&conf->randerr_covar_offset, 2, 2, gnd_square( gnd_deg2ang( conf->randerr_offset_conf.value[2] ) ) );
 
 		return 0;
 	}
