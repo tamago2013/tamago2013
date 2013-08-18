@@ -6,12 +6,14 @@ WidgetMSG::WidgetMSG() : QLabel()
     setAlignment(Qt::AlignLeft | Qt::AlignTop);
 }
 
-WidgetMSG::~WidgetMSG()
-{
-}
 
 #include <cstdio>
 using namespace std;
+
+WidgetMSG::~WidgetMSG()
+{
+    printf("widget-msg delete\n");
+}
 
 void WidgetMSG::set_message(const char *msg)
 {

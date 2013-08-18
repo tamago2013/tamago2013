@@ -2,20 +2,32 @@
 #include <QTextCodec>
 #include "main.hpp"
 #include "window.hpp"
+#include "tkg-config.hpp"
 
-MainWindow *window;
+#include <iostream>
+
+void cmdanalyze()
+{}
 
 int main(int argc, char *argv[])
 {
-    int retval;
+    // config
+
+    tkg::ConfigFile config;
+    config.load("../visualizer.conf");
+
+    // window
+
     QApplication app(argc, argv);
     QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());
 
-    window = new MainWindow();
+    Window *window;
+
+    window = new Window(config);
     window->show();
     window->init();
 
-    retval = app.exec();
+    int retval = app.exec();
 
     delete window;
     return retval;

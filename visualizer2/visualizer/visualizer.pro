@@ -10,13 +10,16 @@ INCLUDEPATH += \
 HEADERS += \
     camera.hpp \
     window.hpp \
-    config.hpp \
     controller.hpp \
     main.hpp \
     widget-gl.hpp \
     widget-msg.hpp \
-    viewer-ssm.hpp \
-    viewer-map.hpp
+    viewer-map.hpp \
+    widget-img.hpp \
+    ssm-message.hpp \
+    tkg-config.hpp \
+    tkg-utility.hpp \
+    fps-timer.hpp
 
 SOURCES += \
     main.cpp \
@@ -24,8 +27,10 @@ SOURCES += \
     camera.cpp \
     widget-gl.cpp \
     viewer-map.cpp \
-    viewer-ssm.cpp \
-    widget-msg.cpp
+    widget-msg.cpp \
+    widget-img.cpp \
+    ssm-message.cpp \
+    fps-timer.cpp
 
 LIBS += \
     -lGLU \

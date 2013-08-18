@@ -3,33 +3,33 @@
 
 #include <QtOpenGL/QGLWidget>
 #include <QTimer>
-#include <QKeyEvent>
-#include <QMouseEvent>
-#include <QWheelEvent>
 #include "camera.hpp"
+#include "tkg-config.hpp"
 
-class ViewerSSM;
+class Window;
+class QKeyEvent;
+class QMouseEvent;
+class QWheelEvent;
+
 class ViewerMap;
+
+class FPSTimer;
+class SSMApiBase;
 
 class WidgetGL : public QGLWidget
 {
     Q_OBJECT
 
-    public:
+    public:  // functions
 
-         WidgetGL();
+        WidgetGL(Window *parent, tkg::ConfigFile &conf);
         ~WidgetGL();
 
          bool init();
          ViewerMap* get_vmap() { return vmap; }
-         ViewerSSM* get_vssm() { return vssm; }
          Camera*  get_camera() { return camera; }
 
-    public slots:
-
-         void setfps(int fps);
-
-    protected:
+    protected:  // functions
 
         void initializeGL();
         void paintGL();
@@ -42,14 +42,31 @@ class WidgetGL : public QGLWidget
         void mousePressEvent(QMouseEvent *event);
         void mouseReleaseEvent(QMouseEvent *event);
 
-    private:
+    private:  // functions
 
-        // FPS制御
-        QTimer *timer;
+        void drawGround();
+        void drawRobot(int id);
+        void drawLaser(int id);
 
-        // データの管理クラス
+    private: // variables
+
+        static const int SSM_COUNT = 3;
+        SSMApiBase *ssm[SSM_COUNT];
+
+        // viewmode[STREAM_MAX]
+
+        //
+        Window   *window;
+        FPSTimer *timer;
+
+
+        //
+        double robot_x;
+        double robot_y;
+        double robot_t;
+
         ViewerMap *vmap;
-        ViewerSSM *vssm;
+        //ViewerSSM *vssm;
 
         // 画面サイズ関連
         int    width;
@@ -63,6 +80,8 @@ class WidgetGL : public QGLWidget
         int mouse_prev_x;
         int mouse_prev_y;
         int mouse_prev_b;
+
+
 
 };
 

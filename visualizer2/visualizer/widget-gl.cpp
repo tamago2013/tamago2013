@@ -1,49 +1,72 @@
 #include <GL/glu.h>
+#include <QKeyEvent>
+#include <QMouseEvent>
+#include <QWheelEvent>
+#include "window.hpp"
 #include "widget-gl.hpp"
-#include "viewer-ssm.hpp"
+#include "widget-msg.hpp"
 #include "viewer-map.hpp"
+#include "fps-timer.hpp"
+#include "ssm-message.hpp"
+#include "ssm-laser.hpp"
+#include "ssmtype/spur-odometry.h"
+#include "tkg-utility.hpp"
+#include "tkg-geometry-gl.hpp"
+using namespace tkg;
+using namespace ssm;
 
 #include <fstream>
 using namespace std;
 
-WidgetGL::WidgetGL() : QGLWidget()
+
+enum ssm_string { robot, laser1, laser2, ssm_count };
+
+WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 {
     printf("GL constructor\n");
     setFocusPolicy(Qt::StrongFocus);
 
+    window = parent;
+
+    robot_x = 0;
+    robot_y = 0;
+    robot_t = 0;
+
+    ssm[robot ] = new SSMApi<Spur_Odometry> (tkg::parseStr(conf["Odom"]["ssm-name"]), tkg::parseInt(conf["Odom"]["ssm-id"]));
+    ssm[laser1] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg1"]["ssm-name"]), tkg::parseInt(conf["Urg1"]["ssm-id"]));
+    ssm[laser2] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg2"]["ssm-name"]), tkg::parseInt(conf["Urg2"]["ssm-id"]));
+
     camera = new Camera;
 
     vmap = new ViewerMap;
-    vssm = new ViewerSSM;
     //mapviewer.read_cmap("/home/ena8781/roboken/map/tc2013");
 
-    timer = new QTimer();
+    timer = new FPSTimer(conf["Viewer"]["fps"]);
+    window->addMenuFPS(timer, tkg::parseStr(conf["Viewer"]["title"]));
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-    timer->start(100);
+
 }
 
 WidgetGL::~WidgetGL()
 {
+
     delete camera;
 
     delete vmap;
-    delete vssm;
     printf("GL destructor\n");
 }
 
 bool WidgetGL::init()
 {
-    vssm->init();
+    for(int i=0; i<SSM_COUNT; i++)
+    {
+        smConnect(ssm[i]);
+    }
 
     char path[256];
     ifstream fin("visualizer.conf");
     if(fin) fin >> path;
-    vmap->read_cmap(path);
-}
-
-void WidgetGL::setfps(int fps)
-{
-    timer->start(1000/fps);
+    //vmap->read_cmap(path);
 }
 
 void WidgetGL::initializeGL()
@@ -61,7 +84,7 @@ void WidgetGL::resizeGL(int w, int h)
 
 void WidgetGL::paintGL()
 {
-    glClear(GL_COLOR_BUFFER_BIT);   //  カラーバッファをクリア
+
     /*
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -69,15 +92,16 @@ void WidgetGL::paintGL()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     */
-
+    glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, width, height);
 
-
+/*
     double cx,cy,th;
     if(vssm->test_get_pos(&cx, &cy, &th))
     {
         camera->setpos(cx,cy,th);
     }
+*/
 
     // カメラの設定
     glMatrixMode(GL_PROJECTION);
@@ -91,9 +115,103 @@ void WidgetGL::paintGL()
 
     // 各種データの描画
     vmap->draw();
-    vssm->draw();
+
+    for(int i=0; i<SSM_COUNT; i++)
+    {
+        smReadNew(ssm[i]);
+    }
+    drawGround();
+    drawRobot(robot);
+    drawLaser(laser1);
+    drawLaser(laser2);
 
     glFlush();
+}
+
+void WidgetGL::drawGround()
+{
+    const int gsize = 30;
+    double gr_x = 0; //glpos.data.x;
+    double gr_y = 0; //glpos.data.y;
+    /*
+    glVertex3d(gr_x+gsize, gr_y+gsize, 0.0);
+    glVertex3d(gr_x-gsize, gr_y+gsize, 0.0);
+    glVertex3d(gr_x-gsize, gr_y-gsize, 0.0);
+    glVertex3d(gr_x+gsize, gr_y-gsize, 0.0);
+    */
+    glColor3d(0.2,0.2,0.2);
+    glBegin(GL_LINES);
+    for(int i=-gsize; i<=gsize; i++)
+    {
+        glVertex3d(gr_x+i*1.0, gr_y-gsize, 0.0);
+        glVertex3d(gr_x+i*1.0, gr_y+gsize, 0.0);
+        glVertex3d(gr_x-gsize, gr_y+i*1.0, 0.0);
+        glVertex3d(gr_x+gsize, gr_y+i*1.0, 0.0);
+    }
+    glEnd();
+}
+
+void WidgetGL::drawRobot(int id)
+{
+    if(!ssm[id]->isOpen()) return;
+    Spur_Odometry &data = (*(Spur_Odometry*)(ssm[id]->data()));
+
+    robot_x = data.x;
+    robot_y = data.y;
+    robot_t = data.theta;
+    point3 robot_p = point3(robot_x, robot_y, 0);
+
+    glColor3d(1,0,0);
+    glLineWidth(3);
+    ggDrawCross(robot_p, robot_t, 1);
+    glLineWidth(1);
+}
+
+void WidgetGL::drawLaser(int id)
+{
+    if(!ssm[id]->isOpen()) return;
+    SOKUIKIData3D &data = (*(SOKUIKIData3D*)(ssm[id]->data()));
+
+    point3 robot_p = point3(robot_x, robot_y, 0);
+
+    //if(laser[s]->view_state & 1)
+    {
+        glColor3d(0,1,0);
+        //if(s) glColor3d(0,1,0); else glColor3d(0,1,1);
+        glPointSize(3);
+        glBegin(GL_POINTS);
+
+        for(int i=0; i<data.numPoints(); i++)
+        {
+            if(data[i].isWarning()) continue;
+
+            point3 ref(data[i].reflect.vec);
+            ref.rotZ(robot_t);
+            ggVertex(robot_p + ref);
+        }
+        glEnd();
+        glPointSize(1);
+    }
+
+    //if(laser[s]->view_state & 2)
+    {
+        //if(s) glColor3d(0,0.5,0); else glColor3d(0,0.5,0.5);
+        glLineWidth(1);
+        glBegin(GL_LINES);
+        for(int i=0; i<data.numPoints(); i++)
+        {
+            if(data[i].isWarning()) continue;
+
+            point3 ori(data[i].origin.vec);
+            point3 ref(data[i].reflect.vec);
+            ori.rotZ(robot_t);
+            ref.rotZ(robot_t);
+            ggVertex(robot_p + ori);
+            ggVertex(robot_p + ref);
+        }
+        glEnd();
+        glPointSize(1);
+    }
 }
 
 void WidgetGL::keyPressEvent(QKeyEvent *event)

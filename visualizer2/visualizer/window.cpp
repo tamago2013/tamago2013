@@ -2,86 +2,62 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QStatusBar>
-#include <QLayout>
+#include <QSplitter>
 #include <QSignalMapper>
 #include "window.hpp"
-#include "viewer-ssm.hpp"
+#include "widget-gl.hpp"
+#include "widget-msg.hpp"
+#include "widget-img.hpp"
+#include "tkg-config.hpp"
+#include "ssm-message.hpp"
+#include "fps-timer.hpp"
 
-MainWindow::MainWindow() : QMainWindow()
+#include <QTableWidget>
+
+Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 {
-    printf("constructor\n");
     resize(800, 600);
     setWindowTitle("visualizer");
 
-    message = new WidgetMSG();
-    status  = new WidgetMSG();
-    viewer  = new WidgetGL();
+    m_fps = menuBar()->addMenu(tr("&FPS"));
 
-    message->setFixedWidth(200);
-    status ->setFixedWidth(200);
-    status ->setFixedHeight(100);
+    w_viewer  = new WidgetGL (this, conf);
+    w_camera1 = new WidgetIMG(this, conf["Camera1"]);
+    w_camera2 = new WidgetIMG(this, conf["Camera2"]);
+    w_status  = new WidgetMSG();
+    w_message = new WidgetMSG();
+    w_control = new WidgetMSG();
 
-    QWidget     *w_layout = new QWidget();
-    QHBoxLayout *h_layout = new QHBoxLayout();
-    QVBoxLayout *v_layout = new QVBoxLayout();
+    w_camera1->setFixedWidth(320);
+    w_camera2->setFixedWidth(320);
 
-    v_layout->addWidget(status);
-    v_layout->addWidget(message);
-    h_layout->addWidget(viewer);
-    h_layout->addLayout(v_layout);
-    w_layout->setLayout(h_layout);
-    setCentralWidget(w_layout);
+    w_status ->setMaximumHeight(150);
+    w_message->setMaximumHeight(150);
+    w_control->setMaximumHeight(150);
 
-    QAction *fps01 = new QAction(tr("1 fps"), this);
-    fps01->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_1) );
-    fps01->setCheckable(true);
+    QSplitter *s_widget = new QSplitter(Qt::Vertical);
+    QSplitter *s_camera = new QSplitter(Qt::Vertical);
+    QSplitter *s_viewer = new QSplitter(Qt::Horizontal);
+    QSplitter *s_others = new QSplitter(Qt::Horizontal);
 
-    QAction *fps05 = new QAction(tr("5 fps"), this);
-    fps05->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_2) );
-    fps05->setCheckable(true);
+    s_camera->addWidget(w_camera1);
+    s_camera->addWidget(w_camera2);
+    s_viewer->addWidget(w_viewer);
+    s_viewer->addWidget(s_camera);
+    s_others->addWidget(w_status);
+    s_others->addWidget(w_message);
+    s_others->addWidget(w_control);
+    s_widget->addWidget(s_viewer);
+    s_widget->addWidget(s_others);
 
-    QAction *fps10 = new QAction(tr("10 fps"), this);
-    fps10->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_3) );
-    fps10->setCheckable(true);
-    fps10->setChecked(true);
-
-    QAction *fps20 = new QAction(tr("20 fps"), this);
-    fps20->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_4) );
-    fps20->setCheckable(true);
-
-    QAction *fps30 = new QAction(tr("30 fps"), this);
-    fps30->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_5) );
-    fps30->setCheckable(true);
+    setCentralWidget(s_widget);
 
 
-    QMenu *fps_menu;
-    fps_menu = menuBar()->addMenu(tr("&FPS"));
-    fps_menu->addAction(fps01);
-    fps_menu->addAction(fps05);
-    fps_menu->addAction(fps10);
-    fps_menu->addAction(fps20);
-    fps_menu->addAction(fps30);
+    // ssm init
+    smTarget(w_message);
+    smInit();
 
-    QActionGroup *fps_group = new QActionGroup(this);
-    fps_group->setExclusive(true);
-    fps_group->addAction(fps01);
-    fps_group->addAction(fps05);
-    fps_group->addAction(fps10);
-    fps_group->addAction(fps20);
-    fps_group->addAction(fps30);
-
-    QSignalMapper *signal_mapper = new QSignalMapper(this);
-    connect(fps01, SIGNAL(triggered()), signal_mapper, SLOT(map()));
-    connect(fps05, SIGNAL(triggered()), signal_mapper, SLOT(map()));
-    connect(fps10, SIGNAL(triggered()), signal_mapper, SLOT(map()));
-    connect(fps20, SIGNAL(triggered()), signal_mapper, SLOT(map()));
-    connect(fps30, SIGNAL(triggered()), signal_mapper, SLOT(map()));
-    signal_mapper->setMapping(fps01,  1);
-    signal_mapper->setMapping(fps05,  5);
-    signal_mapper->setMapping(fps10, 10);
-    signal_mapper->setMapping(fps20, 20);
-    signal_mapper->setMapping(fps30, 30);
-    connect(signal_mapper, SIGNAL(mapped(int)), viewer, SLOT(setfps(int)));
+    // Menu
 
 
 
@@ -89,61 +65,60 @@ MainWindow::MainWindow() : QMainWindow()
     ssm_menu = menuBar()->addMenu(tr("&SSM"));
 
 
+    QAction *image_free = new QAction(tr("free"), this);
+    image_free->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_8) );
+    image_free->setCheckable(true);
 
+    QAction *image_lock_xy = new QAction(tr("lock (x,y)"), this);
+    image_lock_xy->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_9) );
+    image_lock_xy->setCheckable(true);
 
-    QAction *camera_free = new QAction(tr("free"), this);
-    camera_free->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_8) );
-    camera_free->setCheckable(true);
+    QAction *image_lock_xyt = new QAction(tr("lock (x,y,theta)"), this);
+    image_lock_xyt->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_0) );
+    image_lock_xyt->setCheckable(true);
+    image_lock_xyt->setChecked(true);
 
-    QAction *camera_lock_xy = new QAction(tr("lock (x,y)"), this);
-    camera_lock_xy->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_9) );
-    camera_lock_xy->setCheckable(true);
+    QMenu *image_menu;
+    image_menu = menuBar()->addMenu(tr("&image"));
+    image_menu->addAction(image_free);
+    image_menu->addAction(image_lock_xy);
+    image_menu->addAction(image_lock_xyt);
 
-    QAction *camera_lock_xyt = new QAction(tr("lock (x,y,theta)"), this);
-    camera_lock_xyt->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_0) );
-    camera_lock_xyt->setCheckable(true);
-    camera_lock_xyt->setChecked(true);
-
-    QMenu *camera_menu;
-    camera_menu = menuBar()->addMenu(tr("&Camera"));
-    camera_menu->addAction(camera_free);
-    camera_menu->addAction(camera_lock_xy);
-    camera_menu->addAction(camera_lock_xyt);
-
-    QActionGroup *camera_group = new QActionGroup(this);
-    camera_group->setExclusive(true);
-    camera_group->addAction(camera_free);
-    camera_group->addAction(camera_lock_xy);
-    camera_group->addAction(camera_lock_xyt);
+    QActionGroup *image_group = new QActionGroup(this);
+    image_group->setExclusive(true);
+    image_group->addAction(image_free);
+    image_group->addAction(image_lock_xy);
+    image_group->addAction(image_lock_xyt);
 
     QSignalMapper *signal_mapper2 = new QSignalMapper(this);
-    connect(camera_free,     SIGNAL(triggered()), signal_mapper2, SLOT(map()));
-    connect(camera_lock_xy,  SIGNAL(triggered()), signal_mapper2, SLOT(map()));
-    connect(camera_lock_xyt, SIGNAL(triggered()), signal_mapper2, SLOT(map()));
-    signal_mapper2->setMapping(camera_free,     0);
-    signal_mapper2->setMapping(camera_lock_xy,  1);
-    signal_mapper2->setMapping(camera_lock_xyt, 2);
-    connect(signal_mapper2, SIGNAL(mapped(int)), viewer->get_camera(), SLOT(setmode(int)));
+    connect(image_free,     SIGNAL(triggered()), signal_mapper2, SLOT(map()));
+    connect(image_lock_xy,  SIGNAL(triggered()), signal_mapper2, SLOT(map()));
+    connect(image_lock_xyt, SIGNAL(triggered()), signal_mapper2, SLOT(map()));
+    signal_mapper2->setMapping(image_free,     0);
+    signal_mapper2->setMapping(image_lock_xy,  1);
+    signal_mapper2->setMapping(image_lock_xyt, 2);
+    connect(signal_mapper2, SIGNAL(mapped(int)), w_viewer->get_camera(), SLOT(setmode(int)));
 }
 
-MainWindow::~MainWindow()
+Window::~Window()
 {
-    delete viewer;
-    delete status;
-    delete message;
-    printf("destructor\n");
+    smEnd();
 }
 
-bool MainWindow::init()
+bool Window::init()
 {
-    connect(viewer->get_vssm(), SIGNAL(send_status (const char*)), status,  SLOT(set_message(const char*)));
-    connect(viewer->get_vssm(), SIGNAL(send_message(const char*)), message, SLOT(add_message(const char*)));
+    //connect(viewer->get_vssm(), SIGNAL(send_status (const char*)), status,  SLOT(add_message(const char*)));
+    //connect(viewer->get_vssm(), SIGNAL(send_message(const char*)), message, SLOT(add_message(const char*)));
 
-    viewer->init();
+    w_viewer ->init();
+    w_camera1->init();
+    w_camera2->init();
+
+    return true;
 }
 
 
-void MainWindow::test_add_menu_SSM(QObject* obj, const char* str)
+void Window::test_add_menu_SSM(QObject* obj, const char* str)
 {
     QAction *view00 = new QAction(tr("non-display"), this);
     //view00->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_1) );
@@ -188,4 +163,42 @@ void MainWindow::test_add_menu_SSM(QObject* obj, const char* str)
     signal_mapper->setMapping(view10, 2);
     signal_mapper->setMapping(view11, 3);
     connect(signal_mapper, SIGNAL(mapped(int)), obj, SLOT(set_view_state(int)));
+}
+
+void Window::addMenuFPS(FPSTimer *obj, const char *str)
+{
+    QMenu         *menu   = new QMenu(tr(str), this);
+    QActionGroup  *group  = new QActionGroup(this);
+    QSignalMapper *mapper = new QSignalMapper(this);
+
+    m_fps->addMenu(menu);
+    group->setExclusive(true);
+
+    std::vector<int> fps = obj->getFPS();
+    for(uint i=0; i<fps.size(); i++)
+    {
+        char str[256];
+        std::snprintf(str, 256, "%2d fps", fps[i]);
+
+        QAction *action = new QAction(tr(str), this);
+        action->setCheckable(true);
+        menu  ->addAction(action);
+        group ->addAction(action);
+        mapper->setMapping(action, fps[i]);
+        connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
+
+        if(i==0)
+        {
+            obj->setFPS(fps[i]);
+            action->setChecked(true);
+        }
+    }
+    connect(mapper, SIGNAL(mapped(int)), obj, SLOT(setFPS(int)));
+
+
+
+
+
+
+
 }
