@@ -1,5 +1,5 @@
 //============================================================================
-// Name        : psm-particle-evaluator.cpp
+// Name        : opsm-particle-evaluator.cpp
 // Author      : tyamada
 // Version     :
 // Copyright   : Your copyright notice
@@ -12,12 +12,12 @@
 #include <ssm-laser.hpp>
 #include <ssmtype/spur-odometry.h>
 #include <ssm.hpp>
-#include "ssm-psm-map.hpp"
+#include "ssm-opsm-map.hpp"
 #include "ssm-particles.hpp"
 
-#include "psm-particle-evaluator-cui.hpp"
-#include "psm-particle-evaluator-opt.hpp"
-#include "psm-particle-evaluator-conf.hpp"
+#include "opsm-particle-evaluator-cui.hpp"
+#include "opsm-particle-evaluator-opt.hpp"
+#include "opsm-particle-evaluator-conf.hpp"
 
 #include "gnd-util.h"
 #include "gnd-timer.hpp"
@@ -28,7 +28,7 @@
 #include "gnd-shutoff.hpp"
 
 int main(int argc, char *argv[], char **env) {
-	gnd::psm::map_t 		psm_map;
+	gnd::opsm::map_t 		opsm_map;
 	gnd::bmp32_t			map;			// map
 
 	SSMApi<Spur_Odometry>	ssm_odometry;	//
@@ -42,8 +42,8 @@ int main(int argc, char *argv[], char **env) {
 			coordid_sns = -1;
 
 
-	psm::peval::proc_configuration pconf;	// process configuration
-	psm::peval::proc_option_reader popt;	// process option
+	opsm::peval::proc_configuration pconf;	// process configuration
+	opsm::peval::proc_option_reader popt;	// process option
 	gnd::cui_reader					pcui;	// cui
 
 
@@ -75,27 +75,27 @@ int main(int argc, char *argv[], char **env) {
 			::fprintf(stderr, " %d. Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, pconf.particle_name.value);
 			::fprintf(stderr, " %d. Open ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, pconf.eval_name.value);
 			::fprintf(stderr, " %d. set property of ssm-data \"\x1b[4m%s\x1b[0m\"\n", phase++, pconf.eval_name.value);
-			::fprintf(stderr, " %d. Create ssm-data \"%s\"\n", phase++, SNAME_PSM_MAP);
+			::fprintf(stderr, " %d. Create ssm-data \"%s\"\n", phase++, SNAME_OPSM_MAP);
 			::fprintf(stderr, "\n\n");
 		} // <--- show initialize sequence
 
 
 		// ---> read map raw data
 		if( !is_proc_shutoff() && pconf.raw_map.value[0] != '\0' ) {
-			gnd::psm::cmap_t cnt_map;			// counting map
+			gnd::opsm::cmap_t cnt_map;			// counting map
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => Raw Map Data Reading\n");
 
 			::fprintf(stderr, "   map file is \"\x1b[4m%s\x1b[0m\"\n", pconf.raw_map.value);
-			if( gnd::psm::read_counting_map(&cnt_map, pconf.raw_map.value) < 0){
+			if( gnd::opsm::read_counting_map(&cnt_map, pconf.raw_map.value) < 0){
 				::proc_shutoff();
 				::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to read map data\n");
 			}
 			else {
-				if( gnd::psm::build_map(&psm_map, &cnt_map, gnd_mm2dist(1)) < 0 ) {
+				if( gnd::opsm::build_map(&opsm_map, &cnt_map, gnd_mm2dist(1)) < 0 ) {
 					::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build map\n");
 				}
-				else if( gnd::psm::build_bmp32(&map, &psm_map, gnd_m2dist( 1.0 / 20)) < 0 ) {
+				else if( gnd::opsm::build_bmp32(&map, &opsm_map, gnd_m2dist( 1.0 / 20)) < 0 ) {
 					::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to convert bmp\n");
 				}
 				else {
@@ -120,12 +120,12 @@ int main(int argc, char *argv[], char **env) {
 
 		// ---> write map info for displaying the map
 		if( !::is_proc_shutoff() ){
-			SSMPSMMap				ssm_map;		// ssm map (dummy)
+			SSMOPSMMap				ssm_map;		// ssm map (dummy)
 			gnd::bmp8_t				bmp8;
 			char path[256];
 
 			// build bmp 8bit map
-			gnd::psm::build_bmp( &bmp8, &psm_map, gnd_m2dist(1.0/10) );
+			gnd::opsm::build_bmp( &bmp8, &opsm_map, gnd_m2dist(1.0/10) );
 
 			// write 8bit map file
 			gnd_get_working_directory(env, path, sizeof(path));
@@ -153,16 +153,16 @@ int main(int argc, char *argv[], char **env) {
 
 			} // <--- set parameter
 
-			if(!ssm_map.create(SNAME_PSM_MAP, 0, 1, 1)){
-				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to open ssm \"%s\"\n", SNAME_PSM_MAP);
+			if(!ssm_map.create(SNAME_OPSM_MAP, 0, 1, 1)){
+				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to open ssm \"%s\"\n", SNAME_OPSM_MAP);
 				::proc_shutoff();
 			}
 			else if(!ssm_map.setProperty() ){
-				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to set property ssm \"%s\"\n", SNAME_PSM_MAP);
+				::fprintf(stderr, "  [\x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m]: Fail to set property ssm \"%s\"\n", SNAME_OPSM_MAP);
 				::proc_shutoff();
 			}
 			else {
-				::fprintf(stderr, "  [\x1b[1mOK\x1b[0m]: Open ssm-data \"%s\"\n", SNAME_PSM_MAP);
+				::fprintf(stderr, "  [\x1b[1mOK\x1b[0m]: Open ssm-data \"%s\"\n", SNAME_OPSM_MAP);
 			}
 		} // <--- write map info for displaying the map
 
@@ -243,7 +243,7 @@ int main(int argc, char *argv[], char **env) {
 
 		// ---> initialize cui
 		if( !::is_proc_shutoff() ){
-			pcui.set_command(psm::peval::cui_cmd, sizeof(psm::peval::cui_cmd) / sizeof(psm::peval::cui_cmd[0]));
+			pcui.set_command(opsm::peval::cui_cmd, sizeof(opsm::peval::cui_cmd) / sizeof(opsm::peval::cui_cmd[0]));
 		} // ---> initialize cui
 
 	} // <--- initialize
@@ -273,8 +273,8 @@ int main(int argc, char *argv[], char **env) {
 		{ // ---> initialize timer
 			timer_operate.begin(CLOCK_REALTIME, pconf.cycle.value, -pconf.cycle.value);
 			timer_clock.begin(CLOCK_REALTIME,
-					pconf.cycle.value / 2.0 < psm::peval::Frame ? pconf.cycle.value / 2.0 : psm::peval::Frame);
-			timer_show.begin(CLOCK_REALTIME, psm::peval::ShowUpdateCycle, -psm::peval::ShowUpdateCycle);
+					pconf.cycle.value / 2.0 < opsm::peval::Frame ? pconf.cycle.value / 2.0 : opsm::peval::Frame);
+			timer_show.begin(CLOCK_REALTIME, opsm::peval::ShowUpdateCycle, -opsm::peval::ShowUpdateCycle);
 			if( pconf.sleeping_time.value > 0)
 				timer_sleeping.begin(CLOCK_REALTIME, pconf.sleeping_time.value, -pconf.sleeping_time.value);
 		} // <--- initialize timer
@@ -306,7 +306,7 @@ int main(int argc, char *argv[], char **env) {
 						case '\0':
 						case 'h': pcui.show(stderr, "   "); break;
 						// show status
-						case 's': timer_show.begin(CLOCK_REALTIME, psm::peval::ShowUpdateCycle, -psm::peval::ShowUpdateCycle); break;
+						case 's': timer_show.begin(CLOCK_REALTIME, opsm::peval::ShowUpdateCycle, -opsm::peval::ShowUpdateCycle); break;
 						case 'f': {
 							double freq = ::strtod(cuiarg, 0);
 							if( freq <= 0 ){
@@ -317,7 +317,7 @@ int main(int argc, char *argv[], char **env) {
 								double cyc = 1.0 / freq;
 								timer_operate.begin(CLOCK_REALTIME, cyc);
 								timer_clock.begin(CLOCK_REALTIME,
-										cyc < psm::peval::Frame ? cyc : psm::peval::Frame);
+										cyc < opsm::peval::Frame ? cyc : opsm::peval::Frame);
 								::fprintf(stderr, "   ... cycle %.03lf\n", cyc);
 							}
 						} break;
@@ -332,7 +332,7 @@ int main(int argc, char *argv[], char **env) {
 							else {
 								timer_operate.begin(CLOCK_REALTIME, cyc);
 								timer_clock.begin(CLOCK_REALTIME,
-										cyc < psm::peval::Frame ? cyc : psm::peval::Frame);
+										cyc < opsm::peval::Frame ? cyc : opsm::peval::Frame);
 								::fprintf(stderr, "   ... cycle %.03lf\n", cyc);
 							}
 						} break;
@@ -364,7 +364,7 @@ int main(int argc, char *argv[], char **env) {
 					nline_show = 0;
 				}
 
-				nline_show++;	::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", psm::peval::ProcName);
+				nline_show++;	::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", opsm::peval::ProcName);
 				nline_show++;	::fprintf(stderr, "\x1b[K       count : %d\n", cnt_eval );
 				nline_show++;	::fprintf(stderr, "\x1b[K       cycle : %lf [s]\n", timer_operate.cycle() );
 				nline_show++;	::fprintf(stderr, "\x1b[K        prev : %lf %lf, %lf\n", prev.x, prev.y, gnd_ang2deg(prev.theta) );

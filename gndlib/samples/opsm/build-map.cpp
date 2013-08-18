@@ -6,15 +6,15 @@
  */
 
 #include <stdio.h>
-#include "gnd-psm.hpp"
+#include "gnd-opsm.hpp"
 
 
 int main(int argc, char* argv[]) {
 	FILE						*fp;		// data file of laser scanner
-	gnd::psm::cmap_t		cnt_map;	// laser scanner data collection map (it use for building environment map)
+	gnd::opsm::cmap_t		cnt_map;	// laser scanner data collection map (it use for building environment map)
 
 
-	gnd::psm::debug_set_log_level(2);
+	gnd::opsm::debug_set_log_level(2);
 	gnd::gridmap::debug_set_log_level(2);
 
 	{ // ---> initialize
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 			return 1;
 		}
 
-		gnd::psm::init_counting_map(&cnt_map, 0.5, 10 );
+		gnd::opsm::init_counting_map(&cnt_map, 2.0, 10 );
 	} // <--- initialize
 
 
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 				if( ret < 0 ) break;
 
 				// counting
-				gnd::psm::counting_map(&cnt_map, x, y);
+				gnd::opsm::counting_map(&cnt_map, x, y);
 			} // ---> scanning loop (data fiile)
 
 
@@ -59,19 +59,19 @@ int main(int argc, char* argv[]) {
 
 	{ // ---> finalize
 		gnd::bmp8_t bmp;
-		gnd::psm::map_t			psm_map;	// environment map for scan matching
+		gnd::opsm::map_t			opsm_map;	// environment map for scan matching
 
 		// save counting map
 		// output in current directory
-		gnd::psm::write_counting_map(&cnt_map, "./");
+		gnd::opsm::write_counting_map(&cnt_map, "./");
 		::fprintf(stdout, "make counting map data observ-prob.**.cmap\n");
 
 
 		{ // ---> build bmp image (to visualize for human)
 			// build environmental map
-			gnd::psm::build_map(&psm_map, &cnt_map);
+			gnd::opsm::build_map(&opsm_map, &cnt_map);
 			// make bmp image: it show the likelihood field
-			gnd::psm::build_bmp(&bmp, &psm_map, 1.0 / 8);
+			gnd::opsm::build_bmp(&bmp, &opsm_map, 1.0 / 16);
 			// file out
 			gnd::bmp::write8("map-image.bmp", &bmp);
 

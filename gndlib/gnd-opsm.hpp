@@ -1,13 +1,13 @@
 /*
- * gnd-psm.hpp
- * probabilistic scan matching library
+ * gnd-opsm.hpp
+ * observed probability scan matching
  *
  *  Created on: 2011/12/02
  *      Author: tyamada
  */
 
-#ifndef GND_PSM_HPP_
-#define GND_PSM_HPP_
+#ifndef GND_OPSM_HPP_
+#define GND_OPSM_HPP_
 
 #include <stdio.h>
 #include <math.h>
@@ -29,7 +29,7 @@
 
 // include debug logging function
 #define GND_DEBUG_LOG_NAMESPACE1 gnd
-#define GND_DEBUG_LOG_NAMESPACE2 psm
+#define GND_DEBUG_LOG_NAMESPACE2 opsm
 #include "gnd-debug-log.hpp"
 #undef GND_DEBUG_LOG_NAMESPACE2
 #undef GND_DEBUG_LOG_NAMESPACE1
@@ -47,7 +47,7 @@
 
 // ---> class declaration
 namespace gnd  {
-	namespace psm {
+	namespace opsm {
 		class optimize_basic;
 		class optimize_newton;
 		typedef optimize_newton newton;
@@ -66,7 +66,7 @@ namespace gnd  {
 
 // ---> constant and structure definition
 namespace gnd {
-	namespace psm {
+	namespace opsm {
 
 		/**
 		 * @brief number of map data plane
@@ -93,7 +93,7 @@ namespace gnd {
 		/**
 		 * @brief default counting map file name
 		 */
-		static const char CMapFileNameDefault[] = "psm";
+		static const char CMapFileNameDefault[] = "opsm";
 
 		/**
 		 * @brief default counting map file extension
@@ -208,7 +208,7 @@ namespace gnd {
 
 // ---> function declaration
 namespace gnd {
-	namespace psm {
+	namespace opsm {
 
 		int init_counting_map(cmap_t *m, double p, double u = DefaultMapCellSize);
 		int clear_counting_map(cmap_t *m);
@@ -242,7 +242,7 @@ namespace gnd {
 
 // ---> function definition
 namespace gnd {
-	namespace psm {
+	namespace opsm {
 
 		/**
 		 * @ingroup GNDPSM
@@ -301,9 +301,9 @@ namespace gnd {
 			gnd_assert(!(m->plane+0) || !(m->plane + 1) || !(m->plane + 2) || !(m->plane + 3), -1, "invalid null pointer");
 
 			{ // ---> operation
-				psm::counting_map_pixel ini;
+				opsm::counting_map_pixel ini;
 
-				for( size_t i = 0; i < psm::PlaneNum; i++){
+				for( size_t i = 0; i < opsm::PlaneNum; i++){
 					m->plane[i].set_uniform(&ini);
 				}
 			} // <--- operation
@@ -1383,7 +1383,7 @@ namespace gnd {
 
 // ---> class definition
 namespace gnd {
-	namespace psm {
+	namespace opsm {
 
 		/**
 		 * @ingroup GNDPSM
@@ -1397,11 +1397,11 @@ namespace gnd {
 			// ---> declaration
 		public:
 			/// map type
-			typedef psm::map_t					map_t;
+			typedef opsm::map_t					map_t;
 			/// map type pointer
 			typedef map_t*						map_pt;
 			/// pixel type
-			typedef psm::pixel_t 				pixel_t;
+			typedef opsm::pixel_t 				pixel_t;
 			/// pixel type pointer
 			typedef pixel_t*					pixel_pt;
 			/// reflection point
@@ -1623,7 +1623,7 @@ namespace gnd {
 // ---> class definition
 // optimizer_newton
 namespace gnd {
-	namespace psm {
+	namespace opsm {
 
 		/**
 		 * @ingroup GNDPSM
@@ -1635,11 +1635,11 @@ namespace gnd {
 			// ---> type declaration
 				public:
 			/// map type
-			typedef psm::map_t					map_t;
+			typedef opsm::map_t					map_t;
 			/// map type pointer
 			typedef map_t*						map_pt;
 			/// pixel type
-			typedef psm::pixel_t 				pixel_t;
+			typedef opsm::pixel_t 				pixel_t;
 			/// pixel type pointer
 			typedef pixel_t*					pixel_pt;
 
@@ -1990,7 +1990,7 @@ namespace gnd {
 
 // ---> class definition
 namespace gnd {
-	namespace psm {
+	namespace opsm {
 
 		/**
 		 * @brief probabilistic scan matching optimizer (monte-calro)
@@ -1999,11 +1999,11 @@ namespace gnd {
 			// ---> type declaration
 		public:
 			/// map type
-			typedef psm::map_t		map_t;
+			typedef opsm::map_t		map_t;
 			/// map type pointer
 			typedef map_t*			map_pt;
 			/// pixel type
-			typedef psm::pixel_t	pixel_t;
+			typedef opsm::pixel_t	pixel_t;
 			/// pixel type pointer
 			typedef pixel_t*		pixel_pt;
 			// <--- type declaration
@@ -2254,7 +2254,7 @@ namespace gnd {
 
 						matrix::prod( &particles[i].coordm,  &p, &x );
 
-						psm::likelihood(_map, x[0][0], x[1][0], &lk);
+						opsm::likelihood(_map, x[0][0], x[1][0], &lk);
 						particles[i].likelihood += lk;
 					}
 				} // ---> loop for compute likelihood
@@ -2403,7 +2403,7 @@ namespace gnd {
 
 // ---> class definition
 namespace gnd {
-	namespace psm {
+	namespace opsm {
 
 		/**
 		 * @brief probabilistic scan matching optimizer (quasi-monte-calro)
@@ -2412,11 +2412,11 @@ namespace gnd {
 			// ---> type declaration
 		public:
 			/// map type
-			typedef psm::map_t		map_t;
+			typedef opsm::map_t		map_t;
 			/// map type pointer
 			typedef map_t*			map_pt;
 			/// pixel type
-			typedef psm::pixel_t	pixel_t;
+			typedef opsm::pixel_t	pixel_t;
 			/// pixel type pointer
 			typedef pixel_t*		pixel_pt;
 			// <--- type declaration
@@ -2683,7 +2683,7 @@ namespace gnd {
 
 						matrix::prod( &particles[i].coordm,  &p, &x );
 
-						psm::likelihood(_map, x[0][0], x[1][0], &lk);
+						opsm::likelihood(_map, x[0][0], x[1][0], &lk);
 						particles[i].likelihood += lk;
 					}
 				} // ---> loop for compute likelihood
@@ -2759,7 +2759,7 @@ namespace gnd {
 
 // ---> class definition
 namespace gnd {
-	namespace psm {
+	namespace opsm {
 
 		/**
 		 * @brief probabilistic scan matching optimizer (quasi-monte-calro and newton's method)
@@ -2769,11 +2769,11 @@ namespace gnd {
 			// ---> type declaration
 		public:
 			/// map type
-			typedef psm::map_t		map_t;
+			typedef opsm::map_t		map_t;
 			/// map type pointer
 			typedef map_t*			map_pt;
 			/// pixel type
-			typedef psm::pixel_t	pixel_t;
+			typedef opsm::pixel_t	pixel_t;
 			/// pixel type pointer
 			typedef pixel_t*		pixel_pt;
 			// <--- type declaration
@@ -2858,7 +2858,7 @@ namespace gnd {
 
 							prod( &particles[i].coordm,  &x, &X );
 
-							psm::likelihood(_map, X[0][0], X[1][0], &lk);
+							opsm::likelihood(_map, X[0][0], X[1][0], &lk);
 							particles[i].likelihood += lk;
 						}
 						sum += particles[i].likelihood;
@@ -2959,4 +2959,4 @@ namespace gnd {
 #include "gnd-debug-log-util-undef.h"
 
 // <--- class function definition
-#endif /* GND_PSM_HPP_ */
+#endif /* GND_OPSM_HPP_ */

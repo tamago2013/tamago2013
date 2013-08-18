@@ -6,14 +6,14 @@
  */
 
 #include <stdio.h>
-#include "gnd-psm.hpp"
+#include "gnd-opsm.hpp"
 #include "gnd-config-file.hpp"
 
 
 
 int main( int argc, char* argv[] ) {
-	gnd::psm::cmap_t	cmap;					// counting map
-	gnd::psm::map_t		map;					// scan matching map
+	gnd::opsm::cmap_t	cmap;					// counting map
+	gnd::opsm::map_t		map;					// scan matching map
 	FILE				*fp;					// laser scanner data file
 
 	gnd::conf::parameter_array<char, 256> cmap_dir = {
@@ -72,12 +72,12 @@ int main( int argc, char* argv[] ) {
 			return -1;
 		}
 		// read counting map
-		ret = gnd::psm::read_counting_map( &cmap, cmap_dir.value );
+		ret = gnd::opsm::read_counting_map( &cmap, cmap_dir.value );
 		if( ret < 0 ) {
 			::fprintf(stderr, " error: fail to read counting map form directory \"%s\"\n", cmap_dir.value);
 		}
 		// build scan matching map
-		ret = gnd::psm::build_map( &map, &cmap );
+		ret = gnd::opsm::build_map( &map, &cmap );
 
 		if( !scan_file.value[0] ) {
 			::fprintf(stdout, " error: missing scan data\n");
@@ -119,7 +119,7 @@ int main( int argc, char* argv[] ) {
 			y_g = x_s * sinv + y_s * cosv + pos_ini.value[1];
 
 			// likelihood
-			gnd::psm::likelihood(&map, x_g, y_g, &l);
+			gnd::opsm::likelihood(&map, x_g, y_g, &l);
 			likelihood += l;
 
 			// count
@@ -137,8 +137,8 @@ int main( int argc, char* argv[] ) {
 		::fclose(fp);
 
 		//destroy map data
-		gnd::psm::destroy_counting_map(&cmap);
-		gnd::psm::destroy_map(&map);
+		gnd::opsm::destroy_counting_map(&cmap);
+		gnd::opsm::destroy_map(&map);
 	} // <--- finalize
 
 

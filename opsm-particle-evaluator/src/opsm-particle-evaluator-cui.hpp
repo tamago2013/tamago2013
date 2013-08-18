@@ -1,17 +1,17 @@
 /*
- * psm-particle-evaluator-cui.hpp
+ * opsm-particle-evaluator-cui.hpp
  *
  *  Created on: 2012/03/21
  *      Author: tyamada
  */
 
-#ifndef PSM_PARTICLE_EVALUATOR_CUI_HPP_
-#define PSM_PARTICLE_EVALUATOR_CUI_HPP_
+#ifndef OPSM_PARTICLE_EVALUATOR_CUI_HPP_
+#define OPSM_PARTICLE_EVALUATOR_CUI_HPP_
 
-#include "psm-particle-evaluator.hpp"
+#include "opsm-particle-evaluator.hpp"
 #include "gnd-cui.hpp"
 
-namespace psm {
+namespace opsm {
 	namespace peval {
 		const double ShowUpdateCycle = 1.0;
 

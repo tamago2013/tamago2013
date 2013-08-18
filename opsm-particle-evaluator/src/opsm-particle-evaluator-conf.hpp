@@ -1,41 +1,41 @@
 /*
- * psm-particle-evaluator-conf.hpp
+ * opsm-particle-evaluator-conf.hpp
  *
  *  Created on: 2012/03/14
  *      Author: tyamada
  */
 
-#ifndef PSM_PARTICLE_EVALUATOR_CONF_HPP_
-#define PSM_PARTICLE_EVALUATOR_CONF_HPP_
+#ifndef OPSM_PARTICLE_EVALUATOR_CONF_HPP_
+#define OPSM_PARTICLE_EVALUATOR_CONF_HPP_
 
 #include <ssmtype/spur-odometry.h>
 #include "ssm-laser.hpp"
 #include "ssm-particles.hpp"
 
-#include "psm-particle-evaluator.hpp"
+#include "opsm-particle-evaluator.hpp"
 
-#include "gnd-psm.hpp"
+#include "gnd-opsm.hpp"
 #include "gnd-config-file.hpp"
 #include "gnd-lib-error.h"
 
 
 /// structure declaration
-// ---> namespace psm
-namespace psm {
+// ---> namespace opsm
+namespace opsm {
 	// ---> namespace peval
 	namespace peval {
 		/*!
 		 * @brief process configuration
 		 */
 		struct proc_configuration;
-	} // <--- namespace psm
+	} // <--- namespace opsm
 } // <--- namespace peval
 
 
 
 /// function declaration
-// ---> namespace psm
-namespace psm {
+// ---> namespace opsm
+namespace opsm {
 	// ---> namespace peval
 	namespace peval {
 
@@ -45,17 +45,17 @@ namespace psm {
 		int proc_conf_read(const char* f, proc_configuration* dest);
 		int proc_conf_write(const char* f, proc_configuration* src);
 
-	} // <--- namespace psm
+	} // <--- namespace opsm
 } // <--- namespace peval
 
 
 // constant definition
 // ---> namespace peval
-namespace psm {
-	// ---> namespace psm
+namespace opsm {
+	// ---> namespace opsm
 	namespace peval {
 
-		static const char proc_name[] = "psm-particle-evaluator";
+		static const char proc_name[] = "opsm-particle-evaluator";
 
 		// bmp-map
 		static const gnd::conf::parameter_array<char, 512> ConfIni_BMPMap = {
@@ -170,13 +170,13 @@ namespace psm {
 				0.05,
 		};
 
-	} // <--- namespace psm
+	} // <--- namespace opsm
 } // <--- namespace peval
 
 
 // type definition
-// ---> namespace psm
-namespace psm {
+// ---> namespace opsm
+namespace opsm {
 	// ---> namespace peval
 	namespace peval {
 
@@ -217,12 +217,12 @@ namespace psm {
 			proc_conf_initialize(this);
 		}
 	} // <--- namespace peval
-} // <--- namespace psm
+} // <--- namespace opsm
 
 
 // function definition
-// ---> namespace psm
-namespace psm {
+// ---> namespace opsm
+namespace opsm {
 	// ---> namespace peval
 	namespace peval {
 
@@ -365,7 +365,7 @@ namespace psm {
 		}
 
 	} // <--- namespace peval
-} // <--- namespace psm
+} // <--- namespace opsm
 
 
 #endif /* PSM_PARTICLE_EVALUATOR_CONF_HPP_ */
