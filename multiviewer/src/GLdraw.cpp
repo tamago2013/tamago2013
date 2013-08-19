@@ -35,7 +35,7 @@ SSMSOKUIKIData3D urgFS4( SSM_NAME_SOKUIKI_3D_FS, 4 );
 SSMParticles particlesGL(SNAME_PARTICLES ,0 );
 //SSMFreeAreaMap freeMapGL(SNAME_FREE_AREA_MAP);
 //SSMRoadEstimator roadMapGL( SSM_NAME_ROAD_ESTIMATOR, 0 );
-SSMPSMMap observMapGL( SNAME_PSM_MAP, 0 );
+SSMOPSMMap observMapGL( SNAME_OPSM_MAP, 0 );
 
 //SSMWayPoint wayPointGL( SSM_NAME_WAYPOINT, 0 );
 //SSMPlannedPath plannedPathGL( SSM_NAME_PLANNED_PATH, 0 );

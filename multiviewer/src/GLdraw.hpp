@@ -17,7 +17,7 @@
 //#include <ssm-obstacles.hpp>
 #include "ssm-particles.hpp"
 //#include <ssm-free-area-map.hpp>
-#include <ssm-psm-map.hpp>
+#include <ssm-opsm-map.hpp>
 //#include <ssm-waypoint.hpp>
 //#include <ssm-road-estimator.hpp>
 //#include <ssm-pathplan.hpp>
@@ -102,7 +102,7 @@ extern SSMSOKUIKIData3D urgObsBS2;
 extern SSMParticles particlesGL;
 //extern SSMFreeAreaMap freeMapGL;
 //extern SSMRoadEstimator roadMapGL;
-extern SSMPSMMap observMapGL;
+extern SSMOPSMMap observMapGL;
 
 //extern SSMWayPoint wayPointGL;
 //extern SSMPlannedPath plannedPathGL;
