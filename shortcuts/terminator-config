@@ -66,9 +66,9 @@
       command = sleep 1; cd ${tamago_home}/ls-coordinate-converter; ./launcher -g upward-ls-coordinate-converter.conf; bash; 
 
 #=================================================
-# ssm / ssm-coordinatorとssm-monitorの起動
+# platform / ssm-coordinator, ssm-monitor, yp-spur, echo "ypspur-joystick"の起動
 #=================================================
-  [[ssm]]
+  [[platform]]
     [[[child0]]]
       position = 0:0
       type = Window
@@ -80,51 +80,44 @@
       type = HPaned
       order = 0
       parent = child0
-    [[[terminal2]]]
+    [[[child2]]]
+      position = 526
+      type = VPaned
+      order = 0
+      parent = child1
+    [[[child5]]]
+      position = 526
+      type = VPaned
+      order = 1
+      parent = child1
+    [[[terminal3]]]
       profile = default
       type = Terminal
       order = 0
-      parent = child1 
+      parent = child2
       title = ssm-coordinator
       command = ssm-coordinator; bash; 
-    [[[terminal3]]]
+    [[[terminal4]]]
       profile = default
       type = Terminal
       order = 1
-      parent = child1
+      parent = child2
       title = ssm-monitor
       command = sleep 0.5; ssm-monitor; bash; 
-
-#=================================================
-# spur / ypspur-coordinatorの起動( spur-joystickはecho )
-#=================================================
-  [[spur]]
-    [[[child0]]]
-      position = 0:0
-      type = Window
-      order = 0
-      parent = ""
-      size = 1918, 1053
-    [[[child1]]]
-      position = 959
-      type = HPaned
-      order = 0
-      parent = child0
-    [[[terminal2]]]
+    [[[terminal6]]]
       profile = default
       type = Terminal
       order = 0
-      parent = child1 
+      parent = child5
       title = ypspur-coordinator
-      command = ypspur-coordinator -p ~/rpp/Loop_new.param -d /dev/ttyACM0 --high-resolution; bash; 
-    [[[terminal3]]]
+      command = sleep 1; ypspur-coordinator -p ${tamago_home}/data/Loop_new.param -d /dev/ttyACM0 --high-resolution; bash;  
+    [[[terminal7]]]
       profile = default
       type = Terminal
       order = 1
-      parent = child1
-      title = ( ypspur-joystick )
-      command = echo "ypspur-joystick -V 0.5 -W 0.5 -A 0.5 -O 0.7 -d /dev/input/js0 0.5 0.8"; bash; 
-
+      parent = child5
+      title = echo" ypspur-joystick "
+      command = sleep 1; echo "ypspur-joystick -V 0.5 -W 0.5 -A 0.5 -O 0.7 -d /dev/input/js0 0.5 0.8"; bash; 
 
 #=================================================
 # localizer / particle-localizerとopsm-particle-evaluatorの立ち上げ
@@ -157,58 +150,46 @@
       command = cd ${tamago_home}/opsm-particle-evaluator; ./launcher; bash; 
 
 #=================================================
-# VLP( Visualizer , Logger , PathPlanner ) / 最後に起動するやつ
+# visualizer / visualizerの立ち上げ
 #=================================================
-  [[VLP]]
-    [[[child0]]]
-      position = 0:0
-      type = Window
-      order = 0
-      parent = ""
-      size = 1918, 1053
+  [[visualizer]]
     [[[child1]]]
-      position = 959
-      type = HPaned
-      order = 0
-      parent = child0
-    [[[child2]]]
-      position = 526
-      type = VPaned
-      order = 0
-      parent = child1
-    [[[child5]]]
-      position = 526
-      type = VPaned
-      order = 1
-      parent = child1
-    [[[terminal3]]]
-      profile = default
       type = Terminal
-      order = 0
-      parent = child2
-      title = visualizer
-      command = cd ${tamago_home}/visualizer2; ./a.out; bash; 
-    [[[terminal4]]]
-      profile = default
+      parent = window0
+      title = visualizer2
+      command = cd ${tamago_home}/visualizer2; ./a.out; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
+
+#=================================================
+# path-planner / path-plannerの立ち上げ
+#=================================================
+  [[path-planner]]
+    [[[child1]]]
       type = Terminal
-      order = 1
-      parent = child2
+      parent = window0
       title = path-planner
-      command = sleep 1; cd ${tamago_home}/ysd-path-planner; ./launcher; bash; 
-    [[[terminal6]]]
-      profile = default
+      command = cd ${tamago_home}/ysd-path-planner; ./launcher; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
+
+#=================================================
+# multi-logger / multi-loggerの立ち上げ
+#=================================================
+  [[multi-logger]]
+    [[[child1]]]
       type = Terminal
-      order = 0
-      parent = child5
-      title = ( multilogger )
-      command = cd ${tamago_home}/multilogger; echo "./multilogger ./conf/logging.list"; bash;  
-    [[[terminal7]]]
-      profile = default
-      type = Terminal
-      order = 1
-      parent = child5
-      title = -
-      command = echo ""; bash; 
+      parent = window0
+      title = path-planner
+      command = cd ${tamago_home}/multilogger; ./multilogger ./conf/logging.list; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
+
+
+
 [plugins]
 
 

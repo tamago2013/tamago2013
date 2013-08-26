@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================
-# particle-localizerとopsm-particle-evaluatorの起動
+# ssm-coordinatorとssm-monitorの起動
 #==============================================
 
 
@@ -14,8 +14,7 @@ if [ ! -d ~/.config/terminator ] ; then
 	mkdir ~/.config/terminator
 fi
 
-
 mv ~/.config/terminator/config ~/.config/terminator/config.bk
 cp terminator-config ~/.config/terminator/config
-terminator -l localizer&
+terminator -l visualizer&
 mv ~/.config/terminator/config.bk ~/.config/terminator/config	

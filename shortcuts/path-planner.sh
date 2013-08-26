@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================
-# particle-localizerとopsm-particle-evaluatorの起動
+# visualizer , pathplannerの起動　( multiloggerはecho )
 #==============================================
 
 
@@ -14,8 +14,7 @@ if [ ! -d ~/.config/terminator ] ; then
 	mkdir ~/.config/terminator
 fi
 
-
 mv ~/.config/terminator/config ~/.config/terminator/config.bk
 cp terminator-config ~/.config/terminator/config
-terminator -l localizer&
+terminator -l path-planner&
 mv ~/.config/terminator/config.bk ~/.config/terminator/config	
