@@ -1,42 +1,55 @@
-#ifndef MAINWINDOW_HPP
-#define MAINWINDOW_HPP
+#ifndef WINDOW_HPP
+#define WINDOW_HPP
 
 #include <QMainWindow>
-#include <QMenu>
-#include "widget-gl.hpp"
-#include "widget-msg.hpp"
+#include "tkg-config.hpp"
 
-class MainWindow : public QMainWindow
+class FPSTimer;
+class WidgetGL;
+class WidgetIMG;
+class WidgetMSG;
+
+
+class Window : public QMainWindow
 {
     Q_OBJECT
 
     public:
 
-         MainWindow();
-        ~MainWindow();
+        Window(tkg::ConfigFile& config);
+        ~Window();
 
-         bool init();
+        bool init();
+        void test_add_menu_SSM(QObject* obj, const char* str);
 
-         void test_add_menu_SSM(QObject* obj, const char* str);
+        void addMenuFPS(FPSTimer *obj, const char *str);
 
-    private slots:
-
-        void fps01() { fps=1;  viewer->setfps(fps); }
-        void fps05() { fps=5;  viewer->setfps(fps); }
-        void fps10() { fps=10; viewer->setfps(fps); }
-        void fps20() { fps=20; viewer->setfps(fps); }
-        void fps30() { fps=30; viewer->setfps(fps); }
-
-    public:
-
-        WidgetGL  *viewer;
-        WidgetMSG *status;
-        WidgetMSG *message;
+        WidgetGL*  viewer () { return w_viewer;  }
+        WidgetIMG* camera1() { return w_camera1; }
+        WidgetIMG* camera2() { return w_camera2; }
+        WidgetMSG* status () { return w_status;  }
+        WidgetMSG* message() { return w_message; }
+        WidgetMSG* control() { return w_control; }
 
     private:
 
-        int fps;
+
+        tkg::ConfigFile *config_f;
+
+        // widgets
+
+        WidgetGL  *w_viewer;
+        WidgetIMG *w_camera1;
+        WidgetIMG *w_camera2;
+        WidgetMSG *w_status;
+        WidgetMSG *w_message;
+        WidgetMSG *w_control;
+
+        //int fps;
         QMenu *ssm_menu;
+        QMenu *m_fps;
+
+
 };
 
 #endif
