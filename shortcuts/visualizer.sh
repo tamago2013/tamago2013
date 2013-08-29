@@ -16,5 +16,5 @@ fi
 
 mv ~/.config/terminator/config ~/.config/terminator/config.bk
 cp terminator-config ~/.config/terminator/config
-terminator -l visualizer&
+terminator -l visualizer
 mv ~/.config/terminator/config.bk ~/.config/terminator/config	
