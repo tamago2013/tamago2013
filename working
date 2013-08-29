@@ -1,0 +1,11 @@
+#!/bin/bash
+
+. .tamago
+
+if [ -f ${_META_DATA_} ]; then
+. .tamago-meta
+echo ${_CURRENT_WORING_}
+else
+echo "no working"
+fi
+
