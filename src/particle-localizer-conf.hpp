@@ -482,7 +482,7 @@ namespace Localizer {
 			gnd::matrix::set(&conf->poserr_cover_ini, i, i, gnd_square( conf->pos_err_ini.value[i] ) );
 
 		gnd::matrix::set_unit( &conf->randerr_covar );
-		for(size_t i = 0; i < 2; i++)
+		for(size_t i = 0; i < 3; i++)
 			gnd::matrix::set(&conf->randerr_covar, i, i, gnd_square( conf->randerr_conf.value[i] ) );
 
 		gnd::matrix::set_unit( &conf->randerr_covar_offset );

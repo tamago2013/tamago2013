@@ -228,7 +228,7 @@ int main(int argc, char* argv[], char *envp[]) {
 		if( !is_proc_shutoff() ) {
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => create ssm-data \"\x1b[4m%s\x1b[0m\"\n", SNAME_ADJUST );
-			if( !ssm_position.create( SNAME_ADJUST, 0, 1, 0.005) ){
+			if( !ssm_position.create( SNAME_ADJUST, 0, 5, 0.005) ){
 				::fprintf(stderr, "  \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to create \"\x1b[4m%s\x1b[0m\"\n", SNAME_ADJUST );
 				proc_shutoff();
 			}
@@ -655,7 +655,7 @@ int main(int argc, char* argv[], char *envp[]) {
 					// save resampling time
 					rsmp_time = prev_time + 1.0e-6;
 					// write ssm
-					ssm_particle.write( rsmp_time );
+					ssm_particle.write( mtr.time );
 
 
 				} // <--- resampling
