@@ -6,10 +6,9 @@ namespace tkg
 
 /*
 const double char_vector[2km././][] =
-/*
+*/
 
 
-}
 
 //カメラ
 //色クラス

@@ -40,7 +40,7 @@ void WidgetIMG::init()
 
 void WidgetIMG::paintEvent(QPaintEvent *)
 {
-    smReadNew(ssmapi);
+    smReadLast(ssmapi);
     {
         ssmimage &data = (*(ssmimage*)(ssmapi->data()));
 

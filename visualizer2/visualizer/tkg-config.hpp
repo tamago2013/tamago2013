@@ -20,7 +20,7 @@ class ConfigValue : public std::vector<std::string>
 
         bool parse(const std::string &str)
         {
-            for(int p=0,n=0; true; p=n+1)
+            for(size_type p=0,n=0; true; p=n+1)
             {
                 n = str.find_first_of(",;", p);
                 if(n == std::string::npos) break;
@@ -37,7 +37,7 @@ class ConfigGroup : public std::map<std::string, ConfigValue>
 
         bool parse(const std::string &str)
         {
-            for(int p=0,s=0,g=0; true; p=g+1)
+            for(size_type p=0,s=0,g=0; true; p=g+1)
             {
                 s = str.find_first_of(':', p);
                 g = str.find_first_of(';', p);
@@ -73,7 +73,7 @@ class ConfigFile : public std::map<std::string, ConfigGroup>
 
         bool parse(const std::string &str)
         {
-            for(int p=0,s=0,g=0; true; p=g+1)
+            for(size_type p=0,s=0,g=0; true; p=g+1)
             {
                 s = str.find_first_of('{', p);
                 g = str.find_first_of('}', p);

@@ -4,7 +4,7 @@
 #include "widget-msg.hpp"
 #include "ssm-message.hpp"
 
-int sr_state = 0;
+int sm_state = 0;
 WidgetMSG *w_msg = NULL;
 
 void logger(const char* format, ...)
@@ -27,16 +27,16 @@ void smTarget(WidgetMSG *msg)
 
 void smInit()
 {
-    if(sr_state != 0) return;
-    sr_state = initSSM();
-    if(sr_state) { logger("SSMへの接続に成功しました。\n"); }
+    if(sm_state != 0) return;
+    sm_state = initSSM();
+    if(sm_state) { logger("SSMへの接続に成功しました。\n"); }
     else         { logger("SSMへの接続に失敗しました。\n"); }
 }
 
 void smEnd()
 {
-    if(sr_state == 0) return;
-    sr_state = endSSM();
+    if(sm_state == 0) return;
+    sm_state = endSSM();
 
     /*
     for(int i=0; i<ssm_count; i++)
@@ -53,15 +53,27 @@ void smEnd()
 
 void smConnect(SSMApiBase *api)
 {
-    if(sr_state == 0) return;
+    if(sm_state == 0) return;
     if(api->isOpen()) return;
 
     if(api->open()) { logger("%s [%d] へ接続成功。\n", api->getStreamName(), api->getStreamId()); }
     else            { logger("%s [%d] へ接続失敗。\n", api->getStreamName(), api->getStreamId()); }
 }
 
-void smReadNew(SSMApiBase *api)
+bool smState(SSMApiBase *api)
 {
-    if(sr_state == 0) return;
-    if(api->isOpen()) { api->readNew(); }
+    if(sm_state == 0) return false;
+    return api->isOpen();
+}
+
+void smReadLast(SSMApiBase *api)
+{
+    if(sm_state == 0) return;
+    if(api->isOpen()) { api->readLast(); }
+}
+
+void smReadTime(SSMApiBase *api, double time)
+{
+    if(sm_state == 0) return;
+    if(api->isOpen()) { api->readTime(time); }
 }

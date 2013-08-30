@@ -63,6 +63,8 @@ bool WidgetGL::init()
     smConnect(ssm_robot);
     smConnect(ssm_laser[0]);
     smConnect(ssm_laser[1]);
+
+    return true;
 }
 
 void WidgetGL::initializeGL()
@@ -102,6 +104,23 @@ void WidgetGL::paintGL()
     // モデルの描画
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    // 最新時刻の取得
+    ssm_time = 1e10;
+    if( smState(ssm_robot) )
+    {
+        smReadLast(ssm_robot);
+        ssm_time = std::min(ssm_time, ssm_robot->time);
+
+    }
+    for(int i=0; i<SSM_LASER_SIZE; i++)
+    {
+        if( smState(ssm_laser[i]) )
+        {
+            smReadLast(ssm_laser[i]);
+            ssm_time = std::min(ssm_time, ssm_laser[i]->time);
+        }
+    }
 
     drawMap();
     drawGround();
@@ -204,12 +223,12 @@ bool WidgetGL::loadRoute()
         route_node.push_back( tkg::point3(x,y,0) );
     }
 
-    for(int i=1; i<route_node.size(); i++)
+    for(uint i=1; i<route_node.size(); i++)
     {
         route_edge.push_back( std::make_pair(i-1, i) );
     }
 
-    window->message()->add_message("ルートの読込に成功しました。[");
+    window->message()->add_message("ルートの読込に成功しました。\n");
     return true;
 }
 
@@ -219,7 +238,7 @@ void WidgetGL::drawRoute()
     glColor3d(1.0, 1.0, 0.0);
     glPointSize(5);
     glBegin(GL_POINTS);
-    for(int i=0; i<route_node.size(); i++)
+    for(uint i=0; i<route_node.size(); i++)
     {
         tkg::ggVertex(route_node[i]);
     }
@@ -230,7 +249,7 @@ void WidgetGL::drawRoute()
     glColor3d(1.0, 1.0, 0.0);
     glLineWidth(1);
     glBegin(GL_LINES);
-    for(int i=0; i<route_edge.size(); i++)
+    for(uint i=0; i<route_edge.size(); i++)
     {
         tkg::ggVertex(route_node[route_edge[i].first ]);
         tkg::ggVertex(route_node[route_edge[i].second]);
@@ -270,7 +289,7 @@ void WidgetGL::drawRobot()
 {
     SSMApi<Spur_Odometry> *ssmapi = ssm_robot;
 
-    smReadNew(ssmapi);
+    smReadTime(ssmapi, ssm_time);
     if(!ssmapi->isOpen()) return;
     Spur_Odometry &data = ssmapi->data;
 
@@ -289,8 +308,8 @@ void WidgetGL::drawLaser(int id)
 {
     SSMSOKUIKIData3D *ssmapi = ssm_laser[id];
 
-    smReadNew(ssmapi);
-    if(!ssmapi->isOpen()) return;
+    smReadTime(ssmapi, ssm_time);
+    if( !smState(ssmapi) ) return;
     SOKUIKIData3D &data = ssmapi->data;
 
     tkg::point3 robot_p = tkg::point3(robot_x, robot_y, 0);
@@ -301,7 +320,7 @@ void WidgetGL::drawLaser(int id)
         glPointSize(3);
         glBegin(GL_POINTS);
 
-        for(int i=0; i<data.numPoints(); i++)
+        for(uint i=0; i<data.numPoints(); i++)
         {
             if(data[i].isWarning()) continue;
 
@@ -318,7 +337,7 @@ void WidgetGL::drawLaser(int id)
         glColor4dv(color_laser[id].rgba);
         glLineWidth(1);
         glBegin(GL_LINES);
-        for(int i=0; i<data.numPoints(); i++)
+        for(uint i=0; i<data.numPoints(); i++)
         {
             if(data[i].isWarning()) continue;
 

@@ -78,10 +78,12 @@ class WidgetGL : public QGLWidget
         std::vector<std::pair<int,int> > route_edge;
 
         // ssm
+        static const int SSM_LASER_SIZE = 2;
         SSMApi<Spur_Odometry> *ssm_robot;
-        SSMSOKUIKIData3D      *ssm_laser[2];
-        tkg::color color_point[2];
-        tkg::color color_laser[2];
+        SSMSOKUIKIData3D      *ssm_laser[SSM_LASER_SIZE];
+        tkg::color color_point[SSM_LASER_SIZE];
+        tkg::color color_laser[SSM_LASER_SIZE];
+        double ssm_time;
 
         // screen
         int    width;
