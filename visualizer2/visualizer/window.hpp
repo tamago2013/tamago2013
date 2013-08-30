@@ -20,9 +20,10 @@ class Window : public QMainWindow
         ~Window();
 
         bool init();
-        void test_add_menu_SSM(QObject* obj, const char* str);
 
-        void addMenuFPS(FPSTimer *obj, const char *str);
+
+        void addMenuFPS (FPSTimer *obj, const char *str);
+        //void addMenuView(const char *str)
 
         WidgetGL*  viewer () { return w_viewer;  }
         WidgetIMG* camera1() { return w_camera1; }

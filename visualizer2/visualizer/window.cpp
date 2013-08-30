@@ -52,17 +52,13 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 
     setCentralWidget(s_widget);
 
-
     // ssm init
     smTarget(w_message);
     smInit();
 
     // Menu
-
-
-
-
     ssm_menu = menuBar()->addMenu(tr("&SSM"));
+
 
 
     QAction *image_free = new QAction(tr("free"), this);
@@ -79,7 +75,7 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
     image_lock_xyt->setChecked(true);
 
     QMenu *image_menu;
-    image_menu = menuBar()->addMenu(tr("&image"));
+    image_menu = menuBar()->addMenu(tr("&Camera"));
     image_menu->addAction(image_free);
     image_menu->addAction(image_lock_xy);
     image_menu->addAction(image_lock_xyt);
@@ -117,7 +113,7 @@ bool Window::init()
     return true;
 }
 
-
+/*
 void Window::test_add_menu_SSM(QObject* obj, const char* str)
 {
     QAction *view00 = new QAction(tr("non-display"), this);
@@ -164,6 +160,7 @@ void Window::test_add_menu_SSM(QObject* obj, const char* str)
     signal_mapper->setMapping(view11, 3);
     connect(signal_mapper, SIGNAL(mapped(int)), obj, SLOT(set_view_state(int)));
 }
+*/
 
 void Window::addMenuFPS(FPSTimer *obj, const char *str)
 {
@@ -194,11 +191,4 @@ void Window::addMenuFPS(FPSTimer *obj, const char *str)
         }
     }
     connect(mapper, SIGNAL(mapped(int)), obj, SLOT(setFPS(int)));
-
-
-
-
-
-
-
 }

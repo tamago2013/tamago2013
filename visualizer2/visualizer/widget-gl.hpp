@@ -2,19 +2,20 @@
 #define WIDGET_GL_HPP
 
 #include <QtOpenGL/QGLWidget>
-#include <QTimer>
 #include "camera.hpp"
+#include "tkg-utility.hpp"
 #include "tkg-config.hpp"
+#include "ssm-laser.hpp"
+#include "ssmtype/spur-odometry.h"
 
 class Window;
+class FPSTimer;
+
 class QKeyEvent;
 class QMouseEvent;
 class QWheelEvent;
 
-class ViewerMap;
 
-class FPSTimer;
-class SSMApiBase;
 
 class WidgetGL : public QGLWidget
 {
@@ -26,7 +27,6 @@ class WidgetGL : public QGLWidget
         ~WidgetGL();
 
          bool init();
-         ViewerMap* get_vmap() { return vmap; }
          Camera*  get_camera() { return camera; }
 
     protected:  // functions
@@ -44,31 +44,46 @@ class WidgetGL : public QGLWidget
 
     private:  // functions
 
+        bool loadMap();
+        bool loadRoute();
+
         void drawGround();
-        void drawRobot(int id);
-        void drawLaser(int id);
+        void drawMap();
+        void drawRoute();
+        void drawRobot();
+        void drawLaser(int);
 
     private: // variables
 
-        static const int SSM_COUNT = 3;
-        SSMApiBase *ssm[SSM_COUNT];
-
-        // viewmode[STREAM_MAX]
-
-        //
+        // object
         Window   *window;
         FPSTimer *timer;
 
-
-        //
+        // robot state
         double robot_x;
         double robot_y;
         double robot_t;
 
-        ViewerMap *vmap;
-        //ViewerSSM *vssm;
+        // map
+        std::string     map_name;
+        unsigned int    map_image;
+        unsigned char  *map_data;
+        int    map_width,  map_height;
+        double map_base_x, map_base_y;
+        double map_unit_x, map_unit_y;
 
-        // 画面サイズ関連
+        // route
+        std::string                      route_name;
+        std::vector<tkg::point3>         route_node;
+        std::vector<std::pair<int,int> > route_edge;
+
+        // ssm
+        SSMApi<Spur_Odometry> *ssm_robot;
+        SSMSOKUIKIData3D      *ssm_laser[2];
+        tkg::color color_point[2];
+        tkg::color color_laser[2];
+
+        // screen
         int    width;
         int    height;
         double aspect;
@@ -80,9 +95,6 @@ class WidgetGL : public QGLWidget
         int mouse_prev_x;
         int mouse_prev_y;
         int mouse_prev_b;
-
-
-
 };
 
 #endif // WIDGET_GL_HPP
