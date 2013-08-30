@@ -28,10 +28,10 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     ssm_laser[0] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg1"]["ssm-name"]), tkg::parseInt(conf["Urg1"]["ssm-id"]));
     ssm_laser[1] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg2"]["ssm-name"]), tkg::parseInt(conf["Urg2"]["ssm-id"]));
 
-    color_point[0] = tkg::parseColor(conf["Urg1"]["point-color"]);
-    color_laser[0] = tkg::parseColor(conf["Urg1"]["laser-color"]);
-    color_point[1] = tkg::parseColor(conf["Urg2"]["point-color"]);
-    color_laser[1] = tkg::parseColor(conf["Urg2"]["laser-color"]);
+    color_point[0] = tkg::color4(conf["Urg1"]["point-color"]);
+    color_laser[0] = tkg::color4(conf["Urg1"]["laser-color"]);
+    color_point[1] = tkg::color4(conf["Urg2"]["point-color"]);
+    color_laser[1] = tkg::color4(conf["Urg2"]["laser-color"]);
 
     camera = new Camera;
 
@@ -105,29 +105,33 @@ void WidgetGL::paintGL()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // 最新時刻の取得
-    ssm_time = 1e10;
-    if( smState(ssm_robot) )
+    // SSMの更新
+    ssmTimeT ssm_time = 1e10;
+    std::vector<SSMApiBase*> ssmapi;
+    ssmapi.push_back(ssm_robot);
+    ssmapi.push_back(ssm_laser[0]);
+    ssmapi.push_back(ssm_laser[1]);
+    for(uint i=0; i<ssmapi.size(); i++)
     {
-        smReadLast(ssm_robot);
-        ssm_time = std::min(ssm_time, ssm_robot->time);
-
-    }
-    for(int i=0; i<SSM_LASER_SIZE; i++)
-    {
-        if( smState(ssm_laser[i]) )
+        if( smState(ssmapi[i]) )
         {
-            smReadLast(ssm_laser[i]);
-            ssm_time = std::min(ssm_time, ssm_laser[i]->time);
+            smReadLast(ssmapi[i]);
+            ssm_time = std::min(ssm_time, ssmapi[i]->time);
         }
+    }
+    for(uint i=0; i<ssmapi.size(); i++)
+    {
+        smReadTime(ssmapi[i], ssm_time);
     }
 
     drawMap();
     drawGround();
     drawRoute();
     drawRobot();
-    drawLaser(0);
-    drawLaser(1);
+    for(int i=0; i<SSM_LASER_SIZE; i++)
+    {
+        drawLaser(i);
+    }
 
     glFlush();
 }
@@ -143,7 +147,7 @@ bool WidgetGL::loadMap()
     gnd::bmp8_t       bmp_map;
 
     // read  map raw map_data
-    if( gnd::opsm::read_counting_map(&cnt_map, dirname, "psm") < 0)
+    if( gnd::opsm::read_counting_map(&cnt_map, dirname) < 0)
     {
         window->message()->add_message("マップの読込に失敗しました。[");
         window->message()->add_message(dirname);
@@ -267,30 +271,53 @@ void WidgetGL::drawRoute()
 
 void WidgetGL::drawGround()
 {
-    double sx = floor(map_base_x), gx = ceil(map_base_x + map_width  * map_unit_x);
-    double sy = floor(map_base_y), gy = ceil(map_base_y + map_height * map_unit_y);
+    if(map_width != -1 && map_height != -1)
+    {
+        double sx = floor(map_base_x), gx = ceil(map_base_x + map_width  * map_unit_x);
+        double sy = floor(map_base_y), gy = ceil(map_base_y + map_height * map_unit_y);
 
-    glColor3d(0.2,0.2,0.2);
-    glBegin(GL_LINES);
-    for(double x=sx; x<=gx; x+=1.0)
-    {
-        glVertex3d(x, sy, 0.0);
-        glVertex3d(x, gy, 0.0);
+        glColor3d(0.2,0.2,0.2);
+        glBegin(GL_LINES);
+        for(double x=sx; x<=gx; x+=1.0)
+        {
+            glVertex3d(x, sy, 0.0);
+            glVertex3d(x, gy, 0.0);
+        }
+        for(double y=sy; y<=gy; y+=1.0)
+        {
+            glVertex3d(sx, y, 0.0);
+            glVertex3d(gx, y, 0.0);
+        }
+        glEnd();
     }
-    for(double y=sy; y<=gy; y+=1.0)
+    else
     {
-        glVertex3d(sx, y, 0.0);
-        glVertex3d(gx, y, 0.0);
+        double s = -30.0, g = 30.0;
+        tkg::point3 robot_p = tkg::point3(robot_x, robot_y, 0);
+
+        glColor3d(0.2,0.2,0.2);
+        glBegin(GL_LINES);
+        for(double d=s; d<=g; d+=1.0)
+        {
+            tkg::point3 sx(d, s, 0.0);
+            tkg::point3 gx(d, g, 0.0);
+            tkg::point3 sy(s, d, 0.0);
+            tkg::point3 gy(g, d, 0.0);
+
+            glVertex3dv((robot_p + sx.rotateZ(robot_t)).vec);
+            glVertex3dv((robot_p + gx.rotateZ(robot_t)).vec);
+            glVertex3dv((robot_p + sy.rotateZ(robot_t)).vec);
+            glVertex3dv((robot_p + gy.rotateZ(robot_t)).vec);
+        }
+        glEnd();
     }
-    glEnd();
 }
 
 void WidgetGL::drawRobot()
 {
     SSMApi<Spur_Odometry> *ssmapi = ssm_robot;
 
-    smReadTime(ssmapi, ssm_time);
-    if(!ssmapi->isOpen()) return;
+    if(!smState(ssmapi)) return;
     Spur_Odometry &data = ssmapi->data;
 
     robot_x = data.x;
@@ -308,7 +335,6 @@ void WidgetGL::drawLaser(int id)
 {
     SSMSOKUIKIData3D *ssmapi = ssm_laser[id];
 
-    smReadTime(ssmapi, ssm_time);
     if( !smState(ssmapi) ) return;
     SOKUIKIData3D &data = ssmapi->data;
 
@@ -325,8 +351,7 @@ void WidgetGL::drawLaser(int id)
             if(data[i].isWarning()) continue;
 
             tkg::point3 ref(data[i].reflect.vec);
-            ref.rotZ(robot_t);
-            ggVertex(robot_p + ref);
+            ggVertex(robot_p + ref.rotateZ(robot_t));
         }
         glEnd();
         glPointSize(1);
@@ -343,10 +368,8 @@ void WidgetGL::drawLaser(int id)
 
             tkg::point3 ori(data[i].origin.vec);
             tkg::point3 ref(data[i].reflect.vec);
-            ori.rotZ(robot_t);
-            ref.rotZ(robot_t);
-            ggVertex(robot_p + ori);
-            ggVertex(robot_p + ref);
+            ggVertex(robot_p + ori.rotateZ(robot_t));
+            ggVertex(robot_p + ref.rotateZ(robot_t));
         }
         glEnd();
     }
@@ -360,8 +383,6 @@ void WidgetGL::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Down ) dy += 0.1;
     if(event->key() == Qt::Key_Left ) dx -= 0.1;
     if(event->key() == Qt::Key_Right) dx += 0.1;
-
-
 
     if(event->modifiers() & Qt::ControlModifier)
     {

@@ -15,7 +15,7 @@ class ConfigValue : public std::vector<std::string>
 
         operator std::string() const
         {
-            return empty() ? "" : front();
+            return empty() ? std::string() : front();
         }
 
         bool parse(const std::string &str)

@@ -46,6 +46,7 @@ class point3
 			return sqrt(x*x + y*y + z*z);
 		}
 
+        /*
 		void rotX(double rad)
 		{
 			double ty=y, tz=z;
@@ -66,6 +67,16 @@ class point3
 			x = tx*cos(rad) - ty*sin(rad);
 			y = tx*sin(rad) + ty*cos(rad);
 		}
+        */
+
+        point3 rotateZ(double rad)
+        {
+            point3 ret;
+            ret.x = x*cos(rad) - y*sin(rad);
+            ret.y = x*sin(rad) + y*cos(rad);
+            ret.z = z;
+            return ret;
+        }
 
 /*
         friend ostream& operator<<(ostream &out, const point3 &t)

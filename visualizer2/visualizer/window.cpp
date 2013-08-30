@@ -1,8 +1,8 @@
 #include <QAction>
 #include <QMenu>
 #include <QMenuBar>
-#include <QStatusBar>
 #include <QSplitter>
+#include <QScrollArea>
 #include <QSignalMapper>
 #include "window.hpp"
 #include "widget-gl.hpp"
@@ -28,25 +28,35 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
     w_message = new WidgetMSG();
     w_control = new WidgetMSG();
 
+    /*
     w_camera1->setFixedWidth(320);
     w_camera2->setFixedWidth(320);
+    */
+
 
     w_status ->setMaximumHeight(150);
     w_message->setMaximumHeight(150);
     w_control->setMaximumHeight(150);
+
+    QScrollArea *m_scrollArea = new QScrollArea;
+    m_scrollArea->setWidget(w_message);
+    w_message->adjustSize();
+    m_scrollArea->setWidgetResizable(true);
 
     QSplitter *s_widget = new QSplitter(Qt::Vertical);
     QSplitter *s_camera = new QSplitter(Qt::Vertical);
     QSplitter *s_viewer = new QSplitter(Qt::Horizontal);
     QSplitter *s_others = new QSplitter(Qt::Horizontal);
 
+    s_camera->resize( QSize(320,480) );
+
     s_camera->addWidget(w_camera1);
     s_camera->addWidget(w_camera2);
     s_viewer->addWidget(w_viewer);
     s_viewer->addWidget(s_camera);
     s_others->addWidget(w_status);
-    s_others->addWidget(w_message);
-    s_others->addWidget(w_control);
+    s_others->addWidget(m_scrollArea);
+    //s_others->addWidget(w_control);
     s_widget->addWidget(s_viewer);
     s_widget->addWidget(s_others);
 
@@ -171,7 +181,14 @@ void Window::addMenuFPS(FPSTimer *obj, const char *str)
     m_fps->addMenu(menu);
     group->setExclusive(true);
 
+    int fps_default = 1;
     std::vector<int> fps = obj->getFPS();
+    if(!fps.empty())
+    {
+        fps_default = fps.front();
+        std::sort(fps.begin(), fps.end());
+    }
+
     for(uint i=0; i<fps.size(); i++)
     {
         char str[256];
@@ -184,7 +201,7 @@ void Window::addMenuFPS(FPSTimer *obj, const char *str)
         mapper->setMapping(action, fps[i]);
         connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
 
-        if(i==0)
+        if(fps[i] == fps_default)
         {
             obj->setFPS(fps[i]);
             action->setChecked(true);

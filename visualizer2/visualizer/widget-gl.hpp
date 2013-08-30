@@ -5,6 +5,7 @@
 #include "camera.hpp"
 #include "tkg-utility.hpp"
 #include "tkg-config.hpp"
+#include "tkg-opengl.hpp"
 #include "ssm-laser.hpp"
 #include "ssmtype/spur-odometry.h"
 
@@ -81,9 +82,8 @@ class WidgetGL : public QGLWidget
         static const int SSM_LASER_SIZE = 2;
         SSMApi<Spur_Odometry> *ssm_robot;
         SSMSOKUIKIData3D      *ssm_laser[SSM_LASER_SIZE];
-        tkg::color color_point[SSM_LASER_SIZE];
-        tkg::color color_laser[SSM_LASER_SIZE];
-        double ssm_time;
+        tkg::color4 color_point[SSM_LASER_SIZE];
+        tkg::color4 color_laser[SSM_LASER_SIZE];
 
         // screen
         int    width;

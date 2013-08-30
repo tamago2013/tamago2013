@@ -12,7 +12,6 @@ using namespace std;
 
 WidgetMSG::~WidgetMSG()
 {
-    printf("widget-msg delete\n");
 }
 
 void WidgetMSG::set_message(const char *msg)
@@ -24,10 +23,4 @@ void WidgetMSG::add_message(const char *msg)
 {
     setText(text() + msg);
 }
-
-/*
-void WidgetMSG::set_message(const char *msg)
-{
-}
-*/
 
