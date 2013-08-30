@@ -8,18 +8,21 @@
 #include "widget-gl.hpp"
 #include "widget-msg.hpp"
 #include "widget-img.hpp"
+#include "fps-timer.hpp"
 #include "tkg-config.hpp"
 #include "ssm-message.hpp"
-#include "fps-timer.hpp"
 
 #include <QTableWidget>
 
 Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 {
-    resize(800, 600);
+    resize(900, 600);
     setWindowTitle("visualizer");
 
+
+    // Menu
     m_fps = menuBar()->addMenu(tr("&FPS"));
+    m_ssm = menuBar()->addMenu(tr("&SSM"));
 
     w_viewer  = new WidgetGL (this, conf);
     w_camera1 = new WidgetIMG(this, conf["Camera1"]);
@@ -65,9 +68,6 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
     // ssm init
     smTarget(w_message);
     smInit();
-
-    // Menu
-    ssm_menu = menuBar()->addMenu(tr("&SSM"));
 
 
 
@@ -208,4 +208,10 @@ void Window::addMenuFPS(FPSTimer *obj, const char *str)
         }
     }
     connect(mapper, SIGNAL(mapped(int)), obj, SLOT(setFPS(int)));
+}
+
+
+void addMenuView(QObject  *obj, const char *str, const std::vector< std::pair<std::string, int> > &list)
+{
+
 }

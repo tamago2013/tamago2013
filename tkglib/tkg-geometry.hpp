@@ -1,5 +1,5 @@
-#ifndef GEOMETRY_HPP
-#define GEOMETRY_HPP
+#ifndef TKG_GEOMETRY_HPP
+#define TKG_GEOMETRY_HPP
 
 #include <cmath>
 
@@ -8,7 +8,7 @@ namespace tkg
 
 const double pi = 3.14159265358979323846;
 
-class point3
+class Point3
 {
 	public:
 
@@ -18,27 +18,27 @@ class point3
 			struct { double x,y,z; };
 		};
 
-		point3(double t = 0)                 : x(t), y(t), z(t) {}
-		point3(double x, double y, double z) : x(x), y(y), z(z) {}
+        Point3(double t = 0)                 : x(t), y(t), z(t) {}
+        Point3(double x, double y, double z) : x(x), y(y), z(z) {}
 
-		point3(double *v)
+        Point3(double *v)
 		{
             for(int i=0; i<3; i++) { vec[i] = v[i]; }
 		}
 
-		static point3 polar(double r, double t)
+        static Point3 polar(double r, double t)
 		{
-			return point3(r*cos(t), r*sin(t), 0);
+            return Point3(r*cos(t), r*sin(t), 0);
 		}
 
-		static point3 polar(double r, double v, double h)
+        static Point3 polar(double r, double v, double h)
 		{
-			return point3(r*sin(v)*cos(h), r*sin(v)*sin(h), r*cos(v));
+            return Point3(r*sin(v)*cos(h), r*sin(v)*sin(h), r*cos(v));
 		}
 
 
-        point3 operator+(const point3 &t) const { return point3(x+t.x, y+t.y, z+t.z); }
-        point3 operator-(const point3 &t) const { return point3(x-t.x, y-t.y, z-t.z); }
+        Point3 operator+(const Point3 &t) const { return Point3(x+t.x, y+t.y, z+t.z); }
+        Point3 operator-(const Point3 &t) const { return Point3(x-t.x, y-t.y, z-t.z); }
 
 
 		double abs() const
@@ -69,9 +69,9 @@ class point3
 		}
         */
 
-        point3 rotateZ(double rad)
+        Point3 rotateZ(double rad)
         {
-            point3 ret;
+            Point3 ret;
             ret.x = x*cos(rad) - y*sin(rad);
             ret.y = x*sin(rad) + y*cos(rad);
             ret.z = z;
@@ -79,7 +79,7 @@ class point3
         }
 
 /*
-        friend ostream& operator<<(ostream &out, const point3 &t)
+        friend ostream& operator<<(ostream &out, const Point3 &t)
 		{
 			return (out << "(" << t.x << "," << t.y << "," << t.z << ")");
         }
@@ -89,4 +89,4 @@ class point3
 
 }
 
-#endif
+#endif // TKG_GEOMETRY_HPP

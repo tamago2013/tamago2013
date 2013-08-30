@@ -16,8 +16,6 @@ class QKeyEvent;
 class QMouseEvent;
 class QWheelEvent;
 
-
-
 class WidgetGL : public QGLWidget
 {
     Q_OBJECT
@@ -27,8 +25,12 @@ class WidgetGL : public QGLWidget
         WidgetGL(Window *parent, tkg::ConfigFile &conf);
         ~WidgetGL();
 
-         bool init();
-         Camera*  get_camera() { return camera; }
+        bool init();
+        Camera*  get_camera() { return camera; }
+
+    public slots:
+
+        void setLaserView(int val);
 
     protected:  // functions
 
@@ -48,6 +50,8 @@ class WidgetGL : public QGLWidget
         bool loadMap();
         bool loadRoute();
 
+        void updateStream();
+
         void drawGround();
         void drawMap();
         void drawRoute();
@@ -60,10 +64,12 @@ class WidgetGL : public QGLWidget
         Window   *window;
         FPSTimer *timer;
 
-        // robot state
-        double robot_x;
-        double robot_y;
-        double robot_t;
+        // robot
+        tkg::Point3 robot_p;
+        double      robot_t;
+        std::vector<tkg::Point3> robot_log_p;
+        std::vector<double>      robot_log_t;
+
 
         // map
         std::string     map_name;
@@ -75,15 +81,17 @@ class WidgetGL : public QGLWidget
 
         // route
         std::string                      route_name;
-        std::vector<tkg::point3>         route_node;
+        std::vector<tkg::Point3>         route_node;
         std::vector<std::pair<int,int> > route_edge;
 
         // ssm
         static const int SSM_LASER_SIZE = 2;
         SSMApi<Spur_Odometry> *ssm_robot;
         SSMSOKUIKIData3D      *ssm_laser[SSM_LASER_SIZE];
-        tkg::color4 color_point[SSM_LASER_SIZE];
-        tkg::color4 color_laser[SSM_LASER_SIZE];
+        int laser_view[SSM_LASER_SIZE];
+        tkg::Color4 color_point[SSM_LASER_SIZE];
+        tkg::Color4 color_laser[SSM_LASER_SIZE];
+        tkg::Point3 origin_shift[SSM_LASER_SIZE];
 
         // screen
         int    width;

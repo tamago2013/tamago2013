@@ -23,7 +23,7 @@ class Window : public QMainWindow
 
 
         void addMenuFPS (FPSTimer *obj, const char *str);
-        //void addMenuView(const char *str)
+        void addMenuView(QObject  *obj, const char *str, const std::vector< std::pair<std::string, int> > &list);
 
         WidgetGL*  viewer () { return w_viewer;  }
         WidgetIMG* camera1() { return w_camera1; }
@@ -47,7 +47,7 @@ class Window : public QMainWindow
         WidgetMSG *w_control;
 
         //int fps;
-        QMenu *ssm_menu;
+        QMenu *m_ssm;
         QMenu *m_fps;
 
 

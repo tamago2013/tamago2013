@@ -7,27 +7,31 @@
 namespace tkg
 {
 
-class color4
+class Color4
 {
     public: // functions
 
-        color4(std::string str);
-        color4(double r=1.0, double g=1.0, double b=1.0, double a=1.0);
+        Color4(std::string str);
+        Color4(double r=1.0, double g=1.0, double b=1.0, double a=1.0);
 
     public: // variables
 
         double rgba[4];
 };
 
+class Camera
+{
+
+};
 
 // implements
 
-inline color4::color4(double r, double g, double b, double a)
+inline Color4::Color4(double r, double g, double b, double a)
 {
     rgba[0]=r; rgba[1]=g; rgba[2]=b; rgba[3]=a;
 }
 
-inline color4::color4(std::string str)
+inline Color4::Color4(std::string str)
 {
     if(str[0]=='#')
     {

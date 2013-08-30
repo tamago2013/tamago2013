@@ -12,14 +12,13 @@ HEADERS += \
     window.hpp \
     controller.hpp \
     main.hpp \
-    widget-gl.hpp \
     widget-msg.hpp \
     widget-img.hpp \
     ssm-message.hpp \
-    tkg-config.hpp \
     tkg-utility.hpp \
     fps-timer.hpp \
-    tkg-opengl.hpp
+    tkg-opengl.hpp \
+    widget-gl.hpp
 
 SOURCES += \
     main.cpp \

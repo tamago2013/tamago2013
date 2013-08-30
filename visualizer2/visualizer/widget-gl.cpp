@@ -7,10 +7,11 @@
 #include "widget-msg.hpp"
 #include "fps-timer.hpp"
 #include "ssm-message.hpp"
-#include "tkg-opengl.hpp"
-#include "tkg-geometry-gl.hpp"
+#include "tkg-opengl-geometry.hpp"
 #include "gnd-bmp.hpp"
 #include "gnd-opsm.hpp"
+
+#include <cstdlib>
 using namespace ssm;
 
 WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
@@ -20,18 +21,19 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 
     window = parent;
 
-    robot_x = 0;
-    robot_y = 0;
     robot_t = 0;
 
     ssm_robot    = new SSMApi<Spur_Odometry> (tkg::parseStr(conf["Odom"]["ssm-name"]), tkg::parseInt(conf["Odom"]["ssm-id"]));
     ssm_laser[0] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg1"]["ssm-name"]), tkg::parseInt(conf["Urg1"]["ssm-id"]));
     ssm_laser[1] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg2"]["ssm-name"]), tkg::parseInt(conf["Urg2"]["ssm-id"]));
 
-    color_point[0] = tkg::color4(conf["Urg1"]["point-color"]);
-    color_laser[0] = tkg::color4(conf["Urg1"]["laser-color"]);
-    color_point[1] = tkg::color4(conf["Urg2"]["point-color"]);
-    color_laser[1] = tkg::color4(conf["Urg2"]["laser-color"]);
+    color_point [0] = tkg::Color4(conf["Urg1"]["point-color"]);
+    color_laser [0] = tkg::Color4(conf["Urg1"]["laser-color"]);
+    origin_shift[0] = tkg::Point3(0.0, 0.0, std::atof(std::string(conf["Urg1"]["origin-height"]).c_str()));
+
+    color_point [1] = tkg::Color4(conf["Urg2"]["point-color"]);
+    color_laser [1] = tkg::Color4(conf["Urg2"]["laser-color"]);
+    origin_shift[1] = tkg::Point3(0.0, 0.0, std::atof(std::string(conf["Urg2"]["origin-height"]).c_str()));
 
     camera = new Camera;
 
@@ -98,31 +100,14 @@ void WidgetGL::paintGL()
     glLoadIdentity();
     gluPerspective(45.0, aspect, 0.1, 500);
 
-    camera->setpos(robot_x, robot_y,robot_t);
+    camera->setpos(robot_p.x, robot_p.y,robot_t);
     camera->update();
 
     // モデルの描画
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // SSMの更新
-    ssmTimeT ssm_time = 1e10;
-    std::vector<SSMApiBase*> ssmapi;
-    ssmapi.push_back(ssm_robot);
-    ssmapi.push_back(ssm_laser[0]);
-    ssmapi.push_back(ssm_laser[1]);
-    for(uint i=0; i<ssmapi.size(); i++)
-    {
-        if( smState(ssmapi[i]) )
-        {
-            smReadLast(ssmapi[i]);
-            ssm_time = std::min(ssm_time, ssmapi[i]->time);
-        }
-    }
-    for(uint i=0; i<ssmapi.size(); i++)
-    {
-        smReadTime(ssmapi[i], ssm_time);
-    }
+    updateStream();
 
     drawMap();
     drawGround();
@@ -134,6 +119,33 @@ void WidgetGL::paintGL()
     }
 
     glFlush();
+}
+
+void WidgetGL::updateStream()
+{
+    ssmTimeT ssm_time = 1e10;
+    std::vector<SSMApiBase*> ssmapi;
+    ssmapi.push_back(ssm_robot);
+    ssmapi.push_back(ssm_laser[0]);
+    ssmapi.push_back(ssm_laser[1]);
+    for(uint i=0; i<ssmapi.size(); i++)
+    {
+        if( smState(ssmapi[i]) )
+        {
+            smReadLast(ssmapi[i]);
+            ssm_time = std::min(ssm_time, ssmapi[i]->time);
+        }    glArrow(robot_p, robot_t, 0.5);
+    }
+    for(uint i=0; i<ssmapi.size(); i++)
+    {
+        smReadTime(ssmapi[i], ssm_time);
+    }
+
+    if(robot_log_p.empty() || (robot_log_p.back() - robot_p).abs() > 3.0)
+    {
+        robot_log_p.push_back(robot_p);
+        robot_log_t.push_back(robot_t);
+    }
 }
 
 bool WidgetGL::loadMap()
@@ -224,7 +236,7 @@ bool WidgetGL::loadRoute()
     {
         char c; double x,y;
         fin >> c >> x >> y;
-        route_node.push_back( tkg::point3(x,y,0) );
+        route_node.push_back( tkg::Point3(x,y,0) );
     }
 
     for(uint i=1; i<route_node.size(); i++)
@@ -244,7 +256,7 @@ void WidgetGL::drawRoute()
     glBegin(GL_POINTS);
     for(uint i=0; i<route_node.size(); i++)
     {
-        tkg::ggVertex(route_node[i]);
+        tkg::glVertex(route_node[i]);
     }
     glEnd();
     glPointSize(1);
@@ -255,8 +267,8 @@ void WidgetGL::drawRoute()
     glBegin(GL_LINES);
     for(uint i=0; i<route_edge.size(); i++)
     {
-        tkg::ggVertex(route_node[route_edge[i].first ]);
-        tkg::ggVertex(route_node[route_edge[i].second]);
+        tkg::glVertex(route_node[route_edge[i].first ]);
+        tkg::glVertex(route_node[route_edge[i].second]);
     }
     glEnd();
 
@@ -264,7 +276,7 @@ void WidgetGL::drawRoute()
     glColor3d(1.0, 1.0, 1.0);
     for(int i=0; i<route.size(); i++)
     {
-        myString(route[i]+tkg::point3(0,0,0.2), strprintf("%d",i).c_str());
+        myString(route[i]+tkg::Point3(0,0,0.2), strprintf("%d",i).c_str());
     }
     */
 }
@@ -293,16 +305,15 @@ void WidgetGL::drawGround()
     else
     {
         double s = -30.0, g = 30.0;
-        tkg::point3 robot_p = tkg::point3(robot_x, robot_y, 0);
 
         glColor3d(0.2,0.2,0.2);
         glBegin(GL_LINES);
         for(double d=s; d<=g; d+=1.0)
         {
-            tkg::point3 sx(d, s, 0.0);
-            tkg::point3 gx(d, g, 0.0);
-            tkg::point3 sy(s, d, 0.0);
-            tkg::point3 gy(g, d, 0.0);
+            tkg::Point3 sx(d, s, 0.0);
+            tkg::Point3 gx(d, g, 0.0);
+            tkg::Point3 sy(s, d, 0.0);
+            tkg::Point3 gy(g, d, 0.0);
 
             glVertex3dv((robot_p + sx.rotateZ(robot_t)).vec);
             glVertex3dv((robot_p + gx.rotateZ(robot_t)).vec);
@@ -320,15 +331,18 @@ void WidgetGL::drawRobot()
     if(!smState(ssmapi)) return;
     Spur_Odometry &data = ssmapi->data;
 
-    robot_x = data.x;
-    robot_y = data.y;
-    robot_t = data.theta;
-    tkg::point3 robot_p = tkg::point3(robot_x, robot_y, 0);
+    robot_p.x = data.x;
+    robot_p.y = data.y;
+    robot_t   = data.theta;
 
-    glColor3d(1,0,0);
-    glLineWidth(3);
-    ggDrawCross(robot_p, robot_t, 1);
-    glLineWidth(1);
+    glColor3d(1.0, 0.5, 0);
+    glArrow(robot_p, robot_t, 0.5);
+
+    glColor4d(1.0, 0.5, 0, 0.5);
+    for(uint i=0; i<robot_log_p.size(); i++)
+    {
+        glArrow(robot_log_p[i], robot_log_t[i], 0.5);
+    }
 }
 
 void WidgetGL::drawLaser(int id)
@@ -337,8 +351,6 @@ void WidgetGL::drawLaser(int id)
 
     if( !smState(ssmapi) ) return;
     SOKUIKIData3D &data = ssmapi->data;
-
-    tkg::point3 robot_p = tkg::point3(robot_x, robot_y, 0);
 
     //if(laser[s]->view_state & 1)
     {
@@ -350,14 +362,14 @@ void WidgetGL::drawLaser(int id)
         {
             if(data[i].isWarning()) continue;
 
-            tkg::point3 ref(data[i].reflect.vec);
-            ggVertex(robot_p + ref.rotateZ(robot_t));
+            tkg::Point3 ref(data[i].reflect.vec);
+            glVertex(robot_p + ref.rotateZ(robot_t));
         }
         glEnd();
         glPointSize(1);
     }
 
-    //if(laser[s]->view_state & 2)
+    //if(false) //laser[s]->view_state & 2)
     {
         glColor4dv(color_laser[id].rgba);
         glLineWidth(1);
@@ -366,10 +378,10 @@ void WidgetGL::drawLaser(int id)
         {
             if(data[i].isWarning()) continue;
 
-            tkg::point3 ori(data[i].origin.vec);
-            tkg::point3 ref(data[i].reflect.vec);
-            ggVertex(robot_p + ori.rotateZ(robot_t));
-            ggVertex(robot_p + ref.rotateZ(robot_t));
+            tkg::Point3 ori(data[i].origin.vec);
+            tkg::Point3 ref(data[i].reflect.vec);
+            glVertex(robot_p + ori + origin_shift[id]);
+            glVertex(robot_p + ref.rotateZ(robot_t));
         }
         glEnd();
     }
@@ -383,6 +395,8 @@ void WidgetGL::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Down ) dy += 0.1;
     if(event->key() == Qt::Key_Left ) dx -= 0.1;
     if(event->key() == Qt::Key_Right) dx += 0.1;
+
+    if(event->key() == Qt::Key_R) camera->rotv = 0;
 
     if(event->modifiers() & Qt::ControlModifier)
     {
@@ -441,5 +455,10 @@ void WidgetGL::mouseReleaseEvent(QMouseEvent *event)
     mouse_prev_x = event->x();
     mouse_prev_y = event->y();
     mouse_prev_b = event->button();
+}
+
+void WidgetGL::setLaserView(int val)
+{
+
 }
 

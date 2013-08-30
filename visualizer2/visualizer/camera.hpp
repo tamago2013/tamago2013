@@ -18,17 +18,17 @@ class Camera : public QObject
 
         void setpos(double x, double y, double t);
 
+
+        int    mode;
+        double roth;
+        double rotv;
+        double dist;
+        tkg::Point3 pos;
+
     public slots:
 
         void setmode(int m);
 
-    private:
-
-        int mode;
-        double roth;
-        double rotv;
-        double dist;
-        tkg::point3 pos;
 };
 
 #endif
