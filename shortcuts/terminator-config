@@ -41,8 +41,8 @@
       type = Terminal
       order = 0
       parent = child2
-      title = urg-proxy( /dev/ttyACM0 )
-      command = cd ${tamago_home}/urg-proxy; ./launcher -p /dev/ttyACM0; bash; 
+      title = urg-proxy( /dev/ttyACM1 )
+      command = cd ${tamago_home}/urg-proxy; ./launcher -p /dev/ttyACM1; bash; 
     [[[terminal4]]]
       profile = default
       type = Terminal
@@ -55,8 +55,8 @@
       type = Terminal
       order = 0
       parent = child5
-      title = urg-proxy( /dev/ttyACM1 )
-      command = cd ${tamago_home}/urg-proxy; ./launcher -p /dev/ttyACM1; bash;  
+      title = urg-proxy( /dev/ttyACM2 )
+      command = cd ${tamago_home}/urg-proxy; ./launcher -p /dev/ttyACM2; bash;  
     [[[terminal7]]]
       profile = default
       type = Terminal
@@ -110,7 +110,7 @@
       order = 0
       parent = child5
       title = ypspur-coordinator
-      command = sleep 1; ypspur-coordinator -p ${tamago_home}/data/Loop_new.param -d /dev/ttyACM0 --high-resolution; bash;  
+      command = sleep 1; ypspur-coordinator -p ${tamago_home}/data/Loop-new.param -d /dev/ttyACM0 --high-resolution; bash;  
     [[[terminal7]]]
       profile = default
       type = Terminal
@@ -140,7 +140,7 @@
       order = 0
       parent = child1 
       title = particle-localizer
-      command = cd ${tamago_home}/particle-localizer; ./launcher -k ~/rpp/Loop_new.param; bash; 
+      command = cd ${tamago_home}/particle-localizer; ./launcher; bash; 
     [[[terminal3]]]
       profile = default
       type = Terminal
@@ -157,7 +157,7 @@
       type = Terminal
       parent = window0
       title = visualizer2
-      command = cd ${tamago_home}/visualizer2; ./a.out; bash;
+      command = cd ${tamago_home}/visualizer2/visualizer-build-desktop; ./visualizer; bash;
     [[[window0]]]
       type = Window
       parent = ""
@@ -183,7 +183,7 @@
       type = Terminal
       parent = window0
       title = path-planner
-      command = cd ${tamago_home}/multilogger; ./multilogger ./conf/logging.list; bash;
+      command = cd ${tamago_home}/multilogger; ./multilogger ./logging.list; bash;
     [[[window0]]]
       type = Window
       parent = ""
