@@ -1,14 +1,11 @@
 #オリエンタルモーターに換装されたる〜ぷのパラメタファイル
-#[TODO]RADIUS[0], RADIUS[1], TREADを変更すべし。他にも変更点はありそう
-#[だいたいOK]freeで暴れる場合は、MOTOR_VC, TORQUE_NEWTON, -TORQUE_NEWTON を調整
-#
-#[TODO]MASSを４０にするにはゲインを下げること
-#
-#8/3渡辺さんに相談、だいぶよくなった
+#2013-08-29: [DONE]ロボットの慣性モーメントを修正。ほとんど完成
+#2013-08-29: [TODO]モータの左右, 基板の[0][1], パラメータファイルの[0][1]を合わせる
+#2013-08-29: マイコンのファームウェアが新しくなったからさらなる修正が必要?
 VERSION 4
 
-RADIUS[0] 0.10871094 #[m] タイヤ空気圧1.4
-RADIUS[1] -0.10891509 #[m] タイヤ空気圧1.4
+RADIUS[0] 0.10871094 #[m] LEFT タイヤ空気圧1.4
+RADIUS[1] -0.10891509 #[m] RIGHT タイヤ空気圧1.4
 TREAD 0.41544932
 
 VOLT 24
@@ -16,8 +13,9 @@ CYCLE 0.001
 
 #MASS 10.7071340 #icart-mini
 MASS 31.5 #Loop実測値
-MOMENT_INERTIA 0.7518944
+#MOMENT_INERTIA 0.7518944	#箱近似
 #MOMENT_INERTIA 2.61708617148 #平行軸の定理を考慮した慣性モーメント
+MOMENT_INERTIA 3.000	#昔のLoopの値
 MOTOR_M_INERTIA 0
 TIRE_M_INERTIA 0.02
 
