@@ -2,7 +2,7 @@
 _NEW_=new
 _OPEN_=open
 _SAVE_=save
-
+_CH_NEW_=is-new
 
 _P_TRACKER_DIR_=opsm-position-tracker
 _P_EVALUATOR_DIR_=opsm-particle-evaluator
@@ -13,6 +13,7 @@ _LS_CCONVERTER_DIR_=ls-coordinate-converter
 _VISUALIZER_DIR_=visualizer
 _LOGGER_=multilogger
 _DATA_DIR_=data
+_WORKING_=${_DATA_DIR_}/working
 _TEMPLATE_=data/.template
 
 _P_TRACKER_CONF_=opsm-position-tracker.conf
@@ -29,7 +30,10 @@ _VISUALIZER_CONF_=visualizer.conf
 _LOGGING_LIST_=logging.list
 
 _LAUNCHER_OPT_=launcher.opt
+_OPSM_MAP_=opsm-map
+_ROUTE_=keiro.dat
 
-_META_DATA_=.tamago-meta
+
+_META_DATA_=.tamago/working
 
 
