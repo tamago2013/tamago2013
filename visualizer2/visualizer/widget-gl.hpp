@@ -7,6 +7,7 @@
 #include "tkg-config.hpp"
 #include "tkg-opengl.hpp"
 #include "ssm-laser.hpp"
+#include "ssm-particles.hpp"
 #include "ssmtype/spur-odometry.h"
 
 class Window;
@@ -57,6 +58,7 @@ class WidgetGL : public QGLWidget
         void drawRoute();
         void drawRobot();
         void drawLaser(int);
+        void drawParticles();
 
     private: // variables
 
@@ -92,6 +94,7 @@ class WidgetGL : public QGLWidget
         tkg::Color4 color_point[SSM_LASER_SIZE];
         tkg::Color4 color_laser[SSM_LASER_SIZE];
         tkg::Point3 origin_shift[SSM_LASER_SIZE];
+        SSMParticles *ssm_particle;
 
         // screen
         int    width;
