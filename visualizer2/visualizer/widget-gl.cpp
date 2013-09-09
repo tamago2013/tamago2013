@@ -26,6 +26,7 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     ssm_robot    = new SSMApi<Spur_Odometry> (tkg::parseStr(conf["Odom"]["ssm-name"]), tkg::parseInt(conf["Odom"]["ssm-id"]));
     ssm_laser[0] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg1"]["ssm-name"]), tkg::parseInt(conf["Urg1"]["ssm-id"]));
     ssm_laser[1] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg2"]["ssm-name"]), tkg::parseInt(conf["Urg2"]["ssm-id"]));
+    ssm_particle = new SSMParticles          (SNAME_PARTICLES, 0);
 
     color_point [0] = tkg::Color4(conf["Urg1"]["point-color"]);
     color_laser [0] = tkg::Color4(conf["Urg1"]["laser-color"]);
@@ -55,6 +56,11 @@ WidgetGL::~WidgetGL()
     delete camera;
     delete map_data;
 
+    delete ssm_robot;
+    delete ssm_laser[0];
+    delete ssm_laser[1];
+    delete ssm_particle;
+
     printf("GL destructor\n");
 }
 
@@ -65,6 +71,7 @@ bool WidgetGL::init()
     smConnect(ssm_robot);
     smConnect(ssm_laser[0]);
     smConnect(ssm_laser[1]);
+    smConnect(ssm_particle);
 
     return true;
 }
@@ -113,6 +120,7 @@ void WidgetGL::paintGL()
     drawGround();
     drawRoute();
     drawRobot();
+    drawParticles();
     for(int i=0; i<SSM_LASER_SIZE; i++)
     {
         drawLaser(i);
@@ -128,6 +136,7 @@ void WidgetGL::updateStream()
     ssmapi.push_back(ssm_robot);
     ssmapi.push_back(ssm_laser[0]);
     ssmapi.push_back(ssm_laser[1]);
+    ssmapi.push_back(ssm_particle);
     for(uint i=0; i<ssmapi.size(); i++)
     {
         if( smState(ssmapi[i]) )
@@ -342,6 +351,21 @@ void WidgetGL::drawRobot()
     for(uint i=0; i<robot_log_p.size(); i++)
     {
         glArrow(robot_log_p[i], robot_log_t[i], 0.5);
+    }
+}
+
+void WidgetGL::drawParticles()
+{
+    SSMParticles *ssmapi = ssm_particle;
+
+    if( !smState(ssmapi) ) return;
+    particle_set_c &data = ssmapi->data;
+
+    for(int i=0; i<data.size(); i++)
+    {
+        glColor3d(1.0, 0.0, 0.0);
+        tkg::Point3 pos(data[i][0][PARTICLE_X], data[i][0][PARTICLE_Y], 0.0 );
+        glArrow(pos, data[i][0][PARTICLE_THETA], 0.2);
     }
 }
 
