@@ -1,0 +1,1 @@
+OPTION="-g ./ysd-path-planner.conf -f ../data/tc2013/keiro.dat -s"
