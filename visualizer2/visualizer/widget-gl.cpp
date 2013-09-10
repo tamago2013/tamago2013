@@ -48,6 +48,18 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     window->addMenuFPS(timer, tkg::parseStr(conf["Viewer"]["title"]));
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
 
+    for(int i=0; i<SSM_LASER_SIZE; i++)
+    {
+        std::vector< std::pair<std::string, int> > list;
+        list.push_back( std::make_pair("non-display", 0) );
+        list.push_back( std::make_pair("point",       1) );
+        list.push_back( std::make_pair("laser",       2) );
+        list.push_back( std::make_pair("point+laser", 3) );
+
+        if(i==0) window->addMenuView(this, tkg::parseStr(conf["Urg1"]["title"]), list);
+        if(i=-1) window->addMenuView(this, tkg::parseStr(conf["Urg2"]["title"]), list);
+    }
+
 }
 
 WidgetGL::~WidgetGL()
@@ -459,6 +471,6 @@ void WidgetGL::mouseReleaseEvent(QMouseEvent *event)
 
 void WidgetGL::setLaserView(int val)
 {
-
+    laser_view[val/10] = val%10;
 }
 

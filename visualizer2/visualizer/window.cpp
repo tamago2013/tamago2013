@@ -211,7 +211,23 @@ void Window::addMenuFPS(FPSTimer *obj, const char *str)
 }
 
 
-void addMenuView(QObject  *obj, const char *str, const std::vector< std::pair<std::string, int> > &list)
+void Window::addMenuView(QObject  *obj, const char *str, const std::vector< std::pair<std::string, int> > &list)
 {
+    QMenu         *menu   = new QMenu(tr(str), this);
+    QActionGroup  *group  = new QActionGroup(this);
+    QSignalMapper *mapper = new QSignalMapper(this);
 
+    m_ssm->addMenu(menu);
+    group->setExclusive(true);
+
+    for(uint i=0; i<list.size(); i++)
+    {
+        QAction *action = new QAction(tr(list[i].first.c_str()), this);
+        action->setCheckable(true);
+        menu  ->addAction(action);
+        group ->addAction(action);
+        mapper->setMapping(action, list[i].second);
+        connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
+    }
+    connect(mapper, SIGNAL(mapped(int)), obj, SLOT(setLaserView(int)));
 }
