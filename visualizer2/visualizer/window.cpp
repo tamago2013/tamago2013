@@ -19,10 +19,9 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
     resize(900, 600);
     setWindowTitle("visualizer");
 
-
     // Menu
     m_fps = menuBar()->addMenu(tr("&FPS"));
-    m_ssm = menuBar()->addMenu(tr("&SSM"));
+    m_ssm = menuBar()->addMenu(tr("&View"));
 
     w_viewer  = new WidgetGL (this, conf);
     w_camera1 = new WidgetIMG(this, conf["Camera1"]);
@@ -30,6 +29,8 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
     w_status  = new WidgetMSG();
     w_message = new WidgetMSG();
     w_control = new WidgetMSG();
+
+    std::cout << "test" << std::endl;
 
     /*
     w_camera1->setFixedWidth(320);

@@ -28,6 +28,8 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     ssm_laser[1] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg2"]["ssm-name"]), tkg::parseInt(conf["Urg2"]["ssm-id"]));
     ssm_particle = new SSMParticles          (SNAME_PARTICLES, 0);
 
+    laser_view[0] = laser_view[1] = 3;
+
     color_point [0] = tkg::Color4(conf["Urg1"]["point-color"]);
     color_laser [0] = tkg::Color4(conf["Urg1"]["laser-color"]);
     origin_shift[0] = tkg::Point3(0.0, 0.0, std::atof(std::string(conf["Urg1"]["origin-height"]).c_str()));
@@ -52,13 +54,13 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     for(int i=0; i<SSM_LASER_SIZE; i++)
     {
         std::vector< std::pair<std::string, int> > list;
-        list.push_back( std::make_pair("non-display", 0) );
-        list.push_back( std::make_pair("point",       1) );
-        list.push_back( std::make_pair("laser",       2) );
-        list.push_back( std::make_pair("point+laser", 3) );
+        list.push_back( std::make_pair("non-display", i*10 + 0) );
+        list.push_back( std::make_pair("point",       i*10 + 1) );
+        list.push_back( std::make_pair("laser",       i*10 + 2) );
+        list.push_back( std::make_pair("point+laser", i*10 + 3) );
 
         if(i==0) window->addMenuView(this, tkg::parseStr(conf["Urg1"]["title"]), list);
-        if(i=-1) window->addMenuView(this, tkg::parseStr(conf["Urg2"]["title"]), list);
+        if(i==1) window->addMenuView(this, tkg::parseStr(conf["Urg2"]["title"]), list);
     }
 
 }
@@ -388,7 +390,7 @@ void WidgetGL::drawLaser(int id)
     if( !smState(ssmapi) ) return;
     SOKUIKIData3D &data = ssmapi->data;
 
-    //if(laser[s]->view_state & 1)
+    if(laser_view[id] & 1)
     {
         glColor4dv(color_point[id].rgba);
         glPointSize(3);
@@ -405,7 +407,7 @@ void WidgetGL::drawLaser(int id)
         glPointSize(1);
     }
 
-    //if(false) //laser[s]->view_state & 2)
+    if(laser_view[id] & 2)
     {
         glColor4dv(color_laser[id].rgba);
         glLineWidth(1);

@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 
     tkg::ConfigFile config;
     config.load("../visualizer.conf");
+    config.print();
 
     // window
 

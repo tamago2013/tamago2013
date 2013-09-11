@@ -15,9 +15,7 @@ HEADERS += \
     widget-msg.hpp \
     widget-img.hpp \
     ssm-message.hpp \
-    tkg-utility.hpp \
     fps-timer.hpp \
-    tkg-opengl.hpp \
     widget-gl.hpp
 
 SOURCES += \

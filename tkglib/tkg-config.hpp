@@ -6,6 +6,8 @@
 #include <vector>
 #include <fstream>
 
+#include <iostream>
+
 namespace tkg
 {
 
@@ -29,6 +31,16 @@ class ConfigValue : public std::vector<std::string>
             }
             return true;
         }
+
+        void print(std::string key)
+        {
+            std::cout << key << " = ";
+            for(int i=0; i<size(); i++)
+            {
+                std::cout << at(i) << " ";
+            }
+            std::cout << std::endl;
+        }
 };
 
 class ConfigGroup : public std::map<std::string, ConfigValue>
@@ -51,6 +63,14 @@ class ConfigGroup : public std::map<std::string, ConfigValue>
                 insert( make_pair(str.substr(p,s-p), val) );
             }
             return true;
+        }
+
+        void print(std::string key)
+        {
+            for(std::map<std::string, ConfigValue>::iterator it=begin(); it!=end(); it++)
+            {
+                it->second.print(key + std::string("[") + it->first + std::string("]"));
+            }
         }
 };
 
@@ -87,6 +107,14 @@ class ConfigFile : public std::map<std::string, ConfigGroup>
                 insert( make_pair(str.substr(p,s-p), val) );
             }
             return true;
+        }
+
+        void print()
+        {
+            for(std::map<std::string, ConfigGroup>::iterator it=begin(); it!=end(); it++)
+            {
+                it->second.print(std::string("[") + it->first + std::string("]"));
+            }
         }
 };
 
