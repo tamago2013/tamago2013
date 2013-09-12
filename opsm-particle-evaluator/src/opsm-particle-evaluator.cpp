@@ -425,6 +425,7 @@ int main(int argc, char *argv[], char **env) {
 
 
 				// ---> scanning loop (particle)
+				lh_max = 0;
 				for( i = 0 ; i <  ssm_particles.data.size(); i++ ) {
 					gnd::matrix::fixed< 1, PARTICLE_DIM >* p = ssm_particles.data.begin() + i;
 					gnd::matrix::fixed<4, 1> prev_csns;
