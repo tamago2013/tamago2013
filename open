@@ -112,13 +112,13 @@ else
 fi
 
 
-# visualizer
-# if [ -f ${_MAP_DIR_}/${_VISUALIZER_CONF_} ]; then
-# 	cp -p ${_MAP_DIR_}/${_VISUALIZER_CONF_} ${_VISUALIZER_DIR_}/
-# 	echo "${_VISUALIZER_CONF_} ... ok"
-# else
-# 	echo "Warnning: ${_VISUALIZER_CONF_} is not exist"
-# fi
+#visualizer
+if [ -f ${_MAP_DIR_}/${_VISUALIZER_CONF_} ]; then
+	cp -p ${_MAP_DIR_}/${_VISUALIZER_CONF_} ${_VISUALIZER_DIR_}/
+	echo "${_VISUALIZER_CONF_} ... ok"
+else
+	echo "Warnning: ${_VISUALIZER_CONF_} is not exist"
+fi
 
 
 # ls-coordinate-converter
