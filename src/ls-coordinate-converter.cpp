@@ -231,7 +231,7 @@ int main(int argc, char* argv[], char* env[]) {
 							ssm_sokuiki_fs.data[i].intensity = ssm_sokuiki_raw.data[i].intensity;
 							ssm_sokuiki_fs.data[i].origin.x = ssm_sokuiki_raw.property.coordm[0][3];
 							ssm_sokuiki_fs.data[i].origin.y = ssm_sokuiki_raw.property.coordm[1][3];
-							ssm_sokuiki_fs.data[i].origin.z = ssm_sokuiki_raw.property.coordm[1][3];
+							ssm_sokuiki_fs.data[i].origin.z = ssm_sokuiki_raw.property.coordm[2][3];
 						} // <---  set value of other kinds
 					}
 				} // <--- scanning loop (sokuiki raw)
@@ -252,7 +252,7 @@ int main(int argc, char* argv[], char* env[]) {
 					{ // origin
 						ws[0] = ssm_sokuiki_raw.property.coordm[0][3];
 						ws[1]= ssm_sokuiki_raw.property.coordm[1][3];
-						ws[2] = ssm_sokuiki_raw.property.coordm[1][3];
+						ws[2] = ssm_sokuiki_raw.property.coordm[2][3];
 						ws[3] = 1.0;
 
 						gnd::matrix::prod(&cm, &ws, &org_gl );
