@@ -4,11 +4,17 @@
 # particle-localizerとopsm-particle-evaluatorの起動
 #==============================================
 
+#tamagoディレクトリホームパスの取得
+if [ ! -f ~/.config/tamago/home-path.sh ] ; then
+	echo "cannot find \"~/.config/tamago/home-path.sh\" !!"
+	cd ../../
+ 	tamago_home=${PWD}
+else
+ . ~/.config/tamago/home-path.sh  
+fi
 
-shell_home=${PWD}
-cd ../
-export tamago_home=${PWD}
-cd $shell_home
+cd ${tamago_home}/shortcuts
+export tamago_home
 
 #コンフィグディレクトリがないなら、作る
 if [ ! -d ~/.config/terminator ] ; then
@@ -28,7 +34,7 @@ fi
 #バックアップを作る(バックアップがまだない場合)
 if [ ${make_buckup} = "1" ] ; then
 	mv ~/.config/terminator/config ~/.config/terminator/config.bk
-	cp terminator-config ~/.config/terminator/config
+	cp ./conf/terminator-config ~/.config/terminator/config
 fi
 
 #実行

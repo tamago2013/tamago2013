@@ -1,13 +1,20 @@
 #!/bin/bash
 
 #==============================================
-#  ypspur-joystickの起動
+# ssm-coordinatorとssm-monitorの起動
 #==============================================
 
-shell_home=${PWD}
-cd ../
-export tamago_home=${PWD}
-cd $shell_home
+#tamagoディレクトリホームパスの取得
+if [ ! -f ~/.config/tamago/home-path.sh ] ; then
+	echo "cannot find \"~/.config/tamago/home-path.sh\" !!"
+	cd ../../
+ 	tamago_home=${PWD}
+else
+ . ~/.config/tamago/home-path.sh  
+fi
+
+cd ${tamago_home}/shortcuts
+export tamago_home
 
 #コンフィグディレクトリがないなら、作る
 if [ ! -d ~/.config/terminator ] ; then
@@ -27,11 +34,11 @@ fi
 #バックアップを作る(バックアップがまだない場合)
 if [ ${make_buckup} = "1" ] ; then
 	mv ~/.config/terminator/config ~/.config/terminator/config.bk
-	cp terminator-config ~/.config/terminator/config
+	cp ./conf/terminator-config ~/.config/terminator/config
 fi
 
 #実行
-terminator -l joystick
+terminator -l visualizer
 
 #バックアップを自分で作ったときは、バックアップから元のコンフィグを復元
 if [ ${make_buckup} = "1" ] ; then
