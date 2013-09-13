@@ -7,7 +7,7 @@
 #include "widget-msg.hpp"
 #include "fps-timer.hpp"
 #include "ssm-message.hpp"
-#include "tkg-opengl-geometry.hpp"
+#include "tkg-opengl.hpp"
 #include "gnd-bmp.hpp"
 #include "gnd-opsm.hpp"
 
@@ -16,27 +16,34 @@ using namespace ssm;
 
 WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 {
-    printf("GL constructor\n");
     setFocusPolicy(Qt::StrongFocus);
 
     window = parent;
 
-    robot_t = 0;
+    robot_p = 0.0;
+    robot_t = 0.0;
 
-    ssm_robot    = new SSMApi<Spur_Odometry> (tkg::parseStr(conf["Odom"]["ssm-name"]), tkg::parseInt(conf["Odom"]["ssm-id"]));
-    ssm_laser[0] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg1"]["ssm-name"]), tkg::parseInt(conf["Urg1"]["ssm-id"]));
-    ssm_laser[1] = new SSMSOKUIKIData3D      (tkg::parseStr(conf["Urg2"]["ssm-name"]), tkg::parseInt(conf["Urg2"]["ssm-id"]));
-    ssm_particle = new SSMParticles          (SNAME_PARTICLES, 0);
+    ssm_robot    = new SSMApi<Spur_Odometry> (tkg::parseStr(conf["Odometry"]["ssm-name"]), tkg::parseInt(conf["Odometry"]["ssm-id"]));
+    ssm_particle = new SSMParticles          (tkg::parseStr(conf["Particle"]["ssm-name"]), tkg::parseInt(conf["Particle"]["ssm-id"]));
 
-    laser_view[0] = laser_view[1] = 3;
+    for(int i=0; i<SSM_LASER_SIZE; i++)
+    {
+        std::string group = tkg::strf("Urg%d", i+1);
+        ssm_laser[i] = new SSMSOKUIKIData3D(tkg::parseStr(conf[group]["ssm-name"]), tkg::parseInt(conf[group]["ssm-id"]));
 
-    color_point [0] = tkg::Color4(conf["Urg1"]["point-color"]);
-    color_laser [0] = tkg::Color4(conf["Urg1"]["laser-color"]);
-    origin_shift[0] = tkg::Point3(0.0, 0.0, std::atof(std::string(conf["Urg1"]["origin-height"]).c_str()));
+        color_point [i]  = tkg::Color4(conf[group]["point-color"]);
+        color_laser [i]  = tkg::Color4(conf[group]["laser-color"]);
+        laser_view  [i] |= (conf[group]["view-point"]=="true" ? 1 : 0);
+        laser_view  [i] |= (conf[group]["view-laser"]=="true" ? 2 : 0);
 
-    color_point [1] = tkg::Color4(conf["Urg2"]["point-color"]);
-    color_laser [1] = tkg::Color4(conf["Urg2"]["laser-color"]);
-    origin_shift[1] = tkg::Point3(0.0, 0.0, std::atof(std::string(conf["Urg2"]["origin-height"]).c_str()));
+        std::vector< std::pair<std::string, int> > list;
+        list.push_back( std::make_pair("non-display", i*10 + 0) );
+        list.push_back( std::make_pair("point",       i*10 + 1) );
+        list.push_back( std::make_pair("laser",       i*10 + 2) );
+        list.push_back( std::make_pair("point+laser", i*10 + 3) );
+
+        window->addMenuView(this, tkg::parseStr(conf[group]["title"]), list);
+    }
 
     camera = new Camera;
 
@@ -47,22 +54,9 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     map_height = -1;
     map_data   = NULL;
 
-    timer = new FPSTimer(conf["Viewer"]["fps"]);
+    timer = new FPSTimer(tkg::parseArray(conf["Viewer"]["fps"]));
     window->addMenuFPS(timer, tkg::parseStr(conf["Viewer"]["title"]));
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-
-    for(int i=0; i<SSM_LASER_SIZE; i++)
-    {
-        std::vector< std::pair<std::string, int> > list;
-        list.push_back( std::make_pair("non-display", i*10 + 0) );
-        list.push_back( std::make_pair("point",       i*10 + 1) );
-        list.push_back( std::make_pair("laser",       i*10 + 2) );
-        list.push_back( std::make_pair("point+laser", i*10 + 3) );
-
-        if(i==0) window->addMenuView(this, tkg::parseStr(conf["Urg1"]["title"]), list);
-        if(i==1) window->addMenuView(this, tkg::parseStr(conf["Urg2"]["title"]), list);
-    }
-
 }
 
 WidgetGL::~WidgetGL()
@@ -74,8 +68,6 @@ WidgetGL::~WidgetGL()
     delete ssm_laser[0];
     delete ssm_laser[1];
     delete ssm_particle;
-
-    printf("GL destructor\n");
 }
 
 bool WidgetGL::init()
@@ -418,7 +410,7 @@ void WidgetGL::drawLaser(int id)
 
             tkg::Point3 ori(data[i].origin.vec);
             tkg::Point3 ref(data[i].reflect.vec);
-            glVertex(robot_p + ori + origin_shift[id]);
+            glVertex(robot_p + ori);
             glVertex(robot_p + ref.rotateZ(robot_t));
         }
         glEnd();

@@ -16,8 +16,24 @@
 
 Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 {
-    resize(900, 600);
-    setWindowTitle("visualizer");
+    setWindowTitle(conf["Layout"]["title"].c_str());
+
+    if(conf["Layout"]["window-size"] == "maximized")
+    {
+        setWindowState(Qt::WindowMaximized);
+    }
+    else
+    {
+        std::vector<std::string> size;
+        size = tkg::parseArray(conf["Layout"]["window-size"]);
+
+        if(size.size() == 2)
+        {
+            int width  = tkg::parseInt(size[0]);
+            int height = tkg::parseInt(size[1]);
+            resize(width, height);
+        }
+    }
 
     // Menu
     m_fps = menuBar()->addMenu(tr("&FPS"));
@@ -29,14 +45,6 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
     w_status  = new WidgetMSG();
     w_message = new WidgetMSG();
     w_control = new WidgetMSG();
-
-    std::cout << "test" << std::endl;
-
-    /*
-    w_camera1->setFixedWidth(320);
-    w_camera2->setFixedWidth(320);
-    */
-
 
     w_status ->setMaximumHeight(150);
     w_message->setMaximumHeight(150);

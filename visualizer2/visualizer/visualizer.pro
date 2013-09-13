@@ -16,7 +16,11 @@ HEADERS += \
     widget-img.hpp \
     ssm-message.hpp \
     fps-timer.hpp \
-    widget-gl.hpp
+    widget-gl.hpp \
+    ../../tkglib/tkg-utility.hpp \
+    ../../tkglib/tkg-opengl.hpp \
+    ../../tkglib/tkg-geometry.hpp \
+    ../../tkglib/tkg-config.hpp
 
 SOURCES += \
     main.cpp \

@@ -13,7 +13,7 @@ typedef uchar ssmimage[640*480*3];
 WidgetIMG::WidgetIMG(Window* parent, tkg::ConfigGroup &conf)
 {
     window = parent;
-    timer  = new FPSTimer(conf["fps"]);
+    timer  = new FPSTimer(tkg::parseArray(conf["fps"]));
     image  = NULL;
     ssmapi = new SSMApi<ssmimage>(tkg::parseStr(conf["ssm-name"]), tkg::parseInt(conf["ssm-id"]));
 

@@ -93,7 +93,6 @@ class WidgetGL : public QGLWidget
         int laser_view[SSM_LASER_SIZE];
         tkg::Color4 color_point[SSM_LASER_SIZE];
         tkg::Color4 color_laser[SSM_LASER_SIZE];
-        tkg::Point3 origin_shift[SSM_LASER_SIZE];
         SSMParticles *ssm_particle;
 
         // screen
