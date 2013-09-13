@@ -22,10 +22,10 @@ tamago_home=${PWD}
 echo "tamago_home="${tamago_home} > ~/.config/tamago/home-path.sh
 chmod a+x ~/.config/tamago/home-path.sh
 
-#シェル・アイコンへのシンボリックリンクを作成
+#シェル・アイコンのコピーを作成
 cd ~/.config/tamago/
-ln -f -s ${tamago_home}/shortcuts/bin
-ln -f -s ${tamago_home}/shortcuts/icons
+cp -fr ${tamago_home}/shortcuts/bin ~/.config/tamago/bin
+cp -fr ${tamago_home}/shortcuts/icons ~/.config/tamago/icons
 
 #-----------------------------------------------
 #デスクトップランチャを作成
