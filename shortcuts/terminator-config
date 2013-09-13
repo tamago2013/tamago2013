@@ -190,7 +190,18 @@
       type = Window
       parent = ""
 
-
+#=================================================
+# joystick / ypspur-joystickの立ち上げ
+#=================================================
+  [[joystick]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+      title = path-planner
+      command = ypspur-joystick -d /dev/input/js0 -V 1.0 -W 3.0 -A 1.0 -O 3.0 0.5 0.8; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
 
 [plugins]
 
