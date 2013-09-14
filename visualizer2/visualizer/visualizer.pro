@@ -15,12 +15,12 @@ HEADERS += \
     widget-msg.hpp \
     widget-img.hpp \
     ssm-message.hpp \
-    fps-timer.hpp \
     widget-gl.hpp \
     ../../tkglib/tkg-utility.hpp \
     ../../tkglib/tkg-opengl.hpp \
     ../../tkglib/tkg-geometry.hpp \
-    ../../tkglib/tkg-config.hpp
+    ../../tkglib/tkg-config.hpp \
+    menu-handler.hpp
 
 SOURCES += \
     main.cpp \
@@ -30,7 +30,7 @@ SOURCES += \
     widget-msg.cpp \
     widget-img.cpp \
     ssm-message.cpp \
-    fps-timer.cpp
+    menu-handler.cpp
 
 LIBS += \
     -lGLU \

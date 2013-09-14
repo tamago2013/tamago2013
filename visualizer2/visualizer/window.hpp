@@ -9,6 +9,7 @@ class WidgetGL;
 class WidgetIMG;
 class WidgetMSG;
 
+class MenuHandler;
 
 class Window : public QMainWindow
 {
@@ -21,9 +22,8 @@ class Window : public QMainWindow
 
         bool init();
 
-
-        void addMenuFPS (FPSTimer *obj, const char *str);
-        void addMenuView(QObject  *obj, const char *str, const std::vector< std::pair<std::string, int> > &list);
+        void addMenuFps (MenuHandler *handler);
+        void addMenuView(MenuHandler *handler);
 
         WidgetGL*  viewer () { return w_viewer;  }
         WidgetIMG* camera1() { return w_camera1; }

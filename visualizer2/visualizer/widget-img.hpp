@@ -1,11 +1,11 @@
-#ifndef WIDGETIMG_HPP
-#define WIDGETIMG_HPP
+#ifndef WIDGET_IMG_HPP
+#define WIDGET_IMG_HPP
 
 #include <QWidget>
 #include "tkg-config.hpp"
 
 class Window;
-class FPSTimer;
+class FpsMenuHandler;
 class SSMApiBase;
 
 class WidgetIMG : public QWidget
@@ -27,7 +27,7 @@ class WidgetIMG : public QWidget
     private: // variables
 
         Window   *window;
-        FPSTimer *timer;
+        FpsMenuHandler *fps_timer;
 
         QImage *image;
         SSMApiBase *ssmapi;
@@ -35,4 +35,4 @@ class WidgetIMG : public QWidget
 };
 
 
-#endif // WIDGETIMG_HPP
+#endif // WIDGET_IMG_HPP

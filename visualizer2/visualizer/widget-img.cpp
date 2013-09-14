@@ -2,7 +2,7 @@
 #include <ssm.hpp>
 #include "window.hpp"
 #include "widget-img.hpp"
-#include "fps-timer.hpp"
+#include "menu-handler.hpp"
 #include "ssm-message.hpp"
 #include "tkg-config.hpp"
 #include "tkg-utility.hpp"
@@ -13,19 +13,24 @@ typedef uchar ssmimage[640*480*3];
 WidgetIMG::WidgetIMG(Window* parent, tkg::ConfigGroup &conf)
 {
     window = parent;
-    timer  = new FPSTimer(tkg::parseArray(conf["fps"]));
     image  = NULL;
     ssmapi = new SSMApi<ssmimage>(tkg::parseStr(conf["ssm-name"]), tkg::parseInt(conf["ssm-id"]));
 
-    window->addMenuFPS(timer, tkg::parseStr(conf["title"]));
-    connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+    fps_timer = new FpsMenuHandler(this);
+    fps_timer->title = conf["title"];
+    std::vector<std::string> fps = tkg::parseArray(conf["fps"]);
+    for(int i=0; i<fps.size(); i++)
+    {
+        fps_timer->list.push_back( MenuElement(fps[i]+" fps", tkg::parseInt(fps[i]), i==0) );
+    }
+    connect(fps_timer->timer, SIGNAL(timeout()), this, SLOT(update()));
+    window->addMenuFps(fps_timer);
 }
 
 WidgetIMG::~WidgetIMG()
 {
     delete image;
     delete ssmapi;
-    delete timer;
 }
 
 int WidgetIMG::heightForWidth(int w) const

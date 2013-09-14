@@ -5,7 +5,7 @@
 #include "window.hpp"
 #include "widget-gl.hpp"
 #include "widget-msg.hpp"
-#include "fps-timer.hpp"
+#include "menu-handler.hpp"
 #include "ssm-message.hpp"
 #include "tkg-opengl.hpp"
 #include "gnd-bmp.hpp"
@@ -33,17 +33,29 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 
         color_point [i]  = tkg::Color4(conf[group]["point-color"]);
         color_laser [i]  = tkg::Color4(conf[group]["laser-color"]);
-        laser_view  [i] |= (conf[group]["view-point"]=="true" ? 1 : 0);
-        laser_view  [i] |= (conf[group]["view-laser"]=="true" ? 2 : 0);
+        //laser_view  [i] |= (conf[group]["view-point"]=="true" ? 1 : 0);
+        //laser_view  [i] |= (conf[group]["view-laser"]=="true" ? 2 : 0);
 
-        std::vector< std::pair<std::string, int> > list;
-        list.push_back( std::make_pair("non-display", i*10 + 0) );
-        list.push_back( std::make_pair("point",       i*10 + 1) );
-        list.push_back( std::make_pair("laser",       i*10 + 2) );
-        list.push_back( std::make_pair("point+laser", i*10 + 3) );
+        vmh_laser[i] = new ViewMenuHandler(this);
+        vmh_laser[i]->title = conf[group]["title"];
+        vmh_laser[i]->list.push_back( MenuElement("non-display", 0, false) );
+        vmh_laser[i]->list.push_back( MenuElement("point"      , 1, false) );
+        vmh_laser[i]->list.push_back( MenuElement("laser"      , 2, false) );
+        vmh_laser[i]->list.push_back( MenuElement("point+laser", 3, true ) );
 
-        window->addMenuView(this, tkg::parseStr(conf[group]["title"]), list);
+        window->addMenuView(vmh_laser[i]);
     }
+
+    fps_timer = new FpsMenuHandler(this);
+    fps_timer->title = conf["Viewer"]["title"];
+    std::vector<std::string> fps = tkg::parseArray(conf["Viewer"]["fps"]);
+    for(int i=0; i<fps.size(); i++)
+    {
+        fps_timer->list.push_back( MenuElement(fps[i]+" fps", tkg::parseInt(fps[i]), i==0) );
+    }
+    connect(fps_timer->timer, SIGNAL(timeout()), this, SLOT(update()));
+    window->addMenuFps(fps_timer);
+
 
     camera = new Camera;
 
@@ -54,9 +66,7 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     map_height = -1;
     map_data   = NULL;
 
-    timer = new FPSTimer(tkg::parseArray(conf["Viewer"]["fps"]));
-    window->addMenuFPS(timer, tkg::parseStr(conf["Viewer"]["title"]));
-    connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+
 }
 
 WidgetGL::~WidgetGL()
@@ -382,7 +392,7 @@ void WidgetGL::drawLaser(int id)
     if( !smState(ssmapi) ) return;
     SOKUIKIData3D &data = ssmapi->data;
 
-    if(laser_view[id] & 1)
+    if(vmh_laser[id]->value & 1)
     {
         glColor4dv(color_point[id].rgba);
         glPointSize(3);
@@ -399,7 +409,7 @@ void WidgetGL::drawLaser(int id)
         glPointSize(1);
     }
 
-    if(laser_view[id] & 2)
+    if(vmh_laser[id]->value & 2)
     {
         glColor4dv(color_laser[id].rgba);
         glLineWidth(1);
@@ -485,10 +495,5 @@ void WidgetGL::mouseReleaseEvent(QMouseEvent *event)
     mouse_prev_x = event->x();
     mouse_prev_y = event->y();
     mouse_prev_b = event->button();
-}
-
-void WidgetGL::setLaserView(int val)
-{
-    laser_view[val/10] = val%10;
 }
 

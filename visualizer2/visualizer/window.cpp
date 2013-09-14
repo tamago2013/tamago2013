@@ -8,7 +8,7 @@
 #include "widget-gl.hpp"
 #include "widget-msg.hpp"
 #include "widget-img.hpp"
-#include "fps-timer.hpp"
+#include "menu-handler.hpp"
 #include "tkg-config.hpp"
 #include "ssm-message.hpp"
 
@@ -20,6 +20,7 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 
     if(conf["Layout"]["window-size"] == "maximized")
     {
+        resize(900, 600);
         setWindowState(Qt::WindowMaximized);
     }
     else
@@ -122,9 +123,6 @@ Window::~Window()
 
 bool Window::init()
 {
-    //connect(viewer->get_vssm(), SIGNAL(send_status (const char*)), status,  SLOT(add_message(const char*)));
-    //connect(viewer->get_vssm(), SIGNAL(send_message(const char*)), message, SLOT(add_message(const char*)));
-
     w_viewer ->init();
     w_camera1->init();
     w_camera2->init();
@@ -132,111 +130,57 @@ bool Window::init()
     return true;
 }
 
-/*
-void Window::test_add_menu_SSM(QObject* obj, const char* str)
+void Window::addMenuFps(MenuHandler *handler)
 {
-    QAction *view00 = new QAction(tr("non-display"), this);
-    //view00->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_1) );
-    view00->setCheckable(true);
-
-    QAction *view01 = new QAction(tr("point only"), this);
-    //view01->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_2) );
-    view01->setCheckable(true);
-
-    QAction *view10 = new QAction(tr("laser only"), this);
-    //view10->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_3) );
-    view10->setCheckable(true);
-
-
-    QAction *view11 = new QAction(tr("point + laser"), this);
-    //view11->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_4) );
-    view11->setCheckable(true);
-    view11->setChecked(true);
-
-    QMenu *stream_menu = new QMenu(tr(str), this);
-    stream_menu->addAction(view00);
-    stream_menu->addAction(view01);
-    stream_menu->addAction(view10);
-    stream_menu->addAction(view11);
-
-    QActionGroup *stream_group = new QActionGroup(this);
-    stream_group->setExclusive(true);
-    stream_group->addAction(view00);
-    stream_group->addAction(view01);
-    stream_group->addAction(view10);
-    stream_group->addAction(view11);
-
-    ssm_menu->addMenu(stream_menu);
-
-    QSignalMapper *signal_mapper = new QSignalMapper(this);
-    connect(view00, SIGNAL(triggered()), signal_mapper, SLOT(map()));
-    connect(view01, SIGNAL(triggered()), signal_mapper, SLOT(map()));
-    connect(view10, SIGNAL(triggered()), signal_mapper, SLOT(map()));
-    connect(view11, SIGNAL(triggered()), signal_mapper, SLOT(map()));
-    signal_mapper->setMapping(view00, 0);
-    signal_mapper->setMapping(view01, 1);
-    signal_mapper->setMapping(view10, 2);
-    signal_mapper->setMapping(view11, 3);
-    connect(signal_mapper, SIGNAL(mapped(int)), obj, SLOT(set_view_state(int)));
-}
-*/
-
-void Window::addMenuFPS(FPSTimer *obj, const char *str)
-{
-    QMenu         *menu   = new QMenu(tr(str), this);
+    QMenu         *menu   = new QMenu(tr(handler->title.c_str()), this);
     QActionGroup  *group  = new QActionGroup(this);
     QSignalMapper *mapper = new QSignalMapper(this);
 
     m_fps->addMenu(menu);
     group->setExclusive(true);
 
-    int fps_default = 1;
-    std::vector<int> fps = obj->getFPS();
-    if(!fps.empty())
-    {
-        fps_default = fps.front();
-        std::sort(fps.begin(), fps.end());
-    }
+    std::sort(handler->list.begin(), handler->list.end());
 
-    for(uint i=0; i<fps.size(); i++)
+    for(uint i=0; i<handler->list.size(); i++)
     {
-        char str[256];
-        std::snprintf(str, 256, "%2d fps", fps[i]);
-
-        QAction *action = new QAction(tr(str), this);
+        QAction *action = new QAction(tr(handler->list[i].title.c_str()), this);
         action->setCheckable(true);
+        if(handler->list[i].check)
+        {
+            action->setChecked(true);
+            handler->receive(handler->list[i].value);
+        }
         menu  ->addAction(action);
         group ->addAction(action);
-        mapper->setMapping(action, fps[i]);
+        mapper->setMapping(action, handler->list[i].value);
         connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
-
-        if(fps[i] == fps_default)
-        {
-            obj->setFPS(fps[i]);
-            action->setChecked(true);
-        }
     }
-    connect(mapper, SIGNAL(mapped(int)), obj, SLOT(setFPS(int)));
+    connect(mapper, SIGNAL(mapped(int)), handler, SLOT(receive(int)));
 }
 
-
-void Window::addMenuView(QObject  *obj, const char *str, const std::vector< std::pair<std::string, int> > &list)
+void Window::addMenuView(MenuHandler *handler)
 {
-    QMenu         *menu   = new QMenu(tr(str), this);
+    QMenu         *menu   = new QMenu(tr(handler->title.c_str()), this);
     QActionGroup  *group  = new QActionGroup(this);
     QSignalMapper *mapper = new QSignalMapper(this);
 
     m_ssm->addMenu(menu);
     group->setExclusive(true);
 
-    for(uint i=0; i<list.size(); i++)
+    for(uint i=0; i<handler->list.size(); i++)
     {
-        QAction *action = new QAction(tr(list[i].first.c_str()), this);
+        QAction *action = new QAction(tr(handler->list[i].title.c_str()), this);
         action->setCheckable(true);
+        if(handler->list[i].check)
+        {
+            action->setChecked(true);
+            handler->receive(handler->list[i].value);
+        }
         menu  ->addAction(action);
         group ->addAction(action);
-        mapper->setMapping(action, list[i].second);
+        mapper->setMapping(action, handler->list[i].value);
         connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
     }
-    connect(mapper, SIGNAL(mapped(int)), obj, SLOT(setLaserView(int)));
+    connect(mapper, SIGNAL(mapped(int)), handler, SLOT(receive(int)));
 }
+

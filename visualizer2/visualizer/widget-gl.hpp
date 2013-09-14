@@ -11,7 +11,8 @@
 #include "ssmtype/spur-odometry.h"
 
 class Window;
-class FPSTimer;
+class FpsMenuHandler;
+class ViewMenuHandler;
 
 class QKeyEvent;
 class QMouseEvent;
@@ -28,10 +29,6 @@ class WidgetGL : public QGLWidget
 
         bool init();
         Camera*  get_camera() { return camera; }
-
-    public slots:
-
-        void setLaserView(int val);
 
     protected:  // functions
 
@@ -64,7 +61,7 @@ class WidgetGL : public QGLWidget
 
         // object
         Window   *window;
-        FPSTimer *timer;
+        FpsMenuHandler *fps_timer;
 
         // robot
         tkg::Point3 robot_p;
@@ -90,10 +87,11 @@ class WidgetGL : public QGLWidget
         static const int SSM_LASER_SIZE = 2;
         SSMApi<Spur_Odometry> *ssm_robot;
         SSMSOKUIKIData3D      *ssm_laser[SSM_LASER_SIZE];
-        int laser_view[SSM_LASER_SIZE];
+        ViewMenuHandler       *vmh_laser[SSM_LASER_SIZE];
         tkg::Color4 color_point[SSM_LASER_SIZE];
         tkg::Color4 color_laser[SSM_LASER_SIZE];
         SSMParticles *ssm_particle;
+
 
         // screen
         int    width;
