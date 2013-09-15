@@ -6,10 +6,10 @@
 #include "widget-gl.hpp"
 #include "widget-msg.hpp"
 #include "menu-handler.hpp"
-#include "ssm-message.hpp"
 #include "tkg-opengl.hpp"
-#include "gnd-bmp.hpp"
-#include "gnd-opsm.hpp"
+#include "map-viewer.hpp"
+
+#include "ssm-message.hpp"
 
 #include <cstdlib>
 using namespace ssm;
@@ -66,13 +66,14 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     map_height = -1;
     map_data   = NULL;
 
-
+    map_viewer = new MapViewer;
 }
 
 WidgetGL::~WidgetGL()
 {
     delete camera;
     delete map_data;
+    delete map_viewer;
 
     delete ssm_robot;
     delete ssm_laser[0];
@@ -84,6 +85,7 @@ bool WidgetGL::init()
 {
     loadRoute();
     loadMap();
+
     smConnect(ssm_robot);
     smConnect(ssm_laser[0]);
     smConnect(ssm_laser[1]);
@@ -159,7 +161,7 @@ void WidgetGL::updateStream()
         {
             smReadLast(ssmapi[i]);
             ssm_time = std::min(ssm_time, ssmapi[i]->time);
-        }    glArrow(robot_p, robot_t, 0.5);
+        }
     }
     for(uint i=0; i<ssmapi.size(); i++)
     {
@@ -175,75 +177,13 @@ void WidgetGL::updateStream()
 
 bool WidgetGL::loadMap()
 {
-    const char *dirname = map_name.c_str();
-    if( dirname == NULL) return false;
-    if(*dirname == '\0') return false;
-
-    gnd::opsm::map_t  opsm_map;
-    gnd::opsm::cmap_t cnt_map;
-    gnd::bmp8_t       bmp_map;
-
-    // read  map raw map_data
-    if( gnd::opsm::read_counting_map(&cnt_map, dirname) < 0)
-    {
-        window->message()->add_message("マップの読込に失敗しました。[");
-        window->message()->add_message(dirname);
-        window->message()->add_message("]\n");
-        return false;
-    }
-
-    if( gnd::opsm::build_map(&opsm_map, &cnt_map, gnd_mm2dist(1)) < 0 ) {
-        window->message()->add_message("マップの作成に失敗しました。\n");
-        return false;
-    }
-
-    if( gnd::opsm::build_bmp(&bmp_map, &opsm_map, gnd_m2dist(1.0/10)) < 0 )
-    {
-        window->message()->add_message("マップの画像化に失敗しました。\n");
-        return false;
-    }
-    window->message()->add_message("マップの読込に成功しました。\n");
-
-    map_width  = bmp_map.column();
-    map_height = bmp_map.row();
-    map_base_x = bmp_map.xorg();
-    map_base_y = bmp_map.yorg();
-    map_unit_x = bmp_map.xrsl();
-    map_unit_y = bmp_map.yrsl();
-
-    map_data = new unsigned char[map_width*map_height*3];
-
-    for(int y=0; y<map_height; y++)
-    for(int x=0; x<map_width;  x++)
-    {
-        map_data[(y*map_width+x)*3+0] = bmp_map.value(y, x);
-        map_data[(y*map_width+x)*3+1] = bmp_map.value(y, x);
-        map_data[(y*map_width+x)*3+2] = bmp_map.value(y, x);
-    }
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glGenTextures(1, &map_image);
-    glBindTexture(GL_TEXTURE_2D, map_image);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, 3, map_width, map_height, GL_RGB, GL_UNSIGNED_BYTE, map_data);
-
+    map_viewer->load(map_name);
     return true;
 }
 
 void WidgetGL::drawMap()
 {
-    glColor3d(1.0, 1.0, 1.0);
-    glBindTexture(GL_TEXTURE_2D, map_image);
-
-    glEnable(GL_TEXTURE_2D);
-    glBegin(GL_POLYGON);
-    glTexCoord2d(0, 0); glVertex3d(map_base_x,                        map_base_y,                         0.0);
-    glTexCoord2d(1, 0); glVertex3d(map_base_x + map_width*map_unit_x, map_base_y,                         0.0);
-    glTexCoord2d(1, 1); glVertex3d(map_base_x + map_width*map_unit_x, map_base_y + map_height*map_unit_y, 0.0);
-    glTexCoord2d(0, 1); glVertex3d(map_base_x,                        map_base_y + map_height*map_unit_y, 0.0);
-    glEnd();
-    glDisable(GL_TEXTURE_2D);
+    map_viewer->draw();
 }
 
 bool WidgetGL::loadRoute()
@@ -308,26 +248,7 @@ void WidgetGL::drawRoute()
 
 void WidgetGL::drawGround()
 {
-    if(map_width != -1 && map_height != -1)
-    {
-        double sx = floor(map_base_x), gx = ceil(map_base_x + map_width  * map_unit_x);
-        double sy = floor(map_base_y), gy = ceil(map_base_y + map_height * map_unit_y);
-
-        glColor3d(0.2,0.2,0.2);
-        glBegin(GL_LINES);
-        for(double x=sx; x<=gx; x+=1.0)
-        {
-            glVertex3d(x, sy, 0.0);
-            glVertex3d(x, gy, 0.0);
-        }
-        for(double y=sy; y<=gy; y+=1.0)
-        {
-            glVertex3d(sx, y, 0.0);
-            glVertex3d(gx, y, 0.0);
-        }
-        glEnd();
-    }
-    else
+    if( !map_viewer->good())
     {
         double s = -30.0, g = 30.0;
 

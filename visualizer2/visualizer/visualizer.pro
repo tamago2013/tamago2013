@@ -20,7 +20,8 @@ HEADERS += \
     ../../tkglib/tkg-opengl.hpp \
     ../../tkglib/tkg-geometry.hpp \
     ../../tkglib/tkg-config.hpp \
-    menu-handler.hpp
+    menu-handler.hpp \
+    map-viewer.hpp
 
 SOURCES += \
     main.cpp \
@@ -30,7 +31,8 @@ SOURCES += \
     widget-msg.cpp \
     widget-img.cpp \
     ssm-message.cpp \
-    menu-handler.cpp
+    menu-handler.cpp \
+    map-viewer.cpp
 
 LIBS += \
     -lGLU \

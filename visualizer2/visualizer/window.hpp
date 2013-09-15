@@ -4,11 +4,9 @@
 #include <QMainWindow>
 #include "tkg-config.hpp"
 
-class FPSTimer;
 class WidgetGL;
 class WidgetIMG;
 class WidgetMSG;
-
 class MenuHandler;
 
 class Window : public QMainWindow

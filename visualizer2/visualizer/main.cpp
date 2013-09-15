@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
         printf("error: can't open config file.\n");
         return 0;
     }
-    //config.print();
 
     // window
 

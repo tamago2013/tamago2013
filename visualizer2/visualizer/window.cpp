@@ -14,27 +14,30 @@
 
 #include <QTableWidget>
 
+#include <QThread>
+#include <QObject>
+
 Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 {
     setWindowTitle(conf["Layout"]["title"].c_str());
 
-    if(conf["Layout"]["window-size"] == "maximized")
+    int window_width  = 800;
+    int window_height = 600;
+
+    std::vector<std::string> size;
+    size = tkg::parseArray(conf["Layout"]["window-size"]);
+    if(size.size() == 2)
     {
-        resize(900, 600);
+        window_width  = tkg::parseInt(size[0]);
+        window_height = tkg::parseInt(size[1]);
+    }
+    resize(window_width, window_height);
+
+    if(conf["Layout"]["window-maximized"] == "true")
+    {
         setWindowState(Qt::WindowMaximized);
     }
-    else
-    {
-        std::vector<std::string> size;
-        size = tkg::parseArray(conf["Layout"]["window-size"]);
 
-        if(size.size() == 2)
-        {
-            int width  = tkg::parseInt(size[0]);
-            int height = tkg::parseInt(size[1]);
-            resize(width, height);
-        }
-    }
 
     // Menu
     m_fps = menuBar()->addMenu(tr("&FPS"));

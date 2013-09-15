@@ -11,6 +11,7 @@
 #include "ssmtype/spur-odometry.h"
 
 class Window;
+class MapViewer;
 class FpsMenuHandler;
 class ViewMenuHandler;
 
@@ -71,6 +72,7 @@ class WidgetGL : public QGLWidget
 
 
         // map
+        MapViewer *map_viewer;
         std::string     map_name;
         unsigned int    map_image;
         unsigned char  *map_data;
@@ -84,13 +86,16 @@ class WidgetGL : public QGLWidget
         std::vector<std::pair<int,int> > route_edge;
 
         // ssm
-        static const int SSM_LASER_SIZE = 2;
+
         SSMApi<Spur_Odometry> *ssm_robot;
+        SSMParticles *ssm_particle;
+
+        static const int      SSM_LASER_SIZE = 2;
         SSMSOKUIKIData3D      *ssm_laser[SSM_LASER_SIZE];
         ViewMenuHandler       *vmh_laser[SSM_LASER_SIZE];
         tkg::Color4 color_point[SSM_LASER_SIZE];
         tkg::Color4 color_laser[SSM_LASER_SIZE];
-        SSMParticles *ssm_particle;
+
 
 
         // screen
