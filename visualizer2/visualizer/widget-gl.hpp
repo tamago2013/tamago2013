@@ -12,8 +12,9 @@
 
 class Window;
 class MapViewer;
+class ToggleMenuHandler;
+class SelectMenuHandler;
 class FpsMenuHandler;
-class ViewMenuHandler;
 
 class QKeyEvent;
 class QMouseEvent;
@@ -71,32 +72,30 @@ class WidgetGL : public QGLWidget
         std::vector<double>      robot_log_t;
 
 
-        // map
-        MapViewer *map_viewer;
-        std::string     map_name;
-        unsigned int    map_image;
-        unsigned char  *map_data;
-        int    map_width,  map_height;
-        double map_base_x, map_base_y;
-        double map_unit_x, map_unit_y;
+        // opsm map
+        MapViewer         *map_opsm;
+        ToggleMenuHandler *tmh_opsm;
 
         // route
+        //RouteViewer       *map_route;
+        ToggleMenuHandler *tmh_route;
         std::string                      route_name;
         std::vector<tkg::Point3>         route_node;
         std::vector<std::pair<int,int> > route_edge;
 
-        // ssm
-
+        // ssm odometry
         SSMApi<Spur_Odometry> *ssm_robot;
-        SSMParticles *ssm_particle;
 
+        // ssm particle
+        SSMParticles      *ssm_particle;
+        ToggleMenuHandler *tmh_particle;
+
+        // ssm laser
         static const int      SSM_LASER_SIZE = 2;
         SSMSOKUIKIData3D      *ssm_laser[SSM_LASER_SIZE];
-        ViewMenuHandler       *vmh_laser[SSM_LASER_SIZE];
-        tkg::Color4 color_point[SSM_LASER_SIZE];
-        tkg::Color4 color_laser[SSM_LASER_SIZE];
-
-
+        SelectMenuHandler     *smh_laser[SSM_LASER_SIZE];
+        tkg::Color4          color_point[SSM_LASER_SIZE];
+        tkg::Color4          color_laser[SSM_LASER_SIZE];
 
         // screen
         int    width;

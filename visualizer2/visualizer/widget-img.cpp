@@ -6,12 +6,14 @@
 #include "ssm-message.hpp"
 #include "tkg-config.hpp"
 #include "tkg-utility.hpp"
-using namespace tkg;
+#include "tkg-debug.hpp"
 
 typedef uchar ssmimage[640*480*3];
 
 WidgetIMG::WidgetIMG(Window* parent, tkg::ConfigGroup &conf)
 {
+    tkg::debug("new WidgetIMG\n");
+
     window = parent;
     image  = NULL;
     ssmapi = new SSMApi<ssmimage>(tkg::parseStr(conf["ssm-name"]), tkg::parseInt(conf["ssm-id"]));
@@ -21,7 +23,7 @@ WidgetIMG::WidgetIMG(Window* parent, tkg::ConfigGroup &conf)
     std::vector<std::string> fps = tkg::parseArray(conf["fps"]);
     for(int i=0; i<fps.size(); i++)
     {
-        fps_timer->list.push_back( MenuElement(fps[i]+" fps", tkg::parseInt(fps[i]), i==0) );
+        fps_timer->list.push_back( SelectMenuElement(fps[i]+" fps", tkg::parseInt(fps[i])) );
     }
     connect(fps_timer->timer, SIGNAL(timeout()), this, SLOT(update()));
     window->addMenuFps(fps_timer);
@@ -29,6 +31,7 @@ WidgetIMG::WidgetIMG(Window* parent, tkg::ConfigGroup &conf)
 
 WidgetIMG::~WidgetIMG()
 {
+    tkg::debug("delete WidgetIMG\n");
     delete image;
     delete ssmapi;
 }

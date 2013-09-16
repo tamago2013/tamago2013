@@ -21,7 +21,8 @@ HEADERS += \
     ../../tkglib/tkg-geometry.hpp \
     ../../tkglib/tkg-config.hpp \
     menu-handler.hpp \
-    map-viewer.hpp
+    map-viewer.hpp \
+    ../../tkglib/tkg-debug.hpp
 
 SOURCES += \
     main.cpp \
@@ -37,3 +38,6 @@ SOURCES += \
 LIBS += \
     -lGLU \
     -lssm
+
+OTHER_FILES += \
+    memo.txt

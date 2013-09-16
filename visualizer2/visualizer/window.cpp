@@ -10,6 +10,7 @@
 #include "widget-img.hpp"
 #include "menu-handler.hpp"
 #include "tkg-config.hpp"
+#include "tkg-debug.hpp"
 #include "ssm-message.hpp"
 
 #include <QTableWidget>
@@ -19,6 +20,8 @@
 
 Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 {
+    tkg::debug("new Window\n");
+
     setWindowTitle(conf["Layout"]["title"].c_str());
 
     int window_width  = 800;
@@ -121,6 +124,7 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 
 Window::~Window()
 {
+    tkg::debug("delete Window\n");
     smEnd();
 }
 
@@ -133,7 +137,7 @@ bool Window::init()
     return true;
 }
 
-void Window::addMenuFps(MenuHandler *handler)
+void Window::addMenuFps(SelectMenuHandler *handler)
 {
     QMenu         *menu   = new QMenu(tr(handler->title.c_str()), this);
     QActionGroup  *group  = new QActionGroup(this);
@@ -148,7 +152,7 @@ void Window::addMenuFps(MenuHandler *handler)
     {
         QAction *action = new QAction(tr(handler->list[i].title.c_str()), this);
         action->setCheckable(true);
-        if(handler->list[i].check)
+        if(handler->list[i].value == handler->value)
         {
             action->setChecked(true);
             handler->receive(handler->list[i].value);
@@ -161,7 +165,7 @@ void Window::addMenuFps(MenuHandler *handler)
     connect(mapper, SIGNAL(mapped(int)), handler, SLOT(receive(int)));
 }
 
-void Window::addMenuView(MenuHandler *handler)
+void Window::addMenuView(SelectMenuHandler *handler)
 {
     QMenu         *menu   = new QMenu(tr(handler->title.c_str()), this);
     QActionGroup  *group  = new QActionGroup(this);
@@ -174,7 +178,7 @@ void Window::addMenuView(MenuHandler *handler)
     {
         QAction *action = new QAction(tr(handler->list[i].title.c_str()), this);
         action->setCheckable(true);
-        if(handler->list[i].check)
+        if(handler->list[i].value == handler->value)
         {
             action->setChecked(true);
             handler->receive(handler->list[i].value);
@@ -185,5 +189,21 @@ void Window::addMenuView(MenuHandler *handler)
         connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
     }
     connect(mapper, SIGNAL(mapped(int)), handler, SLOT(receive(int)));
+}
+
+
+void Window::addMenuView(ToggleMenuHandler *handler)
+{
+    QAction *action = new QAction(tr(handler->title.c_str()), this);
+
+    m_ssm->addAction(action);
+
+    action->setCheckable(true);
+    if(handler->value)
+    {
+        action->setChecked(true);
+        handler->receive(true);
+    }
+    connect(action, SIGNAL(toggled(bool)), handler, SLOT(receive(bool)));
 }
 

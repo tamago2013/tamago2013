@@ -10,12 +10,13 @@
 #include "map-viewer.hpp"
 
 #include "ssm-message.hpp"
+#include "tkg-debug.hpp"
 
-#include <cstdlib>
-using namespace ssm;
 
 WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 {
+    tkg::debug("new WidgetGL\n");
+
     setFocusPolicy(Qt::StrongFocus);
 
     window = parent;
@@ -24,7 +25,7 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     robot_t = 0.0;
 
     ssm_robot    = new SSMApi<Spur_Odometry> (tkg::parseStr(conf["Odometry"]["ssm-name"]), tkg::parseInt(conf["Odometry"]["ssm-id"]));
-    ssm_particle = new SSMParticles          (tkg::parseStr(conf["Particle"]["ssm-name"]), tkg::parseInt(conf["Particle"]["ssm-id"]));
+
 
     for(int i=0; i<SSM_LASER_SIZE; i++)
     {
@@ -33,52 +34,81 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 
         color_point [i]  = tkg::Color4(conf[group]["point-color"]);
         color_laser [i]  = tkg::Color4(conf[group]["laser-color"]);
-        //laser_view  [i] |= (conf[group]["view-point"]=="true" ? 1 : 0);
-        //laser_view  [i] |= (conf[group]["view-laser"]=="true" ? 2 : 0);
 
-        vmh_laser[i] = new ViewMenuHandler(this);
-        vmh_laser[i]->title = conf[group]["title"];
-        vmh_laser[i]->list.push_back( MenuElement("non-display", 0, false) );
-        vmh_laser[i]->list.push_back( MenuElement("point"      , 1, false) );
-        vmh_laser[i]->list.push_back( MenuElement("laser"      , 2, false) );
-        vmh_laser[i]->list.push_back( MenuElement("point+laser", 3, true ) );
+        smh_laser[i] = new SelectMenuHandler(this);
 
-        window->addMenuView(vmh_laser[i]);
+        smh_laser[i]->title = conf[group]["title"];
+        smh_laser[i]->value  = 0;
+        smh_laser[i]->value |= (conf[group]["view-point"]=="true" ? 1 : 0);
+        smh_laser[i]->value |= (conf[group]["view-laser"]=="true" ? 2 : 0);
+
+        smh_laser[i]->list.push_back( SelectMenuElement("non-display", 0) );
+        smh_laser[i]->list.push_back( SelectMenuElement("point"      , 1) );
+        smh_laser[i]->list.push_back( SelectMenuElement("laser"      , 2) );
+        smh_laser[i]->list.push_back( SelectMenuElement("point+laser", 3) );
+
+        window->addMenuView(smh_laser[i]);
     }
 
+
+    std::vector<std::string> fps = tkg::parseArray(conf["Viewer"]["fps"]);
     fps_timer = new FpsMenuHandler(this);
     fps_timer->title = conf["Viewer"]["title"];
-    std::vector<std::string> fps = tkg::parseArray(conf["Viewer"]["fps"]);
+    fps_timer->value = fps.empty() ? 1 : tkg::parseInt(fps.front());
     for(int i=0; i<fps.size(); i++)
     {
-        fps_timer->list.push_back( MenuElement(fps[i]+" fps", tkg::parseInt(fps[i]), i==0) );
+        fps_timer->list.push_back( SelectMenuElement(fps[i]+" fps", tkg::parseInt(fps[i])) );
     }
     connect(fps_timer->timer, SIGNAL(timeout()), this, SLOT(update()));
     window->addMenuFps(fps_timer);
 
 
+
+    ssm_particle = new SSMParticles(tkg::parseStr(conf["Particle"]["ssm-name"]), tkg::parseInt(conf["Particle"]["ssm-id"]));
+    tmh_particle = new ToggleMenuHandler(this);
+    tmh_particle->title = conf["Particle"]["title"];
+    tmh_particle->value = true;
+    window->addMenuView(tmh_particle);
+
+
     camera = new Camera;
 
-    route_name = conf["File"]["route"];
+    map_opsm = new MapViewer(conf["Field"]["file"]);
+    tmh_opsm = new ToggleMenuHandler(this);
+    tmh_opsm->title = conf["Field"]["title"];
+    tmh_opsm->value = (conf["Field"]["view-state"] == "true");
+    window->addMenuView(tmh_opsm);
 
-    map_name   = conf["File"]["opsm-map"];
-    map_width  = -1;
-    map_height = -1;
-    map_data   = NULL;
 
-    map_viewer = new MapViewer;
+    route_name = conf["Route"]["file"];
+    //map_opsm = new MapViewer(conf["File"]["opsm-map"]);
+    tmh_route = new ToggleMenuHandler(this);
+    tmh_route->title =  conf["Route"]["title"];
+    tmh_route->value = (conf["Route"]["view-state"] == "true");
+    window->addMenuView(tmh_route);
 }
 
 WidgetGL::~WidgetGL()
 {
+    tkg::debug("delete WidgetGL\n");
+
     delete camera;
-    delete map_data;
-    delete map_viewer;
+
+    delete map_opsm;
+    delete tmh_opsm;
+
+    delete tmh_route;
 
     delete ssm_robot;
-    delete ssm_laser[0];
-    delete ssm_laser[1];
+
     delete ssm_particle;
+    delete tmh_particle;
+
+    for(int i=0; i<SSM_LASER_SIZE; i++)
+    {
+        delete ssm_laser[i];
+        delete smh_laser[i];
+    }
 }
 
 bool WidgetGL::init()
@@ -177,13 +207,13 @@ void WidgetGL::updateStream()
 
 bool WidgetGL::loadMap()
 {
-    map_viewer->load(map_name);
+    map_opsm->load();
     return true;
 }
 
 void WidgetGL::drawMap()
 {
-    map_viewer->draw();
+    if(tmh_opsm->value) { map_opsm->draw(); }
 }
 
 bool WidgetGL::loadRoute()
@@ -215,6 +245,8 @@ bool WidgetGL::loadRoute()
 
 void WidgetGL::drawRoute()
 {
+    if( !tmh_route->value ) return;
+
     //glColor4dv(color_point[id].rgba);
     glColor3d(1.0, 1.0, 0.0);
     glPointSize(5);
@@ -248,7 +280,7 @@ void WidgetGL::drawRoute()
 
 void WidgetGL::drawGround()
 {
-    if( !map_viewer->good())
+    if( !map_opsm->good() || !tmh_opsm->value )
     {
         double s = -30.0, g = 30.0;
 
@@ -293,6 +325,8 @@ void WidgetGL::drawRobot()
 
 void WidgetGL::drawParticles()
 {
+    if( !tmh_particle->value ) return;
+
     SSMParticles *ssmapi = ssm_particle;
 
     if( !smState(ssmapi) ) return;
@@ -311,9 +345,9 @@ void WidgetGL::drawLaser(int id)
     SSMSOKUIKIData3D *ssmapi = ssm_laser[id];
 
     if( !smState(ssmapi) ) return;
-    SOKUIKIData3D &data = ssmapi->data;
+    ssm::SOKUIKIData3D &data = ssmapi->data;
 
-    if(vmh_laser[id]->value & 1)
+    if(smh_laser[id]->value & 1)
     {
         glColor4dv(color_point[id].rgba);
         glPointSize(3);
@@ -330,7 +364,7 @@ void WidgetGL::drawLaser(int id)
         glPointSize(1);
     }
 
-    if(vmh_laser[id]->value & 2)
+    if(smh_laser[id]->value & 2)
     {
         glColor4dv(color_laser[id].rgba);
         glLineWidth(1);

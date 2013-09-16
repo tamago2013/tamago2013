@@ -1,17 +1,18 @@
 #include "map-viewer.hpp"
-#include "tkg-opengl.hpp"
 #include "gnd-bmp.hpp"
 #include "gnd-opsm.hpp"
-
-#include <cstdio>
+#include "tkg-opengl.hpp"
+#include "tkg-debug.hpp"
 
 MapLoader::MapLoader()
 {
+    tkg::debug("new MapLoader\n");
     data = NULL;
 }
 
 MapLoader::~MapLoader()
 {
+    tkg::debug("delete MapLoader\n");
     delete data;
 }
 
@@ -25,8 +26,6 @@ void MapLoader::load()
     const char *dirname = fname.c_str();
     if( dirname == NULL) { emit send_make(); return; }
     if(*dirname == '\0') { emit send_make(); return; }
-
-    std::printf("load %s\n", dirname); fflush(stdout);
 
     gnd::opsm::map_t  opsm_map;
     gnd::opsm::cmap_t cnt_map;
@@ -53,8 +52,6 @@ void MapLoader::load()
     }
     //window->message()->add_message("マップの読込に成功しました。\n");
 
-    std::printf("loaded\n"); fflush(stdout);
-
     minfo.width  = bmp_map.column();
     minfo.height = bmp_map.row();
     minfo.base_x = bmp_map.xorg();
@@ -77,15 +74,18 @@ void MapLoader::load()
 
 
 
-MapViewer::MapViewer()
+MapViewer::MapViewer(std::string path)
 {
+    tkg::debug("new MapViewer\n");
     state  = false;
+    fname  = path;
     loader = NULL;
     thread = NULL;
 }
 
 MapViewer::~MapViewer()
 {
+    tkg::debug("delete MapViewer\n");
     delete loader;
     delete thread;
 }
@@ -135,7 +135,7 @@ void MapViewer::draw()
     glEnd();
 }
 
-void MapViewer::load(std::string path)
+void MapViewer::load()
 {
     loader = new MapLoader;
     thread = new QThread;
@@ -143,11 +143,10 @@ void MapViewer::load(std::string path)
     connect(this,   SIGNAL(send_load()), loader, SLOT(load()));
     connect(loader, SIGNAL(send_make()), this,   SLOT(make()));
 
-    loader->file(path);
+    loader->file(fname);
     loader->moveToThread(thread);
     thread->start();
 
-    std::printf("load send\n"); fflush(stdout);
     emit send_load();
 }
 
@@ -170,6 +169,4 @@ void MapViewer::make()
 
     //delete loader; loader = NULL;
     //delete thread; thread = NULL;
-
-    std::printf("made %d\n", image); fflush(stdout);
 }

@@ -7,7 +7,8 @@
 class WidgetGL;
 class WidgetIMG;
 class WidgetMSG;
-class MenuHandler;
+class ToggleMenuHandler;
+class SelectMenuHandler;
 
 class Window : public QMainWindow
 {
@@ -20,8 +21,9 @@ class Window : public QMainWindow
 
         bool init();
 
-        void addMenuFps (MenuHandler *handler);
-        void addMenuView(MenuHandler *handler);
+        void addMenuFps (SelectMenuHandler *handler);
+        void addMenuView(SelectMenuHandler *handler);
+        void addMenuView(ToggleMenuHandler *handler);
 
         WidgetGL*  viewer () { return w_viewer;  }
         WidgetIMG* camera1() { return w_camera1; }

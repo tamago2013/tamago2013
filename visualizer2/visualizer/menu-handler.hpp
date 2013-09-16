@@ -7,24 +7,43 @@
 #include <vector>
 #include <string>
 
-struct MenuElement
-{
-    std::string title;
-    int         value;
-    bool        check;
-
-    MenuElement(const std::string &str, int v, bool c) : title(str), value(v), check(c) {}
-    bool operator<(const MenuElement &m) const { return value < m.value; }
-};
-
-class MenuHandler : public QObject
+class ToggleMenuHandler : public QObject
 {
     Q_OBJECT
 
     public: // functions
 
-        MenuHandler(QObject *parent);
-        ~MenuHandler();
+        ToggleMenuHandler(QObject *parent);
+        ~ToggleMenuHandler();
+
+    public slots:
+
+        virtual void receive(bool val);
+
+    public: // variables
+
+        bool        value;
+        std::string title;
+};
+
+
+struct SelectMenuElement
+{
+    std::string title;
+    int         value;
+
+    SelectMenuElement(const std::string &str, int v) : title(str), value(v) {}
+    bool operator<(const SelectMenuElement &m) const { return value < m.value; }
+};
+
+class SelectMenuHandler : public QObject
+{
+    Q_OBJECT
+
+    public: // functions
+
+        SelectMenuHandler(QObject *parent);
+        ~SelectMenuHandler();
 
     public slots:
 
@@ -32,29 +51,12 @@ class MenuHandler : public QObject
 
     public: // variables
 
+        int         value;
         std::string title;
-        std::vector<MenuElement> list;
+        std::vector<SelectMenuElement> list;
 };
 
-class ViewMenuHandler : public MenuHandler
-{
-    Q_OBJECT
-
-    public: // functions
-
-        ViewMenuHandler(QObject *parent);
-        ~ViewMenuHandler();
-
-    public slots:
-
-        void receive(int val);
-
-    public:
-
-        int value;
-};
-
-class FpsMenuHandler : public MenuHandler
+class FpsMenuHandler : public SelectMenuHandler
 {
     Q_OBJECT
 

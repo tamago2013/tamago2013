@@ -1,50 +1,57 @@
 #include "menu-handler.hpp"
 #include "tkg-utility.hpp"
+#include "tkg-debug.hpp"
 
-#include <cstdio>
 
-MenuHandler::MenuHandler(QObject *parent) : QObject(parent)
+ToggleMenuHandler::ToggleMenuHandler(QObject *parent) : QObject(parent)
 {
+    tkg::debug("new ToggleMenuHandler\n");
 }
 
-MenuHandler::~MenuHandler()
+ToggleMenuHandler::~ToggleMenuHandler()
 {
-    std::printf("delete MenuHander\n");
+    tkg::debug("delete ToggleMenuHandler\n");
 }
 
-void MenuHandler::receive(int val)
-{
-}
-
-
-ViewMenuHandler::ViewMenuHandler(QObject *parent) : MenuHandler(parent)
-{
-}
-
-ViewMenuHandler::~ViewMenuHandler()
-{
-    std::printf("delete ViewMenuHander\n");
-}
-
-void ViewMenuHandler::receive(int val)
+void ToggleMenuHandler::receive(bool val)
 {
     value = val;
 }
 
 
-FpsMenuHandler::FpsMenuHandler(QObject *parent) : MenuHandler(parent)
+
+SelectMenuHandler::SelectMenuHandler(QObject *parent) : QObject(parent)
 {
+    tkg::debug("new SelectMenuHandler\n");
+}
+
+SelectMenuHandler::~SelectMenuHandler()
+{
+    tkg::debug("delete SelectMenuHandler\n");
+}
+
+void SelectMenuHandler::receive(int val)
+{
+    value = val;
+}
+
+
+
+FpsMenuHandler::FpsMenuHandler(QObject *parent) : SelectMenuHandler(parent)
+{
+    tkg::debug("new FpsMenuHandler\n");
     timer = new QTimer(this);
 }
 
 FpsMenuHandler::~FpsMenuHandler()
 {
-    std::printf("delete FpsMenuHander\n");
+    tkg::debug("delete FpsMenuHandler\n");
 }
 
 void FpsMenuHandler::receive(int val)
 {
     timer->start(1000/val);
+    SelectMenuHandler::receive(val);
 }
 
 

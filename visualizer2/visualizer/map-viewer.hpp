@@ -46,12 +46,12 @@ class MapViewer : public QObject
 
     public:
 
-        MapViewer();
+        MapViewer(std::string path);
         ~MapViewer();
 
         bool good();
         void draw();
-        void load(std::string path);
+        void load();
 
     public slots:
 
@@ -64,9 +64,11 @@ class MapViewer : public QObject
 
     private:
 
-        bool       state;
-        uint       image;
-        MapInfo    minfo;
+        bool        state;
+        uint        image;
+        MapInfo     minfo;
+        std::string fname;
+
         MapLoader *loader;
         QThread   *thread;
 
