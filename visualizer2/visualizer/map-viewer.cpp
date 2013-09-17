@@ -86,6 +86,10 @@ MapViewer::MapViewer(std::string path)
 MapViewer::~MapViewer()
 {
     tkg::debug("delete MapViewer\n");
+
+    thread->quit();
+    while(thread->isRunning()) { sleep(1); tkg::debug("wait thread\n"); }
+
     delete loader;
     delete thread;
 }
