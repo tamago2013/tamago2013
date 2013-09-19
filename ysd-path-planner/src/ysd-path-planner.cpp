@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    ret = ssm_odom.openWait(SNAME_ODOMETRY /*ADJUST*/, 0, 0.0, SSM_READ);
+    ret = ssm_odom.openWait(SNAME_ADJUST /*ADJUST, ODOMETRY*/, 0, 0.0, SSM_READ);
     if( ret != 1 ){
         fprintf(stderr, "open ssm_odom failure\n");
         return -1;
@@ -258,6 +258,7 @@ int main(int argc, char *argv[]) {
     printf("Operation START...\n");
 
     // ---> 最初の動作
+	printf("現在地: %lf, %lf, %lf\n", ssm_odom.data.x, ssm_odom.data.y, ssm_odom.data.theta);
     printf("waypoint[%d][%3d] : %lf, %lf, %lf pi に向かいます\n",route , dest, waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th/M_PI);	//目標通過地点を表示
     //	Spur_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);
     Pinfo.data.route = route;
@@ -273,14 +274,17 @@ int main(int argc, char *argv[]) {
     //    qin.open(pipe_path.c_str());
     //    printf("pipe prepared!!!!\n");
     //    // <--- qstreamを使う場合
-    double x_over_line, y_over_line, th_over_line, x_r, y_r, th_r, l_over_line;
+    double x_over_line, y_over_line, th_over_line, l_over_line;
     double over_line__mergin = 0.02;    //m手前で判定する
-    Spur_get_pos_GL(&x_r, &y_r, &th_r);
+//    Spur_get_pos_GL(&x_r, &y_r, &th_r);
 
-    l_over_line = sqrt( (waypoint_mat[route][dest].x - x_r)*(waypoint_mat[route][dest].x - x_r)
-                        + (waypoint_mat[route][dest].y - y_r)*(waypoint_mat[route][dest].y - y_r) ) - over_line__mergin;
-    x_over_line = x_r + l_over_line*cos(th);
-    y_over_line = y_r + l_over_line*sin(th);
+//    l_over_line = sqrt( (waypoint_mat[route][dest].x - x_r)*(waypoint_mat[route][dest].x - x_r)
+//                        + (waypoint_mat[route][dest].y - y_r)*(waypoint_mat[route][dest].y - y_r) ) - over_line__mergin;
+    l_over_line = sqrt( (waypoint_mat[route][dest].x - waypoint_mat[route][dest-1].x)*(waypoint_mat[route][dest].x - waypoint_mat[route][dest-1].x)
+                        + (waypoint_mat[route][dest].y - waypoint_mat[route][dest-1].y)*(waypoint_mat[route][dest].y - waypoint_mat[route][dest-1].y) ) - over_line__mergin;
+
+    x_over_line = ssm_odom.data.x + l_over_line*cos(th);
+    y_over_line = ssm_odom.data.y + l_over_line*sin(th);
     th_over_line = th;
     printf("over line point(x, y, th pi): (%lf, %lf, %lf pi)\n", x_over_line, y_over_line, th_over_line/M_PI);
     printf("Spur-free mode\n");
@@ -289,7 +293,7 @@ int main(int argc, char *argv[]) {
     // <--- 最初の動作
 
 
-    while(1){	// ---> Operation Loop
+    while( !gshutoff ){	// ---> Operation Loop
 
         //障害物をURGのデータから検出して”障害物の情報を渡す”プロセスを別につくるようにすると、
         //センサを変更してもパスプランナのプログラムの変更の必要がなくなる。
@@ -334,6 +338,7 @@ int main(int argc, char *argv[]) {
 
             if(waypoint_mat[route][dest].isgoalpint() == true || dest >= (int)waypoint_mat[route].size() - 1 )	//次の地点がゴール（もしくは次のwaypointがない）の場合、breakして終了
             {
+                printf("Here is the Goal!!!\n");
                 break;
             }
             if(waypoint_mat[route][dest].isstoppoint() == true /*&& flg == false*/)	//到達した地点が一時停止地点の場合
@@ -345,28 +350,30 @@ int main(int argc, char *argv[]) {
             if(waypoint_mat[route][dest].iswaypoint() == true)	//到達した地点が通過地点の場合
             {
                 dest++;
-//                double x_r, y_r, th_r;
-                Spur_get_pos_GL(&x_r, &y_r, &th_r);
-                th = atan2(waypoint_mat[route][dest].y - y_r, waypoint_mat[route][dest].x - x_r);	//次の通過地点に向かう角度を計算
 
-                l_over_line = sqrt( (waypoint_mat[route][dest].x - x_r)*(waypoint_mat[route][dest].x - x_r)
-                                    + (waypoint_mat[route][dest].y - y_r)*(waypoint_mat[route][dest].y - y_r) ) - over_line__mergin;
-                x_over_line = x_r + l_over_line*cos(th);
-                y_over_line = y_r + l_over_line*sin(th);
-                th_over_line = th;
+                th = atan2(waypoint_mat[route][dest].y - waypoint_mat[route][dest-1].y, waypoint_mat[route][dest].x - waypoint_mat[route][dest-1].x);	//次の通過地点に向かう角度を計算
 
                 int _ret;
                 Spur_spin_GL(th);	//その場で次の通過地点に向かって回転
                 while( (_ret = Spur_near_ang_GL(th, RAD(detection_angle))) != 1){
-
                     usleepSSM(5000);
                 }
+
+//                th = atan2(waypoint_mat[route][dest].y - y_r, waypoint_mat[route][dest].x - x_r);	//次の通過地点に向かう角度を計算
+
+                l_over_line = sqrt( (waypoint_mat[route][dest].x - ssm_odom.data.x)*(waypoint_mat[route][dest].x - ssm_odom.data.x)
+                                    + (waypoint_mat[route][dest].y - ssm_odom.data.y)*(waypoint_mat[route][dest].y - ssm_odom.data.y) ) - over_line__mergin;
+                x_over_line = ssm_odom.data.x + l_over_line*cos(th);
+                y_over_line = ssm_odom.data.y + l_over_line*sin(th);
+                th_over_line = th;
+
                 Spur_stop_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);	//次の通過地点に向かうSpurコマンド発行
+
                 Pinfo.data.route = 0;
                 Pinfo.data.waypoint = dest;
                 Pinfo.write();
                 //		sound_play(13);
-
+                printf("現在地: %lf, %lf, %lf\n", ssm_odom.data.x, ssm_odom.data.y, ssm_odom.data.theta);
                 printf("waypoint[%d][%3d] : %lf, %lf, %lf pi に向かいます\n",route, dest, waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th/M_PI);	//目標通過地点を表示
                 printf("over line point(x, y, th pi): (%lf, %lf, %lf pi)\n", x_over_line, y_over_line, th_over_line/M_PI);
             }
@@ -378,14 +385,15 @@ int main(int argc, char *argv[]) {
 
     { // ---> finalize
         my_stop();
-        Spur_free();
-        printf("Here is the Goal!!!\n");
         //	sound_play(3);
         Pinfo.release();
         //	sound0.release();
         fs.close();
         endSSM();
         fprintf(stderr, "end SSM.\n");
+        Spur_free();
+        printf("End succesfuly");
+
     } // <--- finalize
 
     return 0;

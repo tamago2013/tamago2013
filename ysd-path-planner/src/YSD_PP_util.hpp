@@ -143,16 +143,13 @@ void my_stop(void){	//ロボットがそのばその姿勢でほぼ完全に停�
 }
 // <--- spur safety stop
 
+
+bool gshutoff = false;
 // ---> 途中停止・終了
 void ctrlC(int aStatus){
-	my_stop();
-	Spur_free();
 
-	Pinfo.release();
-	sound0.release();
-	fs.close();
-	endSSM();
-
+    gshutoff = true;
+    my_stop();
 	printf("ctrl-C!\n");
 	signal(SIGINT, NULL);
 	exit(aStatus);
