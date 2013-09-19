@@ -39,19 +39,19 @@ function make_desktop_launcher()
 	echo "GenericName=team tamagokake-gohan 2013 , desktop launcher ("$1")" >> ~/Desktop/$1.desktop
 	echo "Icon="${HOME}"/.config/tamago/icons/"$1"-icon.png" >> ~/Desktop/$1.desktop
 	echo "Exec="${HOME}"/.config/tamago/bin/"$1".sh" >> ~/Desktop/$1.desktop
-	echo "Terminal=false" >> ~/Desktop/$1.desktop
+	echo "Terminal=$2" >> ~/Desktop/$1.desktop
 
 	chmod a+x $1.desktop
 }
 
-make_desktop_launcher joystick
-make_desktop_launcher localizer
-make_desktop_launcher multi-logger
-make_desktop_launcher path-planner
-make_desktop_launcher platform
-make_desktop_launcher ssm-killer
-make_desktop_launcher urg
-make_desktop_launcher visualizer
+make_desktop_launcher joystick "false"
+make_desktop_launcher localizer "false"
+make_desktop_launcher multi-logger "false"
+make_desktop_launcher path-planner "false"
+make_desktop_launcher platform "false"
+make_desktop_launcher ssm-killer "true"
+make_desktop_launcher urg "false"
+make_desktop_launcher visualizer "false"
 
 
 
