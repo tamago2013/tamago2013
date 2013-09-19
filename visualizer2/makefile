@@ -14,6 +14,7 @@ all:build
 
 build:$(RELEASE_DIR)
 	@cd ${RELEASE_DIR}; make -f ../${MAKEFILE_DIR}qtcreater.mk; cd -
+	$(make-launcher)
 
 clean:
 	$(REMOVE) $(RELEASE_DIR) $(LAUNCHER)
