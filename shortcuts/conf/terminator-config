@@ -1,3 +1,5 @@
+#TAMAGO
+#==================================================
 [global_config]
 [keybindings]
 [profiles]
@@ -20,19 +22,19 @@
       type = Window
       order = 0
       parent = ""
-      size = 1918, 1053
+      size = 1364, 689
     [[[child1]]]
-      position = 959
+      position = 682
       type = HPaned
       order = 0
       parent = child0
     [[[child2]]]
-      position = 526
+      position = 344
       type = VPaned
       order = 0
       parent = child1
     [[[child5]]]
-      position = 526
+      position = 344
       type = VPaned
       order = 1
       parent = child1
@@ -74,19 +76,19 @@
       type = Window
       order = 0
       parent = ""
-      size = 1918, 1053
+      size = 1364, 689
     [[[child1]]]
-      position = 959
+      position = 682
       type = HPaned
       order = 0
       parent = child0
     [[[child2]]]
-      position = 526
+      position = 344
       type = VPaned
       order = 0
       parent = child1
     [[[child5]]]
-      position = 526
+      position = 344
       type = VPaned
       order = 1
       parent = child1
@@ -128,9 +130,9 @@
       type = Window
       order = 0
       parent = ""
-      size = 1918, 1053
+      size = 1364, 689
     [[[child1]]]
-      position = 959
+      position = 682
       type = HPaned
       order = 0
       parent = child0
@@ -182,13 +184,24 @@
     [[[child1]]]
       type = Terminal
       parent = window0
-      title = path-planner
+      title = multi-logger
       command = cd ${tamago_home}/multilogger; ./multilogger ./logging.list; bash;
     [[[window0]]]
       type = Window
       parent = ""
 
-
+#=================================================
+# joystick / ypspur-joystickの立ち上げ
+#=================================================
+  [[joystick]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+      title = joystick
+      command = ypspur-joystick -d /dev/input/js0 -V 1.0 -W 3.0 -A 1.0 -O 3.0 0.5 0.8; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
 
 [plugins]
 

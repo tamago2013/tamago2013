@@ -1,0 +1,59 @@
+File
+{
+	route    : #../../data/tc2013/keiro.dat;
+	opsm-map : #../../data/tc2013/opsm-map;
+}
+
+Camera1
+{
+	title    : Camera1;
+	fps      : 1,5,10,15;
+	ssm-name : imgC3;
+	ssm-id   : 0;
+}
+
+Camera2
+{
+	title    : Camera2;
+	fps      : 10,5,1,15;
+	ssm-name : imgC3;
+	ssm-id   : 1;
+}
+
+Viewer
+{
+	title    : Viewer;
+	fps      : 40,1,5,20,30,10;
+}
+
+
+Odom
+{
+	title       : Odometry;
+	ssm-name	: spur_global;
+	ssm-id		: 0;
+}
+
+Urg1
+{
+	title         : suihei-urg;
+	view-state    : 11;
+	ssm-name      : sokuiki_fs;
+	ssm-id        : 3;
+	point-color   : #00FF00;
+	laser-color   : #00FF0020;
+	origin-height : 0.38;
+
+	origin-overwrite : relative/relative;
+}
+
+Urg2
+{
+	title         : suichoku-urg;
+	view-state    : 11;
+	ssm-name      : sokuiki_fs;
+	ssm-id        : 4;
+	point-color   : #00FFFF;
+	laser-color   : #00FFFF20;
+	origin-height : 0.515;
+}

@@ -11,7 +11,10 @@
 #include "ssmtype/spur-odometry.h"
 
 class Window;
-class FPSTimer;
+class MapViewer;
+class ToggleMenuHandler;
+class SelectMenuHandler;
+class FpsMenuHandler;
 
 class QKeyEvent;
 class QMouseEvent;
@@ -28,10 +31,6 @@ class WidgetGL : public QGLWidget
 
         bool init();
         Camera*  get_camera() { return camera; }
-
-    public slots:
-
-        void setLaserView(int val);
 
     protected:  // functions
 
@@ -64,7 +63,7 @@ class WidgetGL : public QGLWidget
 
         // object
         Window   *window;
-        FPSTimer *timer;
+        FpsMenuHandler *fps_timer;
 
         // robot
         tkg::Point3 robot_p;
@@ -73,28 +72,30 @@ class WidgetGL : public QGLWidget
         std::vector<double>      robot_log_t;
 
 
-        // map
-        std::string     map_name;
-        unsigned int    map_image;
-        unsigned char  *map_data;
-        int    map_width,  map_height;
-        double map_base_x, map_base_y;
-        double map_unit_x, map_unit_y;
+        // opsm map
+        MapViewer         *map_opsm;
+        ToggleMenuHandler *tmh_opsm;
 
         // route
+        //RouteViewer       *map_route;
+        ToggleMenuHandler *tmh_route;
         std::string                      route_name;
         std::vector<tkg::Point3>         route_node;
         std::vector<std::pair<int,int> > route_edge;
 
-        // ssm
-        static const int SSM_LASER_SIZE = 2;
+        // ssm odometry
         SSMApi<Spur_Odometry> *ssm_robot;
+
+        // ssm particle
+        SSMParticles      *ssm_particle;
+        ToggleMenuHandler *tmh_particle;
+
+        // ssm laser
+        static const int      SSM_LASER_SIZE = 2;
         SSMSOKUIKIData3D      *ssm_laser[SSM_LASER_SIZE];
-        int laser_view[SSM_LASER_SIZE];
-        tkg::Color4 color_point[SSM_LASER_SIZE];
-        tkg::Color4 color_laser[SSM_LASER_SIZE];
-        tkg::Point3 origin_shift[SSM_LASER_SIZE];
-        SSMParticles *ssm_particle;
+        SelectMenuHandler     *smh_laser[SSM_LASER_SIZE];
+        tkg::Color4          color_point[SSM_LASER_SIZE];
+        tkg::Color4          color_laser[SSM_LASER_SIZE];
 
         // screen
         int    width;

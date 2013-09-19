@@ -4,11 +4,11 @@
 #include <QMainWindow>
 #include "tkg-config.hpp"
 
-class FPSTimer;
 class WidgetGL;
 class WidgetIMG;
 class WidgetMSG;
-
+class ToggleMenuHandler;
+class SelectMenuHandler;
 
 class Window : public QMainWindow
 {
@@ -21,9 +21,9 @@ class Window : public QMainWindow
 
         bool init();
 
-
-        void addMenuFPS (FPSTimer *obj, const char *str);
-        void addMenuView(QObject  *obj, const char *str, const std::vector< std::pair<std::string, int> > &list);
+        void addMenuFps (SelectMenuHandler *handler);
+        void addMenuView(SelectMenuHandler *handler);
+        void addMenuView(ToggleMenuHandler *handler);
 
         WidgetGL*  viewer () { return w_viewer;  }
         WidgetIMG* camera1() { return w_camera1; }
