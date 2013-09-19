@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QTextCodec>
+#include <unistd.h>
 #include "main.hpp"
 #include "window.hpp"
 #include "tkg-config.hpp"
