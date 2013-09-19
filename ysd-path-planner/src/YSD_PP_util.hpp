@@ -82,6 +82,7 @@ SSMApi<Spur_Odometry>	ssm_odom;	// ポテンシャル法用のオドメトリ
 
 int sokuiki_fs_id = 0;
 bool speedy = false;
+bool reverse = false;
 
 const char *configure_file_name = "sample.conf";	//configファイルのデフォルトの在り処
 string _config_filepath = "DefaultLoop.conf";
@@ -185,7 +186,7 @@ int is_safety(void){	//指定範囲内に障害物があるかどうかの判定
 bool optAnalize(int argc, char **argv){
 	int opt;
 
-	while((opt = getopt(argc, argv, "f:F:t:g:i:shG")) != -1){
+	while((opt = getopt(argc, argv, "f:F:t:g:i:shGrw:")) != -1){
 		switch(opt)
 		{
 		case 'h' : {	//随時更新していくこと
@@ -199,6 +200,7 @@ bool optAnalize(int argc, char **argv){
 			<< "-i SOKUIKI_FS SSM ID\t: 衝突回避のためのsokuiki_fsのSSM id" << endl
 			<< "-s \t\t: waypointで一時停止しない(安全確認のための一時停止地点では停止)" << endl
 			<< "-G \t\t: サンプルconfigファイルおげええ" << endl
+			<< "-r \t\t: 経路逆走" << endl
 
 			<< "e.g) ./PathPlanner -f keiro.dat -g sample.conf" << endl
 
@@ -230,13 +232,19 @@ bool optAnalize(int argc, char **argv){
 		}break;
 
 		case 's' : {
-			speedy == true;
+			speedy = true;
 			cerr << "スピードモード！！" << endl;
 		}break;
+
+		case 'r' : {
+			reverse = true;
+			cerr << "経路逆走" << endl;
+		} break;
 
 		case 'G' : {
 			output_sample_conf = true;
 		}break;
+
 
 		default : {	//以上なオプションがついてる場合、警告して終了
 			cerr

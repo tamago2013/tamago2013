@@ -91,6 +91,8 @@ vector< vector<waypoint> > waypoint_mat;	//２次元配列のwaypoint
 
 
 int main(int argc, char *argv[]) {
+	SSMApi<Spur_Odometry>	ssm_initpos;	// start poisition
+
 
     // ---> initialize
     // ---> option analize
@@ -116,31 +118,43 @@ int main(int argc, char *argv[]) {
     const char *keiro_path  = f_path[0];
 
     for (int ir=0; ir<(int)waypoint_mat.size(); ir++){
-	if((fp = fopen(keiro_path, "r")) == NULL){
-	    fprintf(stderr, "ERROR : cannot open %s\n", keiro_path);	//経路ファイルがオープンできないときは異常終了
-	    return -1;
-	}else{
-	    printf("route file opened : %s\n", f_path[ir]);
+    	if((fp = fopen(keiro_path, "r")) == NULL){
+    		fprintf(stderr, "ERROR : cannot open %s\n", keiro_path);	//経路ファイルがオープンできないときは異常終了
+    		return -1;
+    	}else{
+    		printf("route file opened : %s\n", f_path[ir]);
 
-	    int i=0;
-	    int ret;
-	    while(1){
-		//			waypoint1.resize(i+1);
-		//			ret = fscanf(fp, "%c %lf %lf\n", &waypoint1[i].bitflag, &waypoint1[i].x, &waypoint1[i].y);
+    		int i=0;
+    		int ret;
+    		while(1){
+    			//			waypoint1.resize(i+1);
+    			//			ret = fscanf(fp, "%c %lf %lf\n", &waypoint1[i].bitflag, &waypoint1[i].x, &waypoint1[i].y);
 
-		//fscanfで失敗した場合の処理がいるううよ←エラーのときもEOFが出るよ?
-		ret = fscanf(fp, "%c %lf %lf\n", &buff.bitflag, &buff.x, &buff.y);	//本番仕様
-		//			ret = fscanf(fp, "%lf %lf\n", &buff.x, &buff.y);	//ルートエディターが不完全な場合の暫定版
-		//			buff.bitflag = 'A';																//ルートエディターが不完全な場合の暫定版
+    			//fscanfで失敗した場合の処理がいるううよ←エラーのときもEOFが出るよ?
+    			ret = fscanf(fp, "%c %lf %lf\n", &buff.bitflag, &buff.x, &buff.y);	//本番仕様
+    			//			ret = fscanf(fp, "%lf %lf\n", &buff.x, &buff.y);	//ルートエディターが不完全な場合の暫定版
+    			//			buff.bitflag = 'A';																//ルートエディターが不完全な場合の暫定版
 
-		if(ret == EOF){		//次の通過点がない(ゴール)であるかの判定
-		    break;
-		}
-		waypoint_mat[ir].push_back(buff);
-		i++;
-	    }
-	    fclose(fp);
-	}
+    			if(ret == EOF){		//次の通過点がない(ゴール)であるかの判定
+    				break;
+    			}
+    			waypoint_mat[ir].push_back(buff);
+    			i++;
+    		}
+    		fclose(fp);
+
+    		if( reverse ) {
+    			waypoint swap;
+
+    			for ( int j = 0; j < i / 2; j++ ){
+    				swap = waypoint_mat[ir][j];
+    				waypoint_mat[ir][j] = waypoint_mat[ir][ waypoint_mat[ir].size() - 1 - j ];
+    				waypoint_mat[ir][ waypoint_mat[ir].size() - 1 - j ] = swap;
+    			}
+
+    		}
+
+    	}
     }
     // <--- keiro.dat の読み込み
 
@@ -190,6 +204,7 @@ int main(int argc, char *argv[]) {
 
 //    if( !sound0.create(5.0, 0.1) ){return 1;}	//サウンド発音命令
 
+    ssm_initpos.create("init-pos", 0, 1, 0.05);
     // <--- SSM data initialize
 
     // ---> spur init
@@ -221,9 +236,17 @@ int main(int argc, char *argv[]) {
     //				, route, dest-1, waypoint_mat[route][0].x, waypoint_mat[route][0].y, th/M_PI);
     //	}
 //    Spur_set_pos_GL( waypoint_mat[route][0].x, waypoint_mat[route][0].y, th );
+    ssm_initpos.data.x = waypoint_mat[route][dest - 1].x;
+    ssm_initpos.data.y = waypoint_mat[route][dest - 1].y;
+    ssm_initpos.data.theta = th;
+    ssm_initpos.data.v = 0;
+    ssm_initpos.data.w = 0;
+    ssm_initpos.write();
     printf("スタートの位置、姿勢\n原点からスタート : waypoint[%d][%3d] : %lf %lf %lf pi\n"
-    , route, dest-1, waypoint_mat[route][0].x, waypoint_mat[route][0].y, th/M_PI);
+    , route, dest-1, waypoint_mat[route][dest - 1].x, waypoint_mat[route][dest - 1].y, th/M_PI);
+
     // <--- スタート位置の設定
+
 
     // 安全に終了できるように設定
     setSigInt();

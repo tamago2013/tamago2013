@@ -45,7 +45,6 @@ fi
 
 
 # route-editor
-echo [ ${_ROUTE_EDITOR_DIR_}/${_ROUTE_EDITOR_CONF_} -nt ${_CURRENT_WORKING_}/${_ROUTE_EDITOR_CONF_} ];
 if [ ${_ROUTE_EDITOR_DIR_}/${_ROUTE_EDITOR_CONF_} -nt ${_CURRENT_WORKING_}/${_ROUTE_EDITOR_CONF_} ]; then
 	echo "${_ROUTE_EDITOR_DIR_}/${_ROUTE_EDITOR_CONF_} is modified."
 	_IS_NEW_=1

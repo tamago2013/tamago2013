@@ -423,7 +423,6 @@ int main(int argc, char *argv[], char **env) {
 				} // <--- get particles
 
 
-
 				// ---> scanning loop (particle)
 				lh_max = 0;
 				for( i = 0 ; i <  ssm_particles.data.size(); i++ ) {
@@ -493,7 +492,7 @@ int main(int argc, char *argv[], char **env) {
 						if(eval < 0 || cnt <= 0)	eval = 0;
 						else 				eval = (eval / (double) (0x8000 * cnt ));
 
-						if( lh_max < eval )		lh_max = eval;
+						if( i == 0 || lh_max < eval )		lh_max = eval;
 						if( i == 0 || lh_min > eval )	lh_min = eval;
 						lh_ave += eval;
 
