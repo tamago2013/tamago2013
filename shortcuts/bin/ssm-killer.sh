@@ -18,7 +18,7 @@ do
 	cnt=`expr $cnt + 1`
 
 	echo "killssm ... $cnt"
-	killssm
+	killssm 2> /dev/null
 	
 	ret=`ps -a | grep "ssm-coordinator" | wc -l`
 	isalive=`expr $ret`
