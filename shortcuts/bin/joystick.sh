@@ -38,7 +38,7 @@ if [ ${make_buckup} = "1" ] ; then
 fi
 
 #実行
-terminator -l joystick
+terminator -l joystick -T joystick
 
 #バックアップを自分で作ったときは、バックアップから元のコンフィグを復元
 if [ ${make_buckup} = "1" ] ; then

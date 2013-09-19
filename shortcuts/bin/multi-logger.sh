@@ -38,7 +38,7 @@ if [ ${make_buckup} = "1" ] ; then
 fi
 
 #実行
-terminator -l multi-logger
+terminator -l multi-logger -T multi-logger
 
 #バックアップを自分で作ったときは、バックアップから元のコンフィグを復元
 if [ ${make_buckup} = "1" ] ; then

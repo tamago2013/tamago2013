@@ -38,7 +38,7 @@ if [ ${make_buckup} = "1" ] ; then
 fi
 
 #実行
-terminator -l platform
+terminator -l platform -T platform
 
 #バックアップを自分で作ったときは、バックアップから元のコンフィグを復元
 if [ ${make_buckup} = "1" ] ; then
