@@ -65,7 +65,7 @@
       order = 1
       parent = child5
       title = ls-coordinate-converter( upward )
-      command = sleep 1; cd ${tamago_home}/ls-coordinate-converter; ./launcher -g upward-ls-coordinate-converter.conf; bash; 
+      command = sleep 1; cd ${tamago_home}/ls-coordinate-converter; ./launcher -g vertical-ls-coordinate-converter.conf; bash; 
 
 #=================================================
 # platform / ssm-coordinator, ssm-monitor, yp-spur, echo "ypspur-joystick"の起動
@@ -159,7 +159,7 @@
       type = Terminal
       parent = window0
       title = visualizer2
-      command = cd ${tamago_home}/visualizer2/visualizer-build-desktop; ./visualizer; bash;
+      command = cd ${tamago_home}/visualizer2; ./Release/visualizer; bash;
     [[[window0]]]
       type = Window
       parent = ""
