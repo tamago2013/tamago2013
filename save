@@ -50,11 +50,11 @@ if [ -f ${_ROUTE_EDITOR_DIR_}/${_ROUTE_EDITOR_CONF_} ]; then
 else 
 	echo "Error: ${_ROUTE_EDITOR_DIR_}/${_ROUTE_EDITOR_CONF_} is not exist"
 fi
-if [ -f ${_PATH_PLAN_DIR_}/${_LAUNCHER_OPT_} ]; then
-	cp ${_PATH_PLAN_DIR_}/${_LAUNCHER_OPT_} ${_MAP_DIR_}/${_PATH_PLAN_OPT_}
-	echo "${_MAP_DIR_}/${_PATH_PLAN_OPT_} ... ok"
+if [ -f ${_ROUTE_EDITOR_DIR_}/${_LAUNCHER_OPT_} ]; then
+	cp ${_ROUTE_EDITOR_DIR_}/${_LAUNCHER_OPT_} ${_MAP_DIR_}/${_ROUTE_EDITOR_OPT_}
+	echo "${_MAP_DIR_}/${_ROUTE_EDITOR_OPT_} ... ok"
 else 
-	echo "Error: ${_PATH_PLAN_DIR_}/${_LAUNCHER_OPT_} is not exist"
+	echo "Error: ${_ROUTE_EDITOR_DIR_}/${_LAUNCHER_OPT_} is not exist"
 fi
 
 
