@@ -137,7 +137,7 @@ void my_stop(void){	//ロボットがそのばその姿勢でほぼ完全に停�
 	Spur_stop();
 	Spur_get_vel(&v, &w);
 	while(fabs(v) > 0.01 || fabs(w) > 0.01 ){
-		usleepSSM(10000);
+		usleepSSM(5000);
 		Spur_get_vel(&v, &w);
 	}
 }

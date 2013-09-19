@@ -283,7 +283,10 @@ int main(int argc, char *argv[]) {
 
 	//障害物をURGのデータから検出して”障害物の情報を渡す”プロセスを別につくるようにすると、
 	//センサを変更してもパスプランナのプログラムの変更の必要がなくなる。
-
+	
+	double x_, y_, th_;
+	Spur_get_pos_GL(&x_, &y_, &th_);
+	printf("[DEBUG] x: %lf y: %lf, th: %lf\n", x_, y_, 180.0 * th_ / M_PI);
 	// ---> 衝突回避
 	if(is_safety() == 1){	//正面に障害物がある場合、障害物がなくなるまで停止
 	    my_stop();
@@ -312,7 +315,8 @@ int main(int argc, char *argv[]) {
 	}
 	// <--- 衝突回避
 
-	Spur_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);
+//	Spur_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);
+	Spur_stop_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);
 
 	if(Spur_over_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th) == 1)	//通過点に到達したかの判定
 	{
@@ -337,13 +341,16 @@ int main(int argc, char *argv[]) {
 		Spur_get_pos_GL(&x_r, &y_r, &th_r);
 		th = atan2(waypoint_mat[route][dest].y - y_r, waypoint_mat[route][dest].x - x_r);	//次の通過地点に向かう角度を計算
 
-int _ret;
+	int _ret;
+//	Spur_get_pos_GL(&x_, &y_, &th_);
+	printf("[DEBUG2] th: %lf\n",180.0 * th / M_PI);
+
 		Spur_spin_GL(th);	//その場で次の通過地点に向かって回転
 		while( (_ret = Spur_near_ang_GL(th, RAD(detection_angle))) != 1){
 
 		    usleepSSM(5000);
 		}
-		Spur_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);	//次の通過地点に向かうSpurコマンド発行
+		Spur_stop_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);	//次の通過地点に向かうSpurコマンド発行
 		Pinfo.data.route = 0;
 		Pinfo.data.waypoint = dest;
 		Pinfo.write();
