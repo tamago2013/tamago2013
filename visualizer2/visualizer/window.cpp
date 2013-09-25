@@ -18,6 +18,7 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 {
     resize(900, 600);
     setWindowTitle("visualizer");
+    setWindowState(Qt::WindowMaximized);
 
 
     // Menu
