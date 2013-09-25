@@ -1,8 +1,8 @@
 #!/bin/bash
-. .tamago
+. .tamago/shell
 . ${_META_DATA_}
 
-_MAP_DIR_=${_CURRENT_WORING_}
+_MAP_DIR_=${_CURRENT_WORKING_}
 
 # opsm-position-tracker
 if [ -f ${_P_TRACKER_DIR_}/${_P_TRACKER_CONF_} ]; then
@@ -50,15 +50,15 @@ if [ -f ${_ROUTE_EDITOR_DIR_}/${_ROUTE_EDITOR_CONF_} ]; then
 else 
 	echo "Error: ${_ROUTE_EDITOR_DIR_}/${_ROUTE_EDITOR_CONF_} is not exist"
 fi
-if [ -f ${_PATH_PLAN_DIR_}/${_LAUNCHER_OPT_} ]; then
-	cp ${_PATH_PLAN_DIR_}/${_LAUNCHER_OPT_} ${_MAP_DIR_}/${_PATH_PLAN_OPT_}
-	echo "${_MAP_DIR_}/${_PATH_PLAN_OPT_} ... ok"
+if [ -f ${_ROUTE_EDITOR_DIR_}/${_LAUNCHER_OPT_} ]; then
+	cp ${_ROUTE_EDITOR_DIR_}/${_LAUNCHER_OPT_} ${_MAP_DIR_}/${_ROUTE_EDITOR_OPT_}
+	echo "${_MAP_DIR_}/${_ROUTE_EDITOR_OPT_} ... ok"
 else 
-	echo "Error: ${_PATH_PLAN_DIR_}/${_LAUNCHER_OPT_} is not exist"
+	echo "Error: ${_ROUTE_EDITOR_DIR_}/${_LAUNCHER_OPT_} is not exist"
 fi
 
 
-# visualizer
+#visualizer
 if [ -f ${_VISUALIZER_DIR_}/${_VISUALIZER_CONF_} ]; then
 	cp ${_VISUALIZER_DIR_}/${_VISUALIZER_CONF_} ${_MAP_DIR_}/
 	echo "${_MAP_DIR_}/${_VISUALIZER_CONF_} ... ok"
@@ -78,7 +78,7 @@ if [ -f ${_LS_CCONVERTER_DIR_}/${_V_LS_CCONVERTER_CONF_} ]; then
 	cp ${_LS_CCONVERTER_DIR_}/${_V_LS_CCONVERTER_CONF_} ${_MAP_DIR_}/
 	echo "${_MAP_DIR_}/${_V_LS_CCONVERTER_CONF_} ... ok"
 else 
-	echo "Error: ${_LS_CCONVERTER_DIR_}/${_FRONT_LS_CCONVERTER_CONF_} is not exist"
+	echo "Error: ${_LS_CCONVERTER_DIR_}/${_V_LS_CCONVERTER_CONF_} is not exist"
 fi
 if [ -f ${_LS_CCONVERTER_DIR_}/${_LAUNCHER_OPT_} ]; then
 	cp ${_LS_CCONVERTER_DIR_}/${_LAUNCHER_OPT_} ${_MAP_DIR_}/${_LS_CCONVERTER_OPT_}
@@ -87,13 +87,21 @@ else
 	echo "Error: ${_LS_CCONVERTER_DIR_}/${_LAUNCHER_OPT_} is not exist"
 fi
 
-# multilogger
-if [ -f ${_LOGGER_}/${_LOGGING_LIST_} ]; then
-	cp ${_LOGGER_}/${_LOGGING_LIST_} ${_MAP_DIR_}/${_LOGGING_LIST_}
-	echo "${_MAP_DIR_}/${_LOGGING_LIST_} ... ok"
-else 
-	echo "Error: ${_LOGGER_}/${_LOGGING_LIST_} is not exist"
-	exit 1
+
+# opsm-map
+if [ -d ${_WORKING_}/${_OPSM_MAP_} ]; then
+	cp -r ${_WORKING_}/${_OPSM_MAP_} ${_MAP_DIR_}/${_OPSM_MAP_}
+	echo "${_OPSM_MAP_} ... ok"
+else
+	echo "Warnning: ${_OPSM_MAP_} is not exist"
+fi
+
+# route
+if [ -f ${_WORKING_}/${_ROUTE_} ]; then
+	cp ${_WORKING_}/${_ROUTE_} ${_MAP_DIR_}/${_ROUTE_}
+	echo "${_ROUTE_} ... ok"
+else
+	echo "Warnning: ${_ROUTE_} is not exist"
 fi
 
 echo "save ${_MAP_DIR_}"

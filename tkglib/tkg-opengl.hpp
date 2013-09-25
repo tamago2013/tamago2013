@@ -3,6 +3,8 @@
 
 #include <string>
 #include <cstdlib>
+#include <GL/glu.h>
+#include "tkg-geometry.hpp"
 
 namespace tkg
 {
@@ -63,6 +65,31 @@ class Camera
 
 };
 
+inline void glVertex(const Point3 &p)
+{
+    glVertex3dv( p.vec );
+}
+
+inline void glDrawCross(const Point3 &p, double t, double r)
+{
+    glBegin(GL_LINES);
+    glVertex3dv( (p + Point3::polar(r, t + 0.0*pi)).vec );
+    glVertex3dv( (p + Point3::polar(r, t + 1.0*pi)).vec );
+    glVertex3dv( (p + Point3::polar(r, t + 0.5*pi)).vec );
+    glVertex3dv( (p + Point3::polar(r, t + 1.5*pi)).vec );
+    glEnd();
+}
+
+inline void glArrow(const Point3 &p, double t, double r)
+{
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex( p + Point3( r,   0, 0).rotateZ(t) );
+    glVertex( p + Point3(-r,   r, 0).rotateZ(t) );
+    glVertex( p + Point3(-r/2, 0, 0).rotateZ(t) );
+    glVertex( p + Point3(-r,  -r, 0).rotateZ(t) );
+    glEnd();
+}
+
 // implements
 
 inline Color4::Color4(double r, double g, double b, double a)
@@ -83,6 +110,9 @@ inline Color4::Color4(std::string str)
         }
     }
 }
+
+
+
 
 /*
 const double char_vector[2km././][] =

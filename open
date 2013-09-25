@@ -1,120 +1,177 @@
 #!/bin/bash
-. .tamago
+. .tamago/shell
+if [ -f ${_META_DATA_} ]; then
+	. ${_META_DATA_}
+fi
 
-if [ $# -ne 1 ]; then
+
+if [ $# -lt 1 ]; then
 	echo "Usage: $0 <map's-name>"
 	echo "e.g.) $0 my-room"
 	exit 1
 fi
 
-_MAP_DIR_=${1}
 
-# opsm-position-tracker
-if [ -f ${_MAP_DIR_}/${_P_TRACKER_CONF_} ]; then
-	echo "${_P_TRACKER_DIR_}/${_P_TRACKER_CONF_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_P_TRACKER_CONF_} is not exist"
+_FORCE_=0
+while getopts f OPT
+do
+	case ${OPT} in
+		"f" ) _FORCE_=1;;
+		* ) echo "Usage: $0 <map's-name>";
+		    echo "e.g.) $0 my-room";
+		    exit 1;;
+	esac
+done
+
+shift `expr $OPTIND - 1`
+_MAP_DIR_=$1
+
+if [ _MAP_DIR_ = "" ]; then
+	echo "Usage: [-f] $0 <map's-name>"
+	echo "e.g.) $0 my-room"
 	exit 1
 fi
 
+# check to be modified
+if [ ${_FORCE_} != "1" ]; then
+	./${_CH_NEW_}
+	if [ $? = "1" ]; then
+		echo ""
+		echo "${_CURRENT_WORKING_} is modified."
+		while true
+		do 
+		        echo " Do you open ${_MAP_DIR_} without save? ... [y/n]"
+		        read yn
+
+		        if [ -z $yn ]; then 
+		                continue
+		        elif [ $yn = YES -o $yn = Yes -o $yn = yes -o $yn = Y -o $yn = y ]; then
+		                break
+		        elif [ $yn = NO -o $yn = No -o $yn = no -o $yn = N -o $yn = n ]; then
+			        echo " ... canceled"
+				exit 0
+		        fi
+		done 
+	fi
+fi
+
+_LAUNCHER_OPT_=launcher.opt
+
+# opsm-position-tracker
+if [ -f ${_MAP_DIR_}/${_P_TRACKER_CONF_} ]; then
+	cp -p ${_MAP_DIR_}/${_P_TRACKER_CONF_} ${_P_TRACKER_DIR_}/
+	echo "${_P_TRACKER_CONF_} ... ok"
+else
+	echo "Warnning: ${_P_TRACKER_CONF_} is not exist"
+fi
+
+
 # opsm-particle-evaluator
 if [ -f ${_MAP_DIR_}/${_P_EVALUATOR_CONF_} ]; then
-	echo "${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_CONF_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_P_EVALUATOR_CONF_} is not exist"
-	exit 1
+	cp -p ${_MAP_DIR_}/${_P_EVALUATOR_CONF_} ${_P_EVALUATOR_DIR_}/
+	echo "${_P_EVALUATOR_CONF_} ... ok"
+else
+	echo "Warnning: ${_P_EVALUATOR_CONF_} is not exist"
 fi
 
 # particle-localizer
 if [ -f ${_MAP_DIR_}/${_LOCLIZER_CONF_} ]; then
-	echo "${_LOCLIZER_DIR_}/${_LOCLIZER_CONF_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_LOCLIZER_CONF_} is not exist"
-	exit 1
+	cp -p ${_MAP_DIR_}/${_LOCLIZER_CONF_} ${_LOCLIZER_DIR_}/
+	echo "${_LOCLIZER_CONF_} ... ok"
+else
+	echo "Warnning: ${_LOCLIZER_CONF_} is not exist"
 fi
 
 # path-planner
 if [ -f ${_MAP_DIR_}/${_PATH_PLAN_CONF_} ]; then
-	echo "${_PATH_PLAN_DIR_}/${_PATH_PLAN_CONF_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_PATH_PLAN_CONF_} is not exist"
-	exit 1
+	cp -p ${_MAP_DIR_}/${_PATH_PLAN_CONF_} ${_PATH_PLAN_DIR_}/
+	echo "${_PATH_PLAN_CONF_} ... ok"
+else
+	echo "Warnning: ${_PATH_PLAN_CONF_} is not exist"
 fi
 if [ -f ${_MAP_DIR_}/${_PATH_PLAN_OPT_} ]; then
-	echo "${_PATH_PLAN_DIR_}/${_LAUNCHER_OPT_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_PATH_PLAN_OPT_} is not exist"
-	exit 1
+	cp -p ${_MAP_DIR_}/${_PATH_PLAN_OPT_} ${_PATH_PLAN_DIR_}/${_LAUNCHER_OPT_}
+	echo "${_PATH_PLAN_OPT_} ... ok"
+else
+	echo "Warnning: ${_PATH_PLAN_OPT_} is not exist"
 fi
 
 
 # route-editor
 if [ -f ${_MAP_DIR_}/${_ROUTE_EDITOR_CONF_} ]; then
-	echo "${_ROUTE_EDITOR_DIR_}/${_ROUTE_EDITOR_CONF_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_ROUTE_EDITOR_CONF_} is not exist"
-	exit 1
+	cp -p ${_MAP_DIR_}/${_ROUTE_EDITOR_CONF_} ${_ROUTE_EDITOR_DIR_}/
+	echo "${_ROUTE_EDITOR_CONF_} ... ok"
+else
+	echo "Warnning: ${_ROUTE_EDITOR_CONF_} is not exist"
 fi
 if [ -f ${_MAP_DIR_}/${_ROUTE_EDITOR_OPT_} ]; then
-	echo "${_ROUTE_EDITOR_DIR_}/${_LAUNCHER_OPT_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_ROUTE_EDITOR_OPT_} is not exist"
-	exit 1
+	cp -p ${_MAP_DIR_}/${_ROUTE_EDITOR_OPT_} ${_ROUTE_EDITOR_DIR_}/${_LAUNCHER_OPT_}
+	echo "${_ROUTE_EDITOR_OPT_} ... ok"
+else
+	echo "Warnning: ${_ROUTE_EDITOR_OPT_} is not exist"
 fi
 
-# visualizer
+
+#visualizer
 if [ -f ${_MAP_DIR_}/${_VISUALIZER_CONF_} ]; then
-	echo "${_VISUALIZER_DIR_}/${_VISUALIZER_CONF_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_VISUALIZER_CONF_} is not exist"
-	exit 1
+	cp -p ${_MAP_DIR_}/${_VISUALIZER_CONF_} ${_VISUALIZER_DIR_}/
+	echo "${_VISUALIZER_CONF_} ... ok"
+else
+	echo "Warnning: ${_VISUALIZER_CONF_} is not exist"
 fi
-
 
 
 # ls-coordinate-converter
 if [ -f ${_MAP_DIR_}/${_FRONT_LS_CCONVERTER_CONF_} ]; then
-	echo "${_LS_CCONVERTER_DIR_}/${_FRONT_LS_CCONVERTER_CONF_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_FRONT_LS_CCONVERTER_CONF_} is not exist"
-	exit 1
+	cp -p ${_MAP_DIR_}/${_FRONT_LS_CCONVERTER_CONF_} ${_LS_CCONVERTER_DIR_}/
+	echo "${_FRONT_LS_CCONVERTER_CONF_} ... ok"
+else
+	echo "Warnning: ${_FRONT_LS_CCONVERTER_CONF_} is not exist"
 fi
 if [ -f ${_MAP_DIR_}/${_V_LS_CCONVERTER_CONF_} ]; then
-	echo "${_LS_CCONVERTER_DIR_}/${_V_LS_CCONVERTER_CONF_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_V_LS_CCONVERTER_CONF_} is not exist"
-	exit 1
-fi
-if [ -f ${_MAP_DIR_}/${_LS_CCONVERTER_OPT_} ]; then
-	echo "${_LS_CCONVERTER_DIR_}/${_LAUNCHER_OPT_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_LS_CCONVERTER_OPT_} is not exist"
-	exit 1
+	cp -p ${_MAP_DIR_}/${_V_LS_CCONVERTER_CONF_} ${_LS_CCONVERTER_DIR_}/
+	echo "${_V_LS_CCONVERTER_CONF_} ... ok"
+else
+	echo "Warnning: ${_V_LS_CCONVERTER_CONF_} is not exist"
 fi
 
 
-if [ -f ${_MAP_DIR_}/${_LOGGING_LIST_} ]; then
-	echo "${_LOGGER_}/${_LOGGING_LIST_} ... ok"
-else 
-	echo "Error: ${_MAP_DIR_}/${_LOGGING_LIST_} is not exist"
-	exit 1
+# ls-coordinate-converter
+if [ -f ${_MAP_DIR_}/${_LS_CCONVERTER_CONF_} ]; then
+	cp -p ${_MAP_DIR_}/${_LS_CCONVERTER_OPT_} ${_LS_CCONVERTER_DIR_}/${_LAUNCHER_OPT_}
+	echo "${_LS_CCONVERTER_OPT_} ... ok"
+else
+	echo "Warnning: ${_LS_CCONVERTER_OPT_} is not exist"
 fi
 
 
-# copy
-cp ${_MAP_DIR_}/${_P_TRACKER_CONF_} ${_P_TRACKER_DIR_}/
-cp ${_MAP_DIR_}/${_P_EVALUATOR_CONF_} ${_P_EVALUATOR_DIR_}/
-cp ${_MAP_DIR_}/${_LOCLIZER_CONF_} ${_LOCLIZER_DIR_}/
-cp ${_MAP_DIR_}/${_PATH_PLAN_CONF_} ${_PATH_PLAN_DIR_}/
-cp ${_MAP_DIR_}/${_PATH_PLAN_OPT_} ${_PATH_PLAN_DIR_}/${_LAUNCHER_OPT_}
-cp ${_MAP_DIR_}/${_ROUTE_EDITOR_CONF_} ${_ROUTE_EDITOR_DIR_}/
-cp ${_MAP_DIR_}/${_ROUTE_EDITOR_OPT_} ${_ROUTE_EDITOR_DIR_}/${_LAUNCHER_OPT_}
-cp ${_MAP_DIR_}/${_VISUALIZER_CONF_} ${_VISUALIZER_DIR_}/
-cp ${_MAP_DIR_}/${_FRONT_LS_CCONVERTER_CONF_} ${_LS_CCONVERTER_DIR_}/
-cp ${_MAP_DIR_}/${_V_LS_CCONVERTER_CONF_} ${_LS_CCONVERTER_DIR_}/
-cp ${_MAP_DIR_}/${_LS_CCONVERTER_OPT_} ${_LS_CCONVERTER_DIR_}/${_LAUNCHER_OPT_}
-cp ${_MAP_DIR_}/${_LOGGING_LIST_} ${_LOGGER_}/
-echo -e "_CURRENT_WORING_=${1}" > ${_META_DATA_}
+# make working data directory
+if [ -d ${_WORKING_} ]; then
+	rm -rf ${_WORKING_}
+fi
 
-echo "open ${_MAP_DIR_}"
+mkdir -p ${_WORKING_}
+if [ "$?" != "0" ]; then
+	echo "Error: fail to make directory."
+	exit 1
+fi
+# opsm-map
+if [ -d ${_MAP_DIR_}/${_OPSM_MAP_} ]; then
+	cp -p -r ${_MAP_DIR_}/${_OPSM_MAP_} ${_WORKING_}/
+	echo "${_OPSM_MAP_} ... ok"
+else
+	echo "Warnning: ${_OPSM_MAP_} is not exist"
+fi
+
+# route
+if [ -f ${_MAP_DIR_}/${_ROUTE_} ]; then
+	cp -p ${_MAP_DIR_}/${_ROUTE_} ${_WORKING_}/${_ROUTE_}
+	echo "${_ROUTE_} ... ok"
+else
+	echo "Warnning: ${_ROUTE_} is not exist"
+fi
+
+echo -e "_CURRENT_WORKING_=${1}" > ${_META_DATA_}
+
+echo " ... open ${_MAP_DIR_}"
 

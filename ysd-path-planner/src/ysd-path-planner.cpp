@@ -60,23 +60,23 @@ public:
     waypoint(){}
     ~waypoint(){}
     waypoint(const waypoint &obj){
-	this->bitflag = obj.bitflag;
-	this->x = obj.x;
-	this->y = obj.y;
+        this->bitflag = obj.bitflag;
+        this->x = obj.x;
+        this->y = obj.y;
     }
     void show(void){
-	printf("x:%.3lf\ty:%.3lf\t", x, y);
-	//		printf("bitflag:%c=0x%x=", bitflag, bitflag );
-	//		// ---> ビット表示
-	//		int i;
-	//		for(i=128; i; i >>= 1){
-	//			if(i & bitflag){ cout << "1"; }
-	//			else{	cout <<"0"; }
-	//		}
-	//		// <--- ビット表示
-	cout << " way:" << iswaypoint()
-	<< " stop:" << isstoppoint()
-	<< " goal:" << isgoalpint() << endl;
+        printf("x:%.3lf\ty:%.3lf\t", x, y);
+        //		printf("bitflag:%c=0x%x=", bitflag, bitflag );
+        //		// ---> ビット表示
+        //		int i;
+        //		for(i=128; i; i >>= 1){
+        //			if(i & bitflag){ cout << "1"; }
+        //			else{	cout <<"0"; }
+        //		}
+        //		// <--- ビット表示
+        cout << " way:" << iswaypoint()
+             << " stop:" << isstoppoint()
+             << " goal:" << isgoalpint() << endl;
     }
 
     //	bool iswaypoint(void){ return ((bitflag & BITFLAG_WAYPOINT) && BITFLAG_WAYPOINT); }
@@ -91,12 +91,14 @@ vector< vector<waypoint> > waypoint_mat;	//２次元配列のwaypoint
 
 
 int main(int argc, char *argv[]) {
+    SSMApi<Spur_Odometry>	ssm_initpos;	// start poisition
+
 
     // ---> initialize
     // ---> option analize
     cout << "option analize..." << endl;
     if(!optAnalize(argc, argv)){
-	return -1;	//オプションに異常がある場合、終了
+        return -1;	//オプションに異常がある場合、終了
     }
     // <--- option analize
 
@@ -116,50 +118,62 @@ int main(int argc, char *argv[]) {
     const char *keiro_path  = f_path[0];
 
     for (int ir=0; ir<(int)waypoint_mat.size(); ir++){
-	if((fp = fopen(keiro_path, "r")) == NULL){
-	    fprintf(stderr, "ERROR : cannot open %s\n", keiro_path);	//経路ファイルがオープンできないときは異常終了
-	    return -1;
-	}else{
-	    printf("route file opened : %s\n", f_path[ir]);
+        if((fp = fopen(keiro_path, "r")) == NULL){
+            fprintf(stderr, "ERROR : cannot open %s\n", keiro_path);	//経路ファイルがオープンできないときは異常終了
+            return -1;
+        }else{
+            printf("route file opened : %s\n", f_path[ir]);
 
-	    int i=0;
-	    int ret;
-	    while(1){
-		//			waypoint1.resize(i+1);
-		//			ret = fscanf(fp, "%c %lf %lf\n", &waypoint1[i].bitflag, &waypoint1[i].x, &waypoint1[i].y);
+            int i=0;
+            int ret;
+            while(1){
+                //			waypoint1.resize(i+1);
+                //			ret = fscanf(fp, "%c %lf %lf\n", &waypoint1[i].bitflag, &waypoint1[i].x, &waypoint1[i].y);
 
-		//fscanfで失敗した場合の処理がいるううよ←エラーのときもEOFが出るよ?
-		ret = fscanf(fp, "%c %lf %lf\n", &buff.bitflag, &buff.x, &buff.y);	//本番仕様
-		//			ret = fscanf(fp, "%lf %lf\n", &buff.x, &buff.y);	//ルートエディターが不完全な場合の暫定版
-		//			buff.bitflag = 'A';																//ルートエディターが不完全な場合の暫定版
+                //fscanfで失敗した場合の処理がいるううよ←エラーのときもEOFが出るよ?
+                ret = fscanf(fp, "%c %lf %lf\n", &buff.bitflag, &buff.x, &buff.y);	//本番仕様
+                //			ret = fscanf(fp, "%lf %lf\n", &buff.x, &buff.y);	//ルートエディターが不完全な場合の暫定版
+                //			buff.bitflag = 'A';																//ルートエディターが不完全な場合の暫定版
 
-		if(ret == EOF){		//次の通過点がない(ゴール)であるかの判定
-		    break;
-		}
-		waypoint_mat[ir].push_back(buff);
-		i++;
-	    }
-	    fclose(fp);
-	}
+                if(ret == EOF){		//次の通過点がない(ゴール)であるかの判定
+                    break;
+                }
+                waypoint_mat[ir].push_back(buff);
+                i++;
+            }
+            fclose(fp);
+
+            if( reverse ) {
+                waypoint swap;
+
+                for ( int j = 0; j < i / 2; j++ ){
+                    swap = waypoint_mat[ir][j];
+                    waypoint_mat[ir][j] = waypoint_mat[ir][ waypoint_mat[ir].size() - 1 - j ];
+                    waypoint_mat[ir][ waypoint_mat[ir].size() - 1 - j ] = swap;
+                }
+
+            }
+
+        }
     }
     // <--- keiro.dat の読み込み
 
     // ---> 読み込んだkeiro.datを表示。確認用だからコメントアウトしていいよ
     printf("%d route found\n", (int)waypoint_mat.size());
     for(int ir=0; ir<(int)waypoint_mat.size(); ir++){
-	printf("route[%d]: %d waypoints\n", ir, (int)waypoint_mat[ir].size());
-			for(int wp=0; wp<(int)waypoint_mat[ir].size(); wp++){
-				printf("waypoint[%d][%3d] ", ir, wp);
-				waypoint_mat[ir][wp].show();
-			}
+        printf("route[%d]: %d waypoints\n", ir, (int)waypoint_mat[ir].size());
+        for(int wp=0; wp<(int)waypoint_mat[ir].size(); wp++){
+            printf("waypoint[%d][%3d] ", ir, wp);
+            waypoint_mat[ir][wp].show();
+        }
     }
     // <--- 読み込んだkeiro.datを表示
 
     //指定したスタート地点が通過地点数より多い場合、警告して終了
     if(dest >= (int)waypoint_mat[0].size() || dest < 0 ){
-	printf("スタート地点 %d dest %d\n", dest-1, dest);
-	printf("スタート地点の指定が間違っています\n");
-	return -1;
+        printf("スタート地点 %d dest %d\n", dest-1, dest);
+        printf("スタート地点の指定が間違っています\n");
+        return -1;
     }
 
     // ---> SSM data initialize
@@ -167,20 +181,20 @@ int main(int argc, char *argv[]) {
 
     ret = initSSM();
     if( ret != 1){
-	fprintf(stderr, "initSSM failure\n");
-	return -1;
+        fprintf(stderr, "initSSM failure\n");
+        return -1;
     }
 
-    ret = ssm_odom.openWait(SNAME_ADJUST, 0, 0.0, SSM_READ);
+    ret = ssm_odom.openWait(SNAME_ADJUST /*ADJUST, ODOMETRY*/, 0, 0.0, SSM_READ);
     if( ret != 1 ){
-	fprintf(stderr, "open ssm_odom failure\n");
-	return -1;
+        fprintf(stderr, "open ssm_odom failure\n");
+        return -1;
     }
 
     ret = fs.openWait(SSM_NAME_SOKUIKI_3D_FS, sokuiki_fs_id, 0.0, SSM_READ) && fs.getProperty();	//fsのssmdデータとプロパティ情報の取得
     if( ret != 1 ){
-	fprintf(stderr, "open sokuiki_fs failure %s\n", SSM_NAME_SOKUIKI_3D_FS);
-	return -1;
+        fprintf(stderr, "open sokuiki_fs failure %s\n", SSM_NAME_SOKUIKI_3D_FS);
+        return -1;
     }
 
     fs.readLast();
@@ -188,14 +202,15 @@ int main(int argc, char *argv[]) {
 
     if( !Pinfo.create(5.0, 0.1) ){return 1;}	//waipointの情報
 
-//    if( !sound0.create(5.0, 0.1) ){return 1;}	//サウンド発音命令
+    //    if( !sound0.create(5.0, 0.1) ){return 1;}	//サウンド発音命令
 
+    ssm_initpos.create("init-pos", 0, 1, 0.05);
     // <--- SSM data initialize
 
     // ---> spur init
     if(!Spur_init()){
-	fprintf(stderr, "ERROR : cannot open spur\n");
-	return -1;
+        fprintf(stderr, "ERROR : cannot open spur\n");
+        return -1;
     }
     // <--- spur init
 
@@ -220,10 +235,18 @@ int main(int argc, char *argv[]) {
     //		printf("スタートの位置、姿勢\n原点からスタート : waypoint[%d][%3d] : %lf %lf %lf pi\n"
     //				, route, dest-1, waypoint_mat[route][0].x, waypoint_mat[route][0].y, th/M_PI);
     //	}
-//    Spur_set_pos_GL( waypoint_mat[route][0].x, waypoint_mat[route][0].y, th );
-    printf("スタートの位置、姿勢\n原点からスタート : waypoint[%d][%3d] : %lf %lf %lf pi\n"
-    , route, dest-1, waypoint_mat[route][0].x, waypoint_mat[route][0].y, th/M_PI);
+    //    Spur_set_pos_GL( waypoint_mat[route][0].x, waypoint_mat[route][0].y, th );
+    ssm_initpos.data.x = waypoint_mat[route][dest - 1].x;
+    ssm_initpos.data.y = waypoint_mat[route][dest - 1].y;
+    ssm_initpos.data.theta = th;
+    ssm_initpos.data.v = 0;
+    ssm_initpos.data.w = 0;
+    ssm_initpos.write();
+    printf("スタートの位置、姿勢 : waypoint[%d][%3d] : %lf %lf %lf pi\n"
+           , route, dest-1, waypoint_mat[route][dest - 1].x, waypoint_mat[route][dest - 1].y, th/M_PI);
+
     // <--- スタート位置の設定
+
 
     // 安全に終了できるように設定
     setSigInt();
@@ -235,115 +258,142 @@ int main(int argc, char *argv[]) {
     printf("Operation START...\n");
 
     // ---> 最初の動作
+	printf("現在地: %lf, %lf, %lf\n", ssm_odom.data.x, ssm_odom.data.y, ssm_odom.data.theta);
     printf("waypoint[%d][%3d] : %lf, %lf, %lf pi に向かいます\n",route , dest, waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th/M_PI);	//目標通過地点を表示
     //	Spur_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);
     Pinfo.data.route = route;
     Pinfo.data.waypoint = dest;
     Pinfo.write();
 
-//    sound_play(13);
+    //    sound_play(13);
     Spur_free();
 
-//    // ---> qstreamを使う場合
-//    printf("open que special file... : ");
-//    cout << pipe_path << endl;
-//    qin.open(pipe_path.c_str());
-//    printf("pipe prepared!!!!\n");
-//    // <--- qstreamを使う場合
+    //    // ---> qstreamを使う場合
+    //    printf("open que special file... : ");
+    //    cout << pipe_path << endl;
+    //    qin.open(pipe_path.c_str());
+    //    printf("pipe prepared!!!!\n");
+    //    // <--- qstreamを使う場合
+    double x_over_line, y_over_line, th_over_line, l_over_line;
+    double over_line__mergin = 0.02;    //m手前で判定する
+//    Spur_get_pos_GL(&x_r, &y_r, &th_r);
 
+//    l_over_line = sqrt( (waypoint_mat[route][dest].x - x_r)*(waypoint_mat[route][dest].x - x_r)
+//                        + (waypoint_mat[route][dest].y - y_r)*(waypoint_mat[route][dest].y - y_r) ) - over_line__mergin;
+    l_over_line = sqrt( (waypoint_mat[route][dest].x - waypoint_mat[route][dest-1].x)*(waypoint_mat[route][dest].x - waypoint_mat[route][dest-1].x)
+                        + (waypoint_mat[route][dest].y - waypoint_mat[route][dest-1].y)*(waypoint_mat[route][dest].y - waypoint_mat[route][dest-1].y) ) - over_line__mergin;
+
+    x_over_line = ssm_odom.data.x + l_over_line*cos(th);
+    y_over_line = ssm_odom.data.y + l_over_line*sin(th);
+    th_over_line = th;
+    printf("over line point(x, y, th pi): (%lf, %lf, %lf pi)\n", x_over_line, y_over_line, th_over_line/M_PI);
     printf("Spur-free mode\n");
     wait_restart_key();
     //	Spur_set_pos_GL( waypoint_mat[route][0].x, waypoint_mat[route][0].y, th );
     // <--- 最初の動作
 
-    while(1){	// ---> Operation Loop
 
-	//障害物をURGのデータから検出して”障害物の情報を渡す”プロセスを別につくるようにすると、
-	//センサを変更してもパスプランナのプログラムの変更の必要がなくなる。
+    while( !gshutoff ){	// ---> Operation Loop
 
-	// ---> 衝突回避
-	if(is_safety() == 1){	//正面に障害物がある場合、障害物がなくなるまで停止
-	    my_stop();
-	    printf("pre-crash safety!!!\n");
-	    int time = 0;
-	    while(is_safety() == 1){
-		//				sound_play(1);
-		if(0)	//ここには絶対にいかない
-		{	//WatchDogをつけてポテンシャル法で回避するようにしたい
-		    sleepSSM(1.0);	//1sec のサイクル
-		    time++;
-		    if(time > timeover)
-		    {
-			trans();    //事実上の暴走モード。危険なため使わない
-			break;
-		    }
-		}
-		else
-		{
-//		    sound_play(9);
-		    usleepSSM(20000);	//20m sec のサイクル 50サイクルで1sec
-		}
-	    }
-	    printf("ikuzee!!!!\n");
-	    Spur_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);	//正面の障害物がなくなったら、再び目標通過地点に向かうSpurコマンドを発行
-	}
-	// <--- 衝突回避
+        //障害物をURGのデータから検出して”障害物の情報を渡す”プロセスを別につくるようにすると、
+        //センサを変更してもパスプランナのプログラムの変更の必要がなくなる。
 
-	Spur_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);
+        // ---> 衝突回避
+        if(is_safety() == 1){	//正面に障害物がある場合、障害物がなくなるまで停止
+            my_stop();
+            printf("pre-crash safety!!!\n");
+            int time = 0;
+            while(is_safety() == 1)
+            {
+                //				sound_play(1);
+                if(0)	//ここには絶対にいかない
+                {	//WatchDogをつけてポテンシャル法で回避するようにしたい
+                    sleepSSM(1.0);	//1sec のサイクル
+                    time++;
+                    if(time > timeover)
+                    {
+                        trans();    //事実上の暴走モード。危険なため使わない
+                        break;
+                    }
+                }
+                else
+                {
+                    //		    sound_play(9);
+                    usleepSSM(20000);	//20m sec のサイクル 50サイクルで1sec
+                }
+            }
+            printf("ikuzee!!!!\n");
+            Spur_stop_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);	//正面の障害物がなくなったら、再び目標通過地点に向かうSpurコマンドを発行
+        }
+        // <--- 衝突回避
 
-	if(Spur_over_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th) == 1)	//通過点に到達したかの判定
-	{
-	    printf("waypoint[%d][%3d] に到達しました\n", route, dest);
+        //	Spur_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);
+        Spur_stop_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);
 
-	    if(speedy == false)	my_stop();	//一時停止するならする
+        if(Spur_over_line_GL(x_over_line, y_over_line, th_over_line) == 1)	//通過点に到達したかの判定
+        {
+            printf("waypoint[%d][%3d] に到達しました\n", route, dest);
 
-	    if(waypoint_mat[route][dest].isgoalpint() == true || dest >= (int)waypoint_mat[route].size() - 1 )	//次の地点がゴール（もしくは次のwaypointがない）の場合、breakして終了
-	    {
-		break;
-	    }
-	    if(waypoint_mat[route][dest].isstoppoint() == true /*&& flg == false*/)	//到達した地点が一時停止地点の場合
-	    {
-//		sound_play(4);
-		wait_restart_key();
-//		sound_play(1);
-	    }
-	    if(waypoint_mat[route][dest].iswaypoint() == true)	//到達した地点が通過地点の場合
-	    {
-		dest++;
-		double x_r, y_r, th_r;
-		Spur_get_pos_GL(&x_r, &y_r, &th_r);
-		th = atan2(waypoint_mat[route][dest].y - y_r, waypoint_mat[route][dest].x - x_r);	//次の通過地点に向かう角度を計算
+            if(speedy == false)	my_stop();	//一時停止するならする
 
-int _ret;
-		Spur_spin_GL(th);	//その場で次の通過地点に向かって回転
-		while( (_ret = Spur_near_ang_GL(th, RAD(detection_angle))) != 1){
+            if(waypoint_mat[route][dest].isgoalpint() == true || dest >= (int)waypoint_mat[route].size() - 1 )	//次の地点がゴール（もしくは次のwaypointがない）の場合、breakして終了
+            {
+                printf("Here is the Goal!!!\n");
+                break;
+            }
+            if(waypoint_mat[route][dest].isstoppoint() == true /*&& flg == false*/)	//到達した地点が一時停止地点の場合
+            {
+                //		sound_play(4);
+                wait_restart_key();
+                //		sound_play(1);
+            }
+            if(waypoint_mat[route][dest].iswaypoint() == true)	//到達した地点が通過地点の場合
+            {
+                dest++;
 
-		    usleepSSM(5000);
-		}
-		Spur_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);	//次の通過地点に向かうSpurコマンド発行
-		Pinfo.data.route = 0;
-		Pinfo.data.waypoint = dest;
-		Pinfo.write();
-//		sound_play(13);
+                th = atan2(waypoint_mat[route][dest].y - waypoint_mat[route][dest-1].y, waypoint_mat[route][dest].x - waypoint_mat[route][dest-1].x);	//次の通過地点に向かう角度を計算
 
-		printf("waypoint[%d][%3d] : %lf, %lf, %lf pi に向かいます\n",route, dest, waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th/M_PI);	//目標通過地点を表示
-	    }
-	}
-	usleepSSM(5000);
+                int _ret;
+                Spur_spin_GL(th);	//その場で次の通過地点に向かって回転
+                while( (_ret = Spur_near_ang_GL(th, RAD(detection_angle))) != 1){
+                    usleepSSM(5000);
+                }
+
+//                th = atan2(waypoint_mat[route][dest].y - y_r, waypoint_mat[route][dest].x - x_r);	//次の通過地点に向かう角度を計算
+
+                l_over_line = sqrt( (waypoint_mat[route][dest].x - ssm_odom.data.x)*(waypoint_mat[route][dest].x - ssm_odom.data.x)
+                                    + (waypoint_mat[route][dest].y - ssm_odom.data.y)*(waypoint_mat[route][dest].y - ssm_odom.data.y) ) - over_line__mergin;
+                x_over_line = ssm_odom.data.x + l_over_line*cos(th);
+                y_over_line = ssm_odom.data.y + l_over_line*sin(th);
+                th_over_line = th;
+
+                Spur_stop_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th);	//次の通過地点に向かうSpurコマンド発行
+
+                Pinfo.data.route = 0;
+                Pinfo.data.waypoint = dest;
+                Pinfo.write();
+                //		sound_play(13);
+                printf("現在地: %lf, %lf, %lf\n", ssm_odom.data.x, ssm_odom.data.y, ssm_odom.data.theta);
+                printf("waypoint[%d][%3d] : %lf, %lf, %lf pi に向かいます\n",route, dest, waypoint_mat[route][dest].x, waypoint_mat[route][dest].y, th/M_PI);	//目標通過地点を表示
+                printf("over line point(x, y, th pi): (%lf, %lf, %lf pi)\n", x_over_line, y_over_line, th_over_line/M_PI);
+            }
+        }
+        usleepSSM(5000);
 
     }// <--- Operation Loop
     // <---  operation
 
     { // ---> finalize
-	my_stop();
-	Spur_free();
-	printf("Here is the Goal!!!\n");
-//	sound_play(3);
-	Pinfo.release();
-//	sound0.release();
-	fs.close();
-	endSSM();
-	fprintf(stderr, "end SSM.\n");
+        my_stop();
+        //	sound_play(3);
+        Pinfo.release();
+        //	sound0.release();
+        fs.close();
+        endSSM();
+        fprintf(stderr, "end SSM.\n");
+        Spur_free();
+        printf("End succesfuly");
+
     } // <--- finalize
 
     return 0;
@@ -364,55 +414,55 @@ void trans()
 
     while(1)
     {		// ---> ポテンシャル法で抜け出す
-//	sound_play(5);
+        //	sound_play(5);
 
-	//終了判定
-	if( Spur_over_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].x, th) == 1 ){
-	    printf("trans finish!!!!!!!!!!!!!!!!!!!!!!!\n");
-//	    sound_play(0);
-	    break;
-	}
+        //終了判定
+        if( Spur_over_line_GL(waypoint_mat[route][dest].x, waypoint_mat[route][dest].x, th) == 1 ){
+            printf("trans finish!!!!!!!!!!!!!!!!!!!!!!!\n");
+            //	    sound_play(0);
+            break;
+        }
 
-	if(fs.readNew()){
-	    ssm_odom.readTime(fs.time);
-	    // ---> 引力の計算
-	    d = sqrt( (waypoint_mat[route][dest].x-ssm_odom.data.x)*(waypoint_mat[route][dest].x-ssm_odom.data.x)
-	    + (waypoint_mat[route][dest].y-ssm_odom.data.y)*(waypoint_mat[route][dest].y-ssm_odom.data.y) );
-	    gravity_th = atan2( waypoint_mat[route][dest].y-ssm_odom.data.y, waypoint_mat[route][dest].x-ssm_odom.data.x);
-	    gravity_x = d * cos(gravity_th);
-	    gravity_y = d * sin(gravity_th);
-	    // <--- 引力の計算
+        if(fs.readNew()){
+            ssm_odom.readTime(fs.time);
+            // ---> 引力の計算
+            d = sqrt( (waypoint_mat[route][dest].x-ssm_odom.data.x)*(waypoint_mat[route][dest].x-ssm_odom.data.x)
+                      + (waypoint_mat[route][dest].y-ssm_odom.data.y)*(waypoint_mat[route][dest].y-ssm_odom.data.y) );
+            gravity_th = atan2( waypoint_mat[route][dest].y-ssm_odom.data.y, waypoint_mat[route][dest].x-ssm_odom.data.x);
+            gravity_x = d * cos(gravity_th);
+            gravity_y = d * sin(gravity_th);
+            // <--- 引力の計算
 
-	    // ---> 斥力の計算
-	    for(int i = 0; i<(int)fs.property.numPoints; i++){
-		if(fs.data[i].isError() == false){
-		    r_xy = fs.data[i].reflect.x*fs.data[i].reflect.x + fs.data[i].reflect.y*fs.data[i].reflect.y ;
-		    if(r_xy < Pot_dist*Pot_dist){
-			repulsion_x = repulsion_x - fs.data[i].reflect.x;
-			repulsion_y = repulsion_y - fs.data[i].reflect.y;
-		    }
-		}
-	    }
-	    repulsion_x = k_repulsion * repulsion_x;
-	    repulsion_y = k_repulsion * repulsion_y;
-	    // <--- 斥力の計算
+            // ---> 斥力の計算
+            for(int i = 0; i<(int)fs.property.numPoints; i++){
+                if(fs.data[i].isError() == false){
+                    r_xy = fs.data[i].reflect.x*fs.data[i].reflect.x + fs.data[i].reflect.y*fs.data[i].reflect.y ;
+                    if(r_xy < Pot_dist*Pot_dist){
+                        repulsion_x = repulsion_x - fs.data[i].reflect.x;
+                        repulsion_y = repulsion_y - fs.data[i].reflect.y;
+                    }
+                }
+            }
+            repulsion_x = k_repulsion * repulsion_x;
+            repulsion_y = k_repulsion * repulsion_y;
+            // <--- 斥力の計算
 
-	    subgoal_x = k_gravity*gravity_x + k_repulsion*repulsion_x ;
-	    subgoal_y = k_gravity*gravity_y + k_repulsion*repulsion_y ;
-	    subgoal_th = atan2( subgoal_y , subgoal_x );
+            subgoal_x = k_gravity*gravity_x + k_repulsion*repulsion_x ;
+            subgoal_y = k_gravity*gravity_y + k_repulsion*repulsion_y ;
+            subgoal_th = atan2( subgoal_y , subgoal_x );
 
-	    Spur_orient_FS( subgoal_th );
+            Spur_orient_FS( subgoal_th );
 
-	    gravity_th=0.0;
-	    gravity_x=0.0;
-	    gravity_y=0.0;
-	    repulsion_x = 0.0;
-	    repulsion_y = 0.0;
-	    r_xy=0.0;
-	    usleepSSM(20000);
-	}else{
-	    usleepSSM(20000);
-	}
+            gravity_th=0.0;
+            gravity_x=0.0;
+            gravity_y=0.0;
+            repulsion_x = 0.0;
+            repulsion_y = 0.0;
+            r_xy=0.0;
+            usleepSSM(20000);
+        }else{
+            usleepSSM(20000);
+        }
 
     }		// <--- ポテンシャル法で抜け出す
 
@@ -422,20 +472,20 @@ void trans()
 void wait_restart_key(void){
     printf("1.安全が確認された場合、Gキーを押してください\n");
     while(1){
-	string key;
-//	qin>>key;
-	cin>>key;
-	cout << key << endl;
-	if( key == "g" || key == "G" ){	//goサインが出た場合
-	    printf("安全が確認されたので動作を再開します\n");
-	    break;
-	}else if( key == "r" || key == "R" ){	//途中のwaypointから起動する場合
-	    Spur_set_pos_GL(waypoint_mat[route][dest-1].x, waypoint_mat[route][dest-1].y, th);
-	    printf("Spur_set_pos_GL(%lf, %lf, %lf)\n", waypoint_mat[route][dest-1].x, waypoint_mat[route][dest-1].y, th );
-	}else{
-	    printf("2.安全が確認された場合、Gキーを押してください\n");
-	}
-	usleepSSM(5000);
+        string key;
+        //	qin>>key;
+        cin>>key;
+        cout << key << endl;
+        if( key == "g" || key == "G" ){	//goサインが出た場合
+            printf("安全が確認されたので動作を再開します\n");
+            break;
+        }else if( key == "r" || key == "R" ){	//途中のwaypointから起動する場合
+            Spur_set_pos_GL(waypoint_mat[route][dest-1].x, waypoint_mat[route][dest-1].y, th);
+            printf("Spur_set_pos_GL(%lf, %lf, %lf)\n", waypoint_mat[route][dest-1].x, waypoint_mat[route][dest-1].y, th );
+        }else{
+            printf("2.安全が確認された場合、Gキーを押してください\n");
+        }
+        usleepSSM(5000);
     }
 }
 // <--- wait for restart que

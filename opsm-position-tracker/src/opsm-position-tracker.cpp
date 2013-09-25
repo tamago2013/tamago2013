@@ -173,7 +173,13 @@ int main(int argc, char* argv[]) {
 				optimizer = new gnd::opsm::mcl;
 				optimizer->initial_parameter_create(&optim_ini);
 				p = static_cast<gnd::opsm::mcl::initial_parameter*>(optim_ini);
-				p->n = 250;
+				p->n = 2000;
+//				p->var_ini[0][0] = gnd_square( gnd_m2dist(0.01) );
+//				p->var_ini[1][1] = gnd_square( gnd_m2dist(0.01) );
+//				p->var_ini[2][2] = gnd_square( gnd_deg2ang(1) );
+//				p->var_rsmp[0][0] = gnd_square( gnd_m2dist(0.002) );
+//				p->var_rsmp[1][1] = gnd_square( gnd_m2dist(0.002) );
+//				p->var_rsmp[2][2] = gnd_square( gnd_deg2ang(0.2) );
 				optim_ini = static_cast<void*>(p);
 				optimizer->set_converge_threshold(pconf.converge_dist.value, pconf.converge_orient.value );
 				::fprintf(stderr, "  ... monte calro method \x1b[1mOK\x1b[0m\n");
@@ -218,7 +224,7 @@ int main(int argc, char* argv[]) {
 				::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to load scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.init_opsm_map.value);
 			}
 			else if( !pconf.ndt.value){
-				if( gnd::opsm::build_map(&smmap, &cnt_smmap, gnd_mm2dist(1)) < 0) {
+				if( gnd::opsm::build_map(&smmap, &cnt_smmap, gnd_mm2dist(100)) < 0) {
 					::proc_shutoff();
 					::fprintf(stderr, "  ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build scan matching map \"\x1b[4m%s\x1b[0m\"\n", pconf.init_opsm_map.value);
 				}
@@ -1130,10 +1136,10 @@ int main(int argc, char* argv[]) {
 							if( mapupdate ) {
 								if( pconf.map_update.value ){
 									if( pconf.ndt.value ) {
-										gnd::opsm::update_ndt_map(&cnt_smmap, &smmap, reflect_cgl[0], reflect_cgl[1], gnd_mm2dist(1));
+										gnd::opsm::update_ndt_map(&cnt_smmap, &smmap, reflect_cgl[0], reflect_cgl[1], gnd_mm2dist(100));
 									}
 									else {
-										gnd::opsm::update_map(&cnt_smmap, &smmap, reflect_cgl[0], reflect_cgl[1], gnd_mm2dist(1));
+										gnd::opsm::update_map(&cnt_smmap, &smmap, reflect_cgl[0], reflect_cgl[1], gnd_mm2dist(100));
 									}
 								}
 								else {

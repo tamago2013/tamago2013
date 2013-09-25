@@ -22,6 +22,7 @@
 
 #include "gnd-util.h"
 #include "gnd-random.hpp"
+#include "gnd-timer.hpp"
 #include "gnd-shutoff.hpp"
 
 #include "particle-localizer-opt.hpp"
@@ -42,6 +43,7 @@ int main(int argc, char* argv[], char *envp[]) {
 	SSMApi<Spur_Odometry> ssm_position;
 	SSMParticles ssm_particle;
 	SSMParticleEvaluation ssm_estimation;
+	SSMApi<Spur_Odometry> ssm_initpos;
 
 	gnd::cui_reader gcui;
 	Localizer::proc_configuration pconf;
@@ -177,7 +179,7 @@ int main(int argc, char* argv[], char *envp[]) {
 
 
 
-		 // ---> get configure
+		// ---> get configure
 		if( !is_proc_shutoff() ){
 
 			Localizer::proc_conf_sampling_ratio_normalize(&pconf);
@@ -361,7 +363,7 @@ int main(int argc, char* argv[], char *envp[]) {
 
 	if( !is_proc_shutoff() ){ // ---> operation
 		int rsmpl_cnt = 0,
-			reject_cnt = 0;
+				reject_cnt = 0;
 		ssmTimeT rsmp_time = 0;
 		ssmTimeT prev_time = mtr.time;
 		bool show_st = true;
@@ -458,6 +460,51 @@ int main(int argc, char* argv[], char *envp[]) {
 						case 'B': cuito = -1;		break;
 						// start
 						case 'o': cuito = 0;		break;
+
+						case 'S': {
+							gnd::cui_reader cui;
+							int cuival2 = 0;
+							char cuiarg2[512];
+
+							static const gnd::cui_command cmd[] = {
+									{"Cancel",		'c',	"cancel"},
+									{"", '\0'}
+							};
+
+							gcui.set_command(cmd, sizeof(cmd) / sizeof(cmd[0]));
+
+							if ( ssm_initpos.isOpen() ) {
+								// ignore old data
+								ssm_initpos.readLast();
+							}
+
+							// ---> wait to read initial position
+							::fprintf(stderr, "     > push Enter to cancel\n");
+							while (1) {
+								if ( !ssm_initpos.isOpen() ) {
+									if( ssm_initpos.openWait("init-pos", 0, 0.1) ){
+										ssm_initpos.setBlocking(false);
+										ssm_initpos.readLast();
+									}
+								}
+								else {
+									if( ssm_initpos.readNew() ) {
+										myu_ini[0][PARTICLE_X] = ssm_initpos.data.x;
+										myu_ini[0][PARTICLE_Y] = ssm_initpos.data.y;
+										myu_ini[0][PARTICLE_THETA] = ssm_initpos.data.theta;
+										// create initialize position
+										ssm_particle.data.init_particle(&myu_ini,
+												&pconf.poserr_cover_ini, &pconf.syserr_cover_ini, pconf.particles.value + pconf.random_sampling.value);
+
+										break;
+									}
+								}
+								if( gcui.poll(&cuival2, cuiarg2, sizeof(cuiarg2), 1.0 / 60.0) > 0 ){
+									::fprintf(stderr, "  ... canceled\n");
+									break;
+								}
+							} // <--- wait to read initial position
+						} break;
 
 						case '\0':
 							break;

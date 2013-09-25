@@ -1,0 +1,208 @@
+#TAMAGO
+#==================================================
+[global_config]
+[keybindings]
+[profiles]
+  [[default]]
+[layouts]
+  [[default]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+    [[[window0]]]
+      type = Window
+      parent = ""
+
+#=================================================
+# urg / urg-proxyとls-coordinate-converterの起動
+#=================================================
+  [[urg]]
+    [[[child0]]]
+      position = 0:0
+      type = Window
+      order = 0
+      parent = ""
+      size = 1364, 689
+    [[[child1]]]
+      position = 682
+      type = HPaned
+      order = 0
+      parent = child0
+    [[[child2]]]
+      position = 344
+      type = VPaned
+      order = 0
+      parent = child1
+    [[[child5]]]
+      position = 344
+      type = VPaned
+      order = 1
+      parent = child1
+    [[[terminal3]]]
+      profile = default
+      type = Terminal
+      order = 0
+      parent = child2
+      title = urg-proxy( /dev/ttyACM1 )
+      command = cd ${tamago_home}/urg-proxy; ./launcher -p /dev/ttyACM1; echo "-----"; echo "./launcher -p /dev/ttyACM1"; echo "-----"; bash; 
+    [[[terminal4]]]
+      profile = default
+      type = Terminal
+      order = 1
+      parent = child2
+      title = ls-coordinate-converter( front )
+      command = sleep 1; cd ${tamago_home}/ls-coordinate-converter; ./launcher -g front-ls-coordinate-converter.conf; echo "-----"; echo "./launcher -g front-ls-coordinate-converter.conf"; echo "-----"; bash; 
+    [[[terminal6]]]
+      profile = default
+      type = Terminal
+      order = 0
+      parent = child5
+      title = urg-proxy( /dev/ttyACM2 )
+      command = cd ${tamago_home}/urg-proxy; ./launcher -p /dev/ttyACM2; echo "-----"; echo "./launcher -p /dev/ttyACM2"; echo "-----"; bash;  
+    [[[terminal7]]]
+      profile = default
+      type = Terminal
+      order = 1
+      parent = child5
+      title = ls-coordinate-converter( upward )
+      command = sleep 1; cd ${tamago_home}/ls-coordinate-converter; ./launcher -g vertical-ls-coordinate-converter.conf; echo "-----"; echo "./launcher -g vertical-ls-coordinate-converter.conf"; echo "-----"; bash; 
+
+#=================================================
+# platform / ssm-coordinator, ssm-monitor, yp-spur, echo "ypspur-joystick"の起動
+#=================================================
+  [[platform]]
+    [[[child0]]]
+      position = 0:0
+      type = Window
+      order = 0
+      parent = ""
+      size = 1364, 689
+    [[[child1]]]
+      position = 682
+      type = HPaned
+      order = 0
+      parent = child0
+    [[[child2]]]
+      position = 344
+      type = VPaned
+      order = 0
+      parent = child1
+    [[[child5]]]
+      position = 344
+      type = VPaned
+      order = 1
+      parent = child1
+    [[[terminal3]]]
+      profile = default
+      type = Terminal
+      order = 0
+      parent = child2
+      title = ssm-coordinator
+      command = ssm-coordinator; echo "-----"; echo "ssm-coordinator"; echo "-----"; bash; 
+    [[[terminal4]]]
+      profile = default
+      type = Terminal
+      order = 1
+      parent = child2
+      title = ssm-monitor
+      command = sleep 0.5; ssm-monitor; echo "-----"; echo "ssm-monitor"; echo "-----"; bash; 
+    [[[terminal6]]]
+      profile = default
+      type = Terminal
+      order = 0
+      parent = child5
+      title = ypspur-coordinator
+      command = sleep 1; ypspur-coordinator -p ${tamago_home}/data/Loop-new.param -d /dev/ttyACM0 --high-resolution; echo "-----"; echo "ypspur-coordinator -p "${tamago_home}"/data/Loop-new.param -d /dev/ttyACM0 --high-resolution"; echo "-----"; bash;  
+    [[[terminal7]]]
+      profile = default
+      type = Terminal
+      order = 1
+      parent = child5
+      title = echo" ypspur-joystick "
+      command = sleep 1; echo "ypspur-joystick -V 0.5 -W 0.5 -A 0.5 -O 0.7 -d /dev/input/js0 0.5 0.8"; bash; 
+
+#=================================================
+# localizer / particle-localizerとopsm-particle-evaluatorの立ち上げ
+#=================================================
+  [[localizer]]
+    [[[child0]]]
+      position = 0:0
+      type = Window
+      order = 0
+      parent = ""
+      size = 1364, 689
+    [[[child1]]]
+      position = 682
+      type = HPaned
+      order = 0
+      parent = child0
+    [[[terminal2]]]
+      profile = default
+      type = Terminal
+      order = 0
+      parent = child1 
+      title = particle-localizer
+      command = cd ${tamago_home}/particle-localizer; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash; 
+    [[[terminal3]]]
+      profile = default
+      type = Terminal
+      order = 1
+      parent = child1
+      title = opsm-particle-evaluator
+      command = cd ${tamago_home}/opsm-particle-evaluator; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash; 
+
+#=================================================
+# visualizer / visualizerの立ち上げ
+#=================================================
+  [[visualizer]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+      title = visualizer2
+      command = cd ${tamago_home}/visualizer2; ./Release/visualizer; echo "-----"; echo "./Release/visualizer"; echo "-----"; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
+
+#=================================================
+# path-planner / path-plannerの立ち上げ
+#=================================================
+  [[path-planner]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+      title = path-planner
+      command = cd ${tamago_home}/ysd-path-planner; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
+
+#=================================================
+# multi-logger / multi-loggerの立ち上げ
+#=================================================
+  [[multi-logger]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+      title = multi-logger
+      command = cd ${tamago_home}/multilogger; ./multilogger ./logging.list; echo "-----"; echo "./multilogger ./logging.list"; echo "-----"; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
+
+#=================================================
+# joystick / ypspur-joystickの立ち上げ
+#=================================================
+  [[joystick]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+      title = joystick
+      command = ypspur-joystick -d /dev/input/js0 -V 1.0 -W 3.0 -A 1.0 -O 3.0 0.5 0.8; echo "-----"; echo "ypspur-joystick -d /dev/input/js0 -V 1.0 -W 3.0 -A 1.0 -O 3.0 0.5 0.8"; echo "-----"; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
+
+[plugins]
+
+

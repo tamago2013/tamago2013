@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/m-yoshida/TC13/tamago2013/ptz-handler/src/../../ysdlib/ysd-signal.hpp
+signal.h
+-
+
+/home/m-yoshida/TC13/tamago2013/ptz-handler/src/../../ysdlib/ysd-time.hpp
+sys/time.h
+-
+
+/home/m-yoshida/TC13/tamago2013/ptz-handler/src/ptz-handler.cpp
+stdio.h
+-
+stdlib.h
+-
+iostream
+-
+ssm.hpp
+-
+math.h
+-
+string.h
+-
+../../ysdlib/ysd-time.hpp
+/home/m-yoshida/TC13/tamago2013/ptz-handler/src/../../ysdlib/ysd-time.hpp
+../../ysdlib/ysd-signal.hpp
+/home/m-yoshida/TC13/tamago2013/ptz-handler/src/../../ysdlib/ysd-signal.hpp
+
