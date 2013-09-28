@@ -12,7 +12,6 @@
 #include "ssm-message.hpp"
 #include "tkg-debug.hpp"
 
-
 WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 {
     tkg::debug("new WidgetGL\n");
@@ -173,6 +172,8 @@ void WidgetGL::paintGL()
     {
         drawLaser(i);
     }
+
+    tkg::glString("");
 
     glFlush();
 }
