@@ -6,6 +6,10 @@
 
 #IncludeRegexTransform: 
 
+../../ssmtype/ssm-ptz.hpp
+ssm.hpp
+-
+
 /home/m-yoshida/TC13/tamago2013/ptz-handler/src/../../ysdlib/ysd-signal.hpp
 signal.h
 -
@@ -31,4 +35,6 @@ string.h
 /home/m-yoshida/TC13/tamago2013/ptz-handler/src/../../ysdlib/ysd-time.hpp
 ../../ysdlib/ysd-signal.hpp
 /home/m-yoshida/TC13/tamago2013/ptz-handler/src/../../ysdlib/ysd-signal.hpp
+ssm-ptz.hpp
+/home/m-yoshida/TC13/tamago2013/ptz-handler/src/ssm-ptz.hpp
 

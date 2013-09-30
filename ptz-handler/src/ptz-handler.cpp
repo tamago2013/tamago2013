@@ -15,23 +15,23 @@
 //#include "../../ysdlib/ysd-color-detector.hpp"
 #include "../../ysdlib/ysd-time.hpp"
 #include "../../ysdlib/ysd-signal.hpp"
-
+#include "ssm-ptz.hpp"
 
 using namespace std;
 //using namespace cv;   //これやめた方がいいだろ。何使ってるかわからなくなっちゃう
 
-namespace ysd {
-#define SNAME_PTZ "ptz"
-typedef struct {
+//namespace ysd {
+//#define SNAME_PTZ "ptz"
+//typedef struct {
 
-    double pan;
-    double tilt;
-    double zoom;
-    double brightness;
-    bool autofocus;
+//    double pan;     //[deg]
+//    double tilt;    //[deg]
+//    double zoom;
+//    double brightness;
+//    bool autofocus;
 
-}PTZ;
-}
+//}PTZ;
+//}
 
 
 int main( int argc, char* argv[] )

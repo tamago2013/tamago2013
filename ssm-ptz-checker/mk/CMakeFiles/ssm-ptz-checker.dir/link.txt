@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/ssm-ptz-checker.dir/src/ssm-ptz-checker.cpp.o  -o ../Release/ssm-ptz-checker -rdynamic -lm -lssm 
