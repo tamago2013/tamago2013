@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ -e launcher.opt ] ; then
+ . launcher.opt
+ fi
+
+ if [ -e ls-accumulator.conf ] ; then
+ ./Release/ls-accumulator -g ls-accumulator.conf  ${OPTION} $@
+ else
+ ./Release/ls-accumulator $@ -G ls-accumulator.conf
+ fi
