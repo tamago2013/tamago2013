@@ -182,6 +182,12 @@ namespace opsm {
 				0.05,
 		};
 
+		// w slow
+		static const gnd::conf::parameter<double> ConfIni_Alpha = {
+				"alpha",
+				0.0,
+		};
+
 	} // <--- namespace opsm
 } // <--- namespace peval
 
@@ -218,6 +224,8 @@ namespace opsm {
 			gnd::conf::parameter<double>			blur;				///< scan range
 			gnd::conf::parameter<double>			scan_range;			///< scan range
 			gnd::conf::parameter<double>			mfailure;			///< matching failure rate
+
+			gnd::conf::parameter<double>			alpha;				///< alpha
 
 			proc_configuration();
 		};
@@ -268,6 +276,8 @@ namespace opsm {
 			::memcpy(&conf->blur,				&ConfIni_Blur,					sizeof(ConfIni_Blur));
 			::memcpy(&conf->scan_range,			&ConfIni_ScanRangeDist,			sizeof(ConfIni_ScanRangeDist));
 			::memcpy(&conf->mfailure,			&ConfIni_MatchingFailureRate,	sizeof(ConfIni_MatchingFailureRate));
+
+			::memcpy(&conf->alpha,				&ConfIni_Alpha,					sizeof(ConfIni_Alpha));
 			return 0;
 		}
 
@@ -298,6 +308,8 @@ namespace opsm {
 			gnd::conf::get_parameter(src, &dest->blur);
 			gnd::conf::get_parameter(src, &dest->scan_range);
 			gnd::conf::get_parameter(src, &dest->mfailure);
+			gnd::conf::get_parameter(src, &dest->alpha);
+
 			if( gnd::conf::get_parameter(src, &dest->sleeping_orient) >= 0 ){
 				// convert unit of angle(deg2rad)
 				dest->sleeping_orient.value = gnd_deg2rad(dest->sleeping_orient.value);
@@ -341,6 +353,9 @@ namespace opsm {
 			gnd::conf::set_parameter(dest, &src->blur);
 			gnd::conf::set_parameter(dest, &src->scan_range);
 			gnd::conf::set_parameter(dest, &src->mfailure);
+
+			gnd::conf::set_parameter(dest, &src->alpha);
+
 			return 0;
 		}
 

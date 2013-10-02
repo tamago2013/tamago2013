@@ -29,7 +29,7 @@
 
 int main(int argc, char *argv[], char **env) {
 	gnd::opsm::map_t 		opsm_map;
-	gnd::bmp32_t			map;			// map
+	gnd::bmp8_t			map;			// map
 
 	SSMApi<Spur_Odometry>	ssm_odometry;	//
 	SSMScanPoint2D			ssm_sokuikiraw;	// ssm sokuiki raw data
@@ -95,7 +95,7 @@ int main(int argc, char *argv[], char **env) {
 				if( gnd::opsm::build_map(&opsm_map, &cnt_map, pconf.blur.value, pconf.scan_range.value) < 0 ) {
 					::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to build map\n");
 				}
-				else if( gnd::opsm::build_bmp32(&map, &opsm_map, gnd_m2dist( 1.0 / 20)) < 0 ) {
+				else if( gnd::opsm::build_bmp8(&map, &opsm_map, gnd_m2dist( 1.0 / 10)) < 0 ) {
 					::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to convert bmp\n");
 				}
 				else {
@@ -121,33 +121,29 @@ int main(int argc, char *argv[], char **env) {
 		// ---> write map info for displaying the map
 		if( !::is_proc_shutoff() ){
 			SSMOPSMMap				ssm_map;		// ssm map (dummy)
-			gnd::bmp8_t				bmp8;
 			char path[256];
-
-			// build bmp 8bit map
-			gnd::opsm::build_bmp( &bmp8, &opsm_map, gnd_m2dist(1.0/10) );
 
 			// write 8bit map file
 			gnd_get_working_directory(env, path, sizeof(path));
 			::strcat(path, "/view-map.bmp");
-			gnd::bmp::write( path, &bmp8 );
+			gnd::bmp::write( path, &map );
 
 			{ // ---> set parameter
 				::strcpy( ssm_map.property.fname, path);
 				// cooridnate
-				ssm_map.property.point[0].x = bmp8.xupper();
-				ssm_map.property.point[0].y = bmp8.ylower();
+				ssm_map.property.point[0].x = map.xupper();
+				ssm_map.property.point[0].y = map.ylower();
 
-				ssm_map.property.point[1].x = bmp8.xlower();
-				ssm_map.property.point[1].y = bmp8.ylower();
+				ssm_map.property.point[1].x = map.xlower();
+				ssm_map.property.point[1].y = map.ylower();
 
-				ssm_map.property.point[2].x = bmp8.xlower();
-				ssm_map.property.point[2].y = bmp8.yupper();
+				ssm_map.property.point[2].x = map.xlower();
+				ssm_map.property.point[2].y = map.yupper();
 
-				ssm_map.property.point[3].x = bmp8.xupper();
-				ssm_map.property.point[3].y = bmp8.yupper();
+				ssm_map.property.point[3].x = map.xupper();
+				ssm_map.property.point[3].y = map.yupper();
 
-				ssm_map.property.scale = bmp8.xrsl();
+				ssm_map.property.scale = map.xrsl();
 
 				ssm_map.property.offset = 0;
 
@@ -267,6 +263,7 @@ int main(int argc, char *argv[], char **env) {
 		double lh_max = 0.0;
 		double lh_min = 0.0;
 		double lh_ave = 0.0;
+		double w_slow = 0.0;
 
 
 		{ // ---> initialize previoous position
@@ -374,7 +371,8 @@ int main(int argc, char *argv[], char **env) {
 				nline_show++;	::fprintf(stderr, "\x1b[K        prev : %lf %lf, %lf\n", prev.x, prev.y, gnd_ang2deg(prev.theta) );
 				nline_show++;	::fprintf(stderr, "\x1b[K       sleep : %lf [s]\n", sleep_time );
 				nline_show++;	::fprintf(stderr, "\x1b[K     average : %.03lf\n", lh_ave );
-				nline_show++;	::fprintf(stderr, "\x1b[K   max - min : max %.03lf, min %.03lf\n", lh_max, lh_min );
+				nline_show++;	::fprintf(stderr, "\x1b[K   max - min : max %.06lf, min %.06lf\n", lh_max, lh_min );
+				nline_show++;	::fprintf(stderr, "\x1b[K      weight : %.06lf : %.06lf\n", ( lh_ave < w_slow ? ( lh_ave / w_slow  ) : 1.0 ), (lh_ave < w_slow ? ( 1.0 - lh_ave / w_slow ) : 0.0) );
 				//				::fprintf(stderr, "perform eval : %.03lf\n", perform);
 				//				::fprintf(stderr, " fail weight : %.03lf\n", fault_weight );
 				//				::fprintf(stderr, "   rest-mode : %s\n", ssm_position.isOpen() ? "on" : "off"  );
@@ -491,9 +489,9 @@ int main(int argc, char *argv[], char **env) {
 
 						// normalization
 						if(eval < 0 || cnt <= 0)	eval = 0;
-						else 				eval = (eval / (double) (0x8000 * cnt ));
+						else 				eval = (eval / (double) (0x8000 * cnt));
 
-						if( lh_max < eval )		lh_max = eval;
+						if( i == 0 || lh_max < eval )		lh_max = eval;
 						if( i == 0 || lh_min > eval )	lh_min = eval;
 						lh_ave += eval;
 
@@ -501,12 +499,20 @@ int main(int argc, char *argv[], char **env) {
 					} // <--- particle evaluation with laser scanner reading
 
 				} // <--- scanning loop (particle)
+				if( lh_max <= 0 ) continue;
 				lh_ave /= ssm_particles.data.size();
 
-				if( lh_max <= 0 ) continue;
+				if( w_slow <= 0.0 ) w_slow = lh_max;
 				for( i = 0;  i < ssm_particles.data.size(); i++ ){
-					ssm_evaluation.data.value[i] = (ssm_evaluation.data.value[i] / lh_max) * (1.0 - pconf.mfailure.value) + pconf.mfailure.value;
+					if( pconf.alpha.value > 0.0 ) {
+						ssm_evaluation.data.value[i] = (ssm_evaluation.data.value[i] / lh_max) * ( lh_ave < w_slow ? ( lh_max / w_slow ) : 1.0 )
+								+ pconf.mfailure.value * (lh_ave < w_slow ? ( 1.0 - lh_ave / w_slow ) : 0.0);
+					}
+					else {
+						ssm_evaluation.data.value[i] = (ssm_evaluation.data.value[i] / lh_max);
+					}
 				}
+				w_slow += pconf.alpha.value * pconf.cycle.value * ( lh_max - w_slow );
 
 				ssm_evaluation.write( ssm_sokuikiraw.time );
 				cnt_eval++;
