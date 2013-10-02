@@ -269,7 +269,7 @@ int main(int argc, char *argv[]) {
     //    sound_play(13);
     Spur_free();
 
-    //    // ---> qstreamを使う場合dest
+    //    // ---> qstreamを使う場合
     //    printf("open que special file... : ");
     //    cout << pipe_path << endl;
     //    qin.open(pipe_path.c_str());
@@ -284,8 +284,8 @@ int main(int argc, char *argv[]) {
     l_over_line = sqrt( (waypoint_mat[route][dest].x - waypoint_mat[route][dest-1].x)*(waypoint_mat[route][dest].x - waypoint_mat[route][dest-1].x)
                         + (waypoint_mat[route][dest].y - waypoint_mat[route][dest-1].y)*(waypoint_mat[route][dest].y - waypoint_mat[route][dest-1].y) ) - over_line__mergin;
 
-    x_over_line = waypoint_mat[route][dest-1].x + l_over_line*cos(th);
-    y_over_line = waypoint_mat[route][dest-1].y + l_over_line*sin(th);
+    x_over_line = ssm_odom.data.x + l_over_line*cos(th);
+    y_over_line = ssm_odom.data.y + l_over_line*sin(th);
     th_over_line = th;
     printf("over line point(x, y, th pi): (%lf, %lf, %lf pi)\n", x_over_line, y_over_line, th_over_line/M_PI);
     printf("Spur-free mode\n");
