@@ -85,12 +85,12 @@ fi
 
 # keiro.dat
 if [ ${_WORKING_}/${_ROUTE_} -nt ${_CURRENT_WORKING_}/${_ROUTE_} ]; then
-	echo "${_WORKING_}/${_ROUTE_} is modified."
+	printf "%s is \x1b[1mmodified\x1b[0m\n" "${_CURRENT_WORKING_}"
 	_IS_NEW_=1
 fi
 
 if [ ${_IS_NEW_} -eq 0 ]; then
-	echo "${_CURRENT_WORKING_} is not modified"
+	printf "%s is \x1b[1mnot modified\x1b[0m\n" "${_CURRENT_WORKING_}"
 fi
 
 exit ${_IS_NEW_}

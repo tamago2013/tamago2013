@@ -1,11 +1,14 @@
 #!/bin/bash
 
-. .tamago
+. .tamago/shell
 
 if [ -f ${_META_DATA_} ]; then
-. .tamago-meta
-echo ${_CURRENT_WORING_}
+	. ${_META_DATA_}
+	printf "\x1b[1m%s\x1b[0m\n" "${_CURRENT_WORKING_}"
 else
-echo "no working"
+	printf "\x1b[1mno working\x1b[0m\n"
 fi
+
+
+
 
