@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+   <FileVersion major="1" minor="6" />
+   <Project>
+      <Option title="ssm-ptz-checker" />
+      <Option makefile_is_custom="1" />
+      <Option compiler="gcc" />
+      <Option virtualFolders="CMake Files\;" />
+      <Build>
+      <Target title="all">
+         <Option working_dir="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 all" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="rebuild_cache">
+         <Option working_dir="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 rebuild_cache" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="ssm-ptz-checker">
+         <Option output="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/Release/ssm-ptz-checker" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/Release" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/../gndlib" />
+            <Add directory="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/../ssmtype" />
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.7" />
+            <Add directory="/usr/include/c++/4.7/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/4.7/." />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.7/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.7/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 ssm-ptz-checker" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="ssm-ptz-checker/fast">
+         <Option output="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/Release/ssm-ptz-checker" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/Release" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/../gndlib" />
+            <Add directory="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/../ssmtype" />
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.7" />
+            <Add directory="/usr/include/c++/4.7/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/4.7/." />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.7/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.7/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 ssm-ptz-checker/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/mk/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      </Build>
+      <Unit filename="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/src/ssm-ptz-checker.cpp">
+      </Unit>
+      <Unit filename="/home/m-yoshida/TC13/tamago2013/ssm-ptz-checker/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\" />
+      </Unit>
+   </Project>
+</CodeBlocks_project_file>

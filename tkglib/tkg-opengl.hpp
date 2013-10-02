@@ -9,6 +9,45 @@
 namespace tkg
 {
 
+static const char *vec[] =
+{
+    /* 0x20     */ "",
+    /* 0x21  !  */ "",
+    /* 0x22  "  */ "",
+    /* 0x23  #  */ "",
+    /* 0x24  $  */ "",
+    /* 0x25  %  */ "",
+    /* 0x26  &  */ "",
+    /* 0x27  '  */ "",
+    /* 0x28  (  */ "",
+    /* 0x29  )  */ "",
+    /* 0x2A  *  */ "",
+    /* 0x2B  +  */ "",
+    /* 0x2C  ,  */ "",
+    /* 0x2D  -  */ "",
+    /* 0x2E  .  */ "",
+    /* 0x2F  /  */ "",
+
+    /* 0x30  0  */ "AAMA MAMI MIAI AIAA",
+    /* 0x31  1  */ "AIGA GAMI DEJE",
+    /* 0x32  2  */ "",
+    /* 0x33  3  */ "",
+    /* 0x34  4  */ "",
+    /* 0x35  5  */ "",
+    /* 0x36  6  */ "",
+    /* 0x37  7  */ "",
+    /* 0x38  8  */ "",
+    /* 0x39  9  */ "",
+    /* 0x3A  :  */ "",
+    /* 0x3B  ;  */ "",
+    /* 0x3C  <  */ "",
+    /* 0x3D  =  */ "",
+    /* 0x3E  >  */ "",
+    /* 0x3F  ?  */ "",
+
+    ""
+};
+
 class Color4
 {
     public: // functions
@@ -51,6 +90,27 @@ inline void glArrow(const Point3 &p, double t, double r)
     glEnd();
 }
 
+inline void glString(const std::string &str)
+{
+    double x=0,y=0;
+
+    glBegin(GL_LINES);
+    int c = 17;
+    for(int j=0; vec[c][j]; j++)
+    {
+        if(j%5 != 3) continue;
+
+        double y1 = - (vec[c][j-3] - 'A') / 12.0;
+        double x1 =   (vec[c][j-2] - 'A') / 12.0 * 3;
+        double y2 = - (vec[c][j-1] - 'A') / 12.0;
+        double x2 =   (vec[c][j-0] - 'A') / 12.0 * 3;
+
+        glVertex2d(-x1, y1);
+        glVertex2d(-x2, y2);
+    }
+    glEnd();
+}
+
 // implements
 
 inline Color4::Color4(double r, double g, double b, double a)
@@ -71,8 +131,6 @@ inline Color4::Color4(std::string str)
         }
     }
 }
-
-
 
 
 /*
