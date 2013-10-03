@@ -4,6 +4,7 @@
 #include <QSplitter>
 #include <QScrollArea>
 #include <QSignalMapper>
+#include <algorithm>
 #include "window.hpp"
 #include "widget-gl.hpp"
 #include "widget-msg.hpp"

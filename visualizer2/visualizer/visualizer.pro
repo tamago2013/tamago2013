@@ -34,7 +34,8 @@ SOURCES += \
     widget-img.cpp \
     ssm-message.cpp \
     menu-handler.cpp \
-    map-viewer.cpp
+    map-viewer.cpp \
+    structure.cpp
 
 LIBS += \
     -lGLU \

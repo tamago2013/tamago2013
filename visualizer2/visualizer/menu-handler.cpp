@@ -3,7 +3,7 @@
 #include "tkg-debug.hpp"
 
 
-ToggleMenuHandler::ToggleMenuHandler(QObject *parent) : QObject(parent)
+ToggleMenuHandler::ToggleMenuHandler()
 {
     tkg::debug("new ToggleMenuHandler\n");
 }
@@ -20,7 +20,7 @@ void ToggleMenuHandler::receive(bool val)
 
 
 
-SelectMenuHandler::SelectMenuHandler(QObject *parent) : QObject(parent)
+SelectMenuHandler::SelectMenuHandler()
 {
     tkg::debug("new SelectMenuHandler\n");
 }
@@ -37,7 +37,7 @@ void SelectMenuHandler::receive(int val)
 
 
 
-FpsMenuHandler::FpsMenuHandler(QObject *parent) : SelectMenuHandler(parent)
+FpsMenuHandler::FpsMenuHandler()
 {
     tkg::debug("new FpsMenuHandler\n");
     timer = new QTimer(this);
@@ -46,6 +46,7 @@ FpsMenuHandler::FpsMenuHandler(QObject *parent) : SelectMenuHandler(parent)
 FpsMenuHandler::~FpsMenuHandler()
 {
     tkg::debug("delete FpsMenuHandler\n");
+    delete timer;
 }
 
 void FpsMenuHandler::receive(int val)

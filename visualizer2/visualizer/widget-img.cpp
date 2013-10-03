@@ -19,7 +19,7 @@ WidgetIMG::WidgetIMG(Window* parent, tkg::ConfigGroup &conf)
     ssmapi = new SSMApi<ssmimage>(tkg::parseStr(conf["ssm-name"]), tkg::parseInt(conf["ssm-id"]));
 
     std::vector<std::string> fps = tkg::parseArray(conf["fps"]);
-    fps_timer = new FpsMenuHandler(this);
+    fps_timer = new FpsMenuHandler;
     fps_timer->title = conf["title"];
     fps_timer->value = fps.empty() ? 1 : tkg::parseInt(fps.front());
     for(uint i=0; i<fps.size(); i++)
