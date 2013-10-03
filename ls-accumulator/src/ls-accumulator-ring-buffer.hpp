@@ -77,6 +77,10 @@ namespace ls_accumulator
             {
                 _data.resize( _max_size );
             }
+            if( _next_writing_pos >= _max_size )
+            {
+                _next_writing_pos = 0;
+            }
         }
 
         //-------------------------------

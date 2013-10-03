@@ -28,7 +28,7 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 
     for(int i=0; i<SSM_LASER_SIZE; i++)
     {
-        std::string group = tkg::strf("Urg%d", i+1);
+        std::string group = tkg::strf("Laser%d", i+1);
         ssm_laser[i] = new SSMSOKUIKIData3D(tkg::parseStr(conf[group]["ssm-name"]), tkg::parseInt(conf[group]["ssm-id"]));
 
         color_point [i]  = tkg::Color4(conf[group]["point-color"]);
@@ -69,6 +69,9 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     tmh_particle->value = true;
     window->addMenuView(tmh_particle);
 
+    ssm_ptz = new SSMApi<ysd::PTZ>(tkg::parseStr(conf["PTZ"]["ssm-name"]), tkg::parseInt(conf["PTZ"]["ssm-id"]));
+
+
 
     camera = new Camera;
 
@@ -103,6 +106,8 @@ WidgetGL::~WidgetGL()
     delete ssm_particle;
     delete tmh_particle;
 
+    delete ssm_ptz;
+
     for(int i=0; i<SSM_LASER_SIZE; i++)
     {
         delete ssm_laser[i];
@@ -119,6 +124,7 @@ bool WidgetGL::init()
     smConnect(ssm_laser[0]);
     smConnect(ssm_laser[1]);
     smConnect(ssm_particle);
+    smConnect(ssm_ptz);
 
     return true;
 }
@@ -172,8 +178,9 @@ void WidgetGL::paintGL()
     {
         drawLaser(i);
     }
+    drawPTZ();
 
-    tkg::glString("");
+    //tkg::glString("");
 
     glFlush();
 }
@@ -186,12 +193,17 @@ void WidgetGL::updateStream()
     ssmapi.push_back(ssm_laser[0]);
     ssmapi.push_back(ssm_laser[1]);
     ssmapi.push_back(ssm_particle);
+    ssmapi.push_back(ssm_ptz);
+
     for(uint i=0; i<ssmapi.size(); i++)
     {
         if( smState(ssmapi[i]) )
         {
-            smReadLast(ssmapi[i]);
-            ssm_time = std::min(ssm_time, ssmapi[i]->time);
+            if(ssmapi[i]->isUpdate())
+            {
+                smReadLast(ssmapi[i]);
+                ssm_time = std::min(ssm_time, ssmapi[i]->time);
+            }
         }
     }
     for(uint i=0; i<ssmapi.size(); i++)
@@ -333,7 +345,7 @@ void WidgetGL::drawParticles()
     if( !smState(ssmapi) ) return;
     particle_set_c &data = ssmapi->data;
 
-    for(int i=0; i<data.size(); i++)
+    for(uint i=0; i<data.size(); i++)
     {
         glColor3d(1.0, 0.0, 0.0);
         tkg::Point3 pos(data[i][0][PARTICLE_X], data[i][0][PARTICLE_Y], 0.0 );
@@ -381,6 +393,26 @@ void WidgetGL::drawLaser(int id)
         }
         glEnd();
     }
+}
+
+void WidgetGL::drawPTZ()
+{
+    SSMApi<ysd::PTZ> *ssmapi = ssm_ptz;
+
+    if( !smState(ssmapi) ) return;
+    ysd::PTZ &data = ssmapi->data;
+
+    glColor3d(1.0, 1.0, 0.0);
+
+    glLineWidth(3);
+    glBegin(GL_LINES);
+    double v = (-data.tilt + 90) * tkg::pi / 180;
+    double h = (-data.pan  - 90) * tkg::pi / 180;
+    tkg::Point3 ori(0, 0, 1.0);
+    tkg::Point3 dir = tkg::Point3::polar(30.0, v, h);
+    glVertex(robot_p + ori);
+    glVertex(robot_p + ori + dir.rotateZ(robot_t));
+    glEnd();
 }
 
 void WidgetGL::keyPressEvent(QKeyEvent *event)

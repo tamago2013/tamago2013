@@ -85,6 +85,21 @@ namespace opsm {
 				"sokuiki raw data ssm id"
 		};
 
+
+		// sokuiki-raw-name
+		static const gnd::conf::parameter_array<char, 512> ConfIni_SokuikiFSName = {
+				"sokuiki-fs-ssm-name",
+				"",		// ssm name
+				"sokuiki fs data ssm name. if sokuiki-raw-ssm-name and id are not defined, read sokuiki fs data from ssm"
+		};
+
+		// sokuiki-raw-id
+		static const gnd::conf::parameter<int> ConfIni_SokuikiFSID = {
+				"sokuiki-fs-ssm-id",
+				-1,		// id
+				"sokuiki fs data ssm id. if sokuiki-raw-ssm-name and id are not defined, read sokuiki fs data from ssm"
+		};
+
 		// odometry-raw-name
 		static const gnd::conf::parameter_array<char, 512> ConfIni_OdometryName = {
 				"odometry-ssm-name",
@@ -179,13 +194,13 @@ namespace opsm {
 		// matching failure
 		static const gnd::conf::parameter<double> ConfIni_MatchingFailureRate = {
 				"matching-failure-rate",
-				0.05,
+				0.2,
 		};
 
-		// w slow
-		static const gnd::conf::parameter<double> ConfIni_Alpha = {
-				"alpha",
-				0.0,
+		// matching failure
+		static const gnd::conf::parameter<double> ConfIni_MatchingFalsePositive = {
+				"matching-false-positive",
+				0.05,
 		};
 
 	} // <--- namespace opsm
@@ -208,6 +223,8 @@ namespace opsm {
 			// online input output
 			gnd::conf::parameter_array<char, 512>	sokuikiraw_name;	///< Sokuiki ssm data name
 			gnd::conf::parameter<int> 				sokuikiraw_id;		///< Sokuiki ssm data id
+			gnd::conf::parameter_array<char, 512>	sokuikifs_name;		///< Sokuiki ssm data name
+			gnd::conf::parameter<int> 				sokuikifs_id;		///< Sokuiki ssm data id
 			gnd::conf::parameter_array<char, 512>	odometry_name;		///< Sokuiki ssm data name
 			gnd::conf::parameter<int> 				odometry_id;		///< Sokuiki ssm data id
 			gnd::conf::parameter_array<char, 512>	particle_name;		///< particles ssm data name
@@ -223,9 +240,8 @@ namespace opsm {
 			gnd::conf::parameter<double>			cull;				///< reflection point cull
 			gnd::conf::parameter<double>			blur;				///< scan range
 			gnd::conf::parameter<double>			scan_range;			///< scan range
-			gnd::conf::parameter<double>			mfailure;			///< matching failure rate
-
-			gnd::conf::parameter<double>			alpha;				///< alpha
+			gnd::conf::parameter<double>			matching_false;		///< matching failure rate
+			gnd::conf::parameter<double>			false_positive;		///< false positive ratio
 
 			proc_configuration();
 		};
@@ -260,6 +276,8 @@ namespace opsm {
 			::memcpy(&conf->raw_map,			&ConfIni_RawMap,				sizeof(ConfIni_RawMap));
 			::memcpy(&conf->sokuikiraw_name,	&ConfIni_SokuikiRawName,		sizeof(ConfIni_SokuikiRawName) );
 			::memcpy(&conf->sokuikiraw_id,		&ConfIni_SokuikiRawID,			sizeof(ConfIni_SokuikiRawID) );
+			::memcpy(&conf->sokuikifs_name,		&ConfIni_SokuikiFSName,			sizeof(ConfIni_SokuikiFSName) );
+			::memcpy(&conf->sokuikifs_id,		&ConfIni_SokuikiFSID,			sizeof(ConfIni_SokuikiFSID) );
 			::memcpy(&conf->odometry_name,		&ConfIni_OdometryName,			sizeof(ConfIni_OdometryName) );
 			::memcpy(&conf->odometry_id,		&ConfIni_OdometryID,			sizeof(ConfIni_OdometryID) );
 			::memcpy(&conf->particle_name,		&ConfIni_ParticleName,			sizeof(ConfIni_ParticleName) );
@@ -275,9 +293,9 @@ namespace opsm {
 			::memcpy(&conf->cull,				&ConfIni_Cull,					sizeof(ConfIni_Cull));
 			::memcpy(&conf->blur,				&ConfIni_Blur,					sizeof(ConfIni_Blur));
 			::memcpy(&conf->scan_range,			&ConfIni_ScanRangeDist,			sizeof(ConfIni_ScanRangeDist));
-			::memcpy(&conf->mfailure,			&ConfIni_MatchingFailureRate,	sizeof(ConfIni_MatchingFailureRate));
+			::memcpy(&conf->matching_false,		&ConfIni_MatchingFailureRate,	sizeof(ConfIni_MatchingFailureRate));
+			::memcpy(&conf->false_positive,		&ConfIni_MatchingFalsePositive,	sizeof(ConfIni_MatchingFalsePositive));
 
-			::memcpy(&conf->alpha,				&ConfIni_Alpha,					sizeof(ConfIni_Alpha));
 			return 0;
 		}
 
@@ -295,6 +313,8 @@ namespace opsm {
 			gnd::conf::get_parameter(src, &dest->raw_map);
 			gnd::conf::get_parameter(src, &dest->sokuikiraw_name);
 			gnd::conf::get_parameter(src, &dest->sokuikiraw_id);
+			gnd::conf::get_parameter(src, &dest->sokuikifs_name);
+			gnd::conf::get_parameter(src, &dest->sokuikifs_id);
 			gnd::conf::get_parameter(src, &dest->particle_name);
 			gnd::conf::get_parameter(src, &dest->particle_id);
 			gnd::conf::get_parameter(src, &dest->odometry_name);
@@ -307,8 +327,8 @@ namespace opsm {
 			gnd::conf::get_parameter(src, &dest->cull);
 			gnd::conf::get_parameter(src, &dest->blur);
 			gnd::conf::get_parameter(src, &dest->scan_range);
-			gnd::conf::get_parameter(src, &dest->mfailure);
-			gnd::conf::get_parameter(src, &dest->alpha);
+			gnd::conf::get_parameter(src, &dest->matching_false);
+			gnd::conf::get_parameter(src, &dest->false_positive);
 
 			if( gnd::conf::get_parameter(src, &dest->sleeping_orient) >= 0 ){
 				// convert unit of angle(deg2rad)
@@ -332,6 +352,8 @@ namespace opsm {
 			gnd::conf::set_parameter(dest, &src->raw_map);
 			gnd::conf::set_parameter(dest, &src->sokuikiraw_name);
 			gnd::conf::set_parameter(dest, &src->sokuikiraw_id);
+			gnd::conf::set_parameter(dest, &src->sokuikifs_name);
+			gnd::conf::set_parameter(dest, &src->sokuikifs_id);
 			gnd::conf::set_parameter(dest, &src->odometry_name);
 			gnd::conf::set_parameter(dest, &src->odometry_id);
 			gnd::conf::set_parameter(dest, &src->particle_name);
@@ -352,9 +374,8 @@ namespace opsm {
 			gnd::conf::set_parameter(dest, &src->cull);
 			gnd::conf::set_parameter(dest, &src->blur);
 			gnd::conf::set_parameter(dest, &src->scan_range);
-			gnd::conf::set_parameter(dest, &src->mfailure);
-
-			gnd::conf::set_parameter(dest, &src->alpha);
+			gnd::conf::set_parameter(dest, &src->matching_false);
+			gnd::conf::set_parameter(dest, &src->false_positive);
 
 			return 0;
 		}

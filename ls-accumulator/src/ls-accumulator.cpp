@@ -107,6 +107,8 @@ int main ( int argc , char **argv )
 
     Spur_Odometry past_odometry;        //1回前に覚えたオドメトリ
     unsigned long write_count = 0;      //書き込んだ回数のカウント
+    gnd::inttimer timer_console;
+    timer_console.begin( CLOCK_REALTIME , 1.0 , -1.0 );
 
     //--------------------------------------
     // シグナルハンドラを登録
@@ -174,7 +176,7 @@ int main ( int argc , char **argv )
         }
 
         std::cerr << "initializing ssm-data " << conf.sokuiki_accumulated_name.value << "... ";
-        if( !ssm_sokuiki_ac.create( conf.sokuiki_accumulated_name.value , conf.sokuiki_raw_id.value , 5.0 , 0.1 ) )
+        if( !ssm_sokuiki_ac.create( conf.sokuiki_accumulated_name.value , conf.sokuiki_raw_id.value , 0.4 , 0.04 ) )
         {
             std::cerr << "[\033[1m\033[31mERROR\033[30m\033[0m]:fail to create ssm-data " << conf.sokuiki_accumulated_name.value  << "\n";
             return -1;
@@ -213,7 +215,6 @@ int main ( int argc , char **argv )
         coordid_bs  = coordtree.add( "odometry" , "root" , &cm );    //オドメトリ(BS)座標系の作成(関係：単位行列＝つまり同じ座標系)
         coordid_fs  = coordtree.add( "robot" , "odometry" , &cm );   //ロボット(FS)座標系の作成(関係は本当は単位行列ではないが、初めは単位行列で初期化)
         coordid_sn = coordtree.add( "sensor" , "robot" , &ssm_sokuiki_raw.property.coordm ); //センサ座標系の作成(関係：scan_data2dに入っている変換行列)
-
     }
 
     //--------------------------------------
@@ -229,18 +230,20 @@ int main ( int argc , char **argv )
 
         //----------------------------------
         //コンソール描画
-        std::cout.flush();
-        std::cout << "\033[9A"
-                  << "\033[2K ------------- \033[1m\033[35m" << ls_accumulator::proc_name << " \033[39m\033[0m -------------\n"
-                  << "\033[2K accumulate dist            : " << conf.data_accumulating_interval_distance.value << " [m]\n"
-                  << "\033[2K accumulate max dist        : " << conf.data_accumulating_max_distance.value << " [m]\n"
-                  << "\033[2K # of points of single scan : " << ssm_sokuiki_raw.property.numPoints << "\n"
-                  << "\033[2K # of accumulating scan     : " << data_accumulate_scannum << "\n"
-                  << "\033[2K ring buffer total size     : " << ssm_sokuiki_raw.property.numPoints * data_accumulate_scannum << "\n"
-                  << "\033[2K odometry (x,y,theta)       : " << ssm_odometry.data.x << " , " << ssm_odometry.data.y << " , " << ssm_odometry.data.theta << "\n"
-                  << "\033[2K writing count              : " << write_count << "\n"
-                  << "\033[2K \n";
-
+        if( timer_console.clock() )
+        {
+            std::cout.flush();
+            std::cout << "\033[9A"
+                      << "\033[2K ------------- \033[1m\033[35m" << ls_accumulator::proc_name << " \033[39m\033[0m -------------\n"
+                      << "\033[2K accumulate dist            : " << conf.data_accumulating_interval_distance.value << " [m]\n"
+                      << "\033[2K accumulate max dist        : " << conf.data_accumulating_max_distance.value << " [m]\n"
+                      << "\033[2K # of points of single scan : " << ssm_sokuiki_raw.property.numPoints << "\n"
+                      << "\033[2K # of accumulating scan     : " << data_accumulate_scannum << "\n"
+                      << "\033[2K ring buffer total size     : " << ssm_sokuiki_raw.property.numPoints * data_accumulate_scannum << "\n"
+                      << "\033[2K odometry (x,y,theta)       : " << ssm_odometry.data.x << " , " << ssm_odometry.data.y << " , " << ssm_odometry.data.theta << "\n"
+                      << "\033[2K writing count              : " << write_count << "\n"
+                      << "\033[2K \n";
+        }
 
         //----------------------------------
         //sokuiki_rawの読み込み

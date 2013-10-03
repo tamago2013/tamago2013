@@ -1,9 +1,9 @@
 
 #launcher shell script name
-LAUNCHER		:=launcher
+LAUNCHER			:=launcher
 
 #lanch option
-LAUNCH_CMD		:=./$(RELEASE_DIR)$(TARGET)
+LAUNCH_CMD			:=./$(RELEASE_DIR)$(TARGET)
 
 #launcher shell script name
 LAUNCHER_INC		:=launcher.opt
@@ -22,7 +22,9 @@ LAUNCH_SCRIPT	:=\
 if [ -e $(LAUNCHER_INC) ] ; then\n\
 . $(LAUNCHER_INC)\n\
 fi\n\n\
-if [ -e $(LAUNCH_CONFIG) ] ; then\n\
+if [ -n \$$@ ] ; then\n\
+  $(LAUNCH_CMD) \$${$(LAUNCH_OPTION_TAG)} \$$@\n\
+elif [ -e $(LAUNCH_CONFIG) ] ; then\n\
   $(LAUNCH_CMD) -g $(LAUNCH_CONFIG)  \$${$(LAUNCH_OPTION_TAG)} \$$@\n\
 else\n\
   $(LAUNCH_CMD) \$$@ -G $(LAUNCH_CONFIG)\n\
