@@ -8,6 +8,7 @@
 #include "tkg-opengl.hpp"
 #include "ssm-laser.hpp"
 #include "ssm-particles.hpp"
+#include "ssm-ptz.hpp"
 #include "ssmtype/spur-odometry.h"
 
 class Window;
@@ -58,6 +59,7 @@ class WidgetGL : public QGLWidget
         void drawRobot();
         void drawLaser(int);
         void drawParticles();
+        void drawPTZ();
 
     private: // variables
 
@@ -76,26 +78,33 @@ class WidgetGL : public QGLWidget
         MapViewer         *map_opsm;
         ToggleMenuHandler *tmh_opsm;
 
-        // route
+        // route map
         //RouteViewer       *map_route;
         ToggleMenuHandler *tmh_route;
         std::string                      route_name;
         std::vector<tkg::Point3>         route_node;
         std::vector<std::pair<int,int> > route_edge;
 
-        // ssm odometry
+        // ssm-odometry
         SSMApi<Spur_Odometry> *ssm_robot;
 
-        // ssm particle
+        // ssm-particles
         SSMParticles      *ssm_particle;
         ToggleMenuHandler *tmh_particle;
 
-        // ssm laser
+        // ssm-laser
         static const int      SSM_LASER_SIZE = 2;
         SSMSOKUIKIData3D      *ssm_laser[SSM_LASER_SIZE];
         SelectMenuHandler     *smh_laser[SSM_LASER_SIZE];
         tkg::Color4          color_point[SSM_LASER_SIZE];
         tkg::Color4          color_laser[SSM_LASER_SIZE];
+
+        //std::vector<SSMSOKUIKIData3D*> ssm_laser;
+        //std::vector<SelectMenuHandler> smh_laser;
+
+
+        // ssm-ptz
+        SSMApi<ysd::PTZ>      *ssm_ptz;
 
         // screen
         int    width;
