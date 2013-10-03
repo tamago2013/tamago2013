@@ -518,15 +518,9 @@ int sokuikiraw_main(opsm::peval::proc_configuration &pconf, char **env) {
 
 				if( w_slow <= 0.0 ) w_slow = lh_max;
 				for( i = 0;  i < ssm_particles.data.size(); i++ ){
-					if( pconf.alpha.value > 0.0 ) {
-						ssm_evaluation.data.value[i] = (ssm_evaluation.data.value[i] / lh_max) * ( lh_ave < w_slow ? ( lh_max / w_slow ) : 1.0 )
-								+ pconf.mfailure.value * (lh_ave < w_slow ? ( 1.0 - lh_ave / w_slow ) : 0.0);
-					}
-					else {
-						ssm_evaluation.data.value[i] = (ssm_evaluation.data.value[i] / lh_max);
-					}
+					ssm_evaluation.data.value[i] = (ssm_evaluation.data.value[i] / lh_max) * ( 1.0 - pconf.matching_false.value )
+							+ pconf.matching_false.value * ( pconf.false_positive.value );
 				}
-				w_slow += pconf.alpha.value * pconf.cycle.value * ( lh_max - w_slow );
 
 				ssm_evaluation.write( ssm_sokuikiraw.time );
 				cnt_eval++;
@@ -1026,15 +1020,9 @@ int sokuikifs_main(opsm::peval::proc_configuration &pconf, char **env) {
 
 				if( w_slow <= 0.0 ) w_slow = lh_max;
 				for( i = 0;  i < ssm_particles.data.size(); i++ ){
-					if( pconf.alpha.value > 0.0 ) {
-						ssm_evaluation.data.value[i] = (ssm_evaluation.data.value[i] / lh_max) * ( lh_ave < w_slow ? ( lh_max / w_slow ) : 1.0 )
-								+ pconf.mfailure.value * (lh_ave < w_slow ? ( 1.0 - lh_ave / w_slow ) : 0.0);
-					}
-					else {
-						ssm_evaluation.data.value[i] = (ssm_evaluation.data.value[i] / lh_max);
-					}
+					ssm_evaluation.data.value[i] = (ssm_evaluation.data.value[i] / lh_max) * ( 1.0 - pconf.matching_false.value )
+							+ pconf.matching_false.value * ( pconf.false_positive.value );
 				}
-				w_slow += pconf.alpha.value * pconf.cycle.value * ( lh_max - w_slow );
 
 				ssm_evaluation.write( ssm_sokuikifs.time );
 				cnt_eval++;

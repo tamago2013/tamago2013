@@ -194,13 +194,13 @@ namespace opsm {
 		// matching failure
 		static const gnd::conf::parameter<double> ConfIni_MatchingFailureRate = {
 				"matching-failure-rate",
-				0.05,
+				0.2,
 		};
 
-		// w slow
-		static const gnd::conf::parameter<double> ConfIni_Alpha = {
-				"alpha",
-				0.0,
+		// matching failure
+		static const gnd::conf::parameter<double> ConfIni_MatchingFalsePositive = {
+				"matching-false-positive",
+				0.05,
 		};
 
 	} // <--- namespace opsm
@@ -240,9 +240,8 @@ namespace opsm {
 			gnd::conf::parameter<double>			cull;				///< reflection point cull
 			gnd::conf::parameter<double>			blur;				///< scan range
 			gnd::conf::parameter<double>			scan_range;			///< scan range
-			gnd::conf::parameter<double>			mfailure;			///< matching failure rate
-
-			gnd::conf::parameter<double>			alpha;				///< alpha
+			gnd::conf::parameter<double>			matching_false;		///< matching failure rate
+			gnd::conf::parameter<double>			false_positive;		///< false positive ratio
 
 			proc_configuration();
 		};
@@ -294,9 +293,9 @@ namespace opsm {
 			::memcpy(&conf->cull,				&ConfIni_Cull,					sizeof(ConfIni_Cull));
 			::memcpy(&conf->blur,				&ConfIni_Blur,					sizeof(ConfIni_Blur));
 			::memcpy(&conf->scan_range,			&ConfIni_ScanRangeDist,			sizeof(ConfIni_ScanRangeDist));
-			::memcpy(&conf->mfailure,			&ConfIni_MatchingFailureRate,	sizeof(ConfIni_MatchingFailureRate));
+			::memcpy(&conf->matching_false,		&ConfIni_MatchingFailureRate,	sizeof(ConfIni_MatchingFailureRate));
+			::memcpy(&conf->false_positive,		&ConfIni_MatchingFalsePositive,	sizeof(ConfIni_MatchingFalsePositive));
 
-			::memcpy(&conf->alpha,				&ConfIni_Alpha,					sizeof(ConfIni_Alpha));
 			return 0;
 		}
 
@@ -328,8 +327,8 @@ namespace opsm {
 			gnd::conf::get_parameter(src, &dest->cull);
 			gnd::conf::get_parameter(src, &dest->blur);
 			gnd::conf::get_parameter(src, &dest->scan_range);
-			gnd::conf::get_parameter(src, &dest->mfailure);
-			gnd::conf::get_parameter(src, &dest->alpha);
+			gnd::conf::get_parameter(src, &dest->matching_false);
+			gnd::conf::get_parameter(src, &dest->false_positive);
 
 			if( gnd::conf::get_parameter(src, &dest->sleeping_orient) >= 0 ){
 				// convert unit of angle(deg2rad)
@@ -375,9 +374,8 @@ namespace opsm {
 			gnd::conf::set_parameter(dest, &src->cull);
 			gnd::conf::set_parameter(dest, &src->blur);
 			gnd::conf::set_parameter(dest, &src->scan_range);
-			gnd::conf::set_parameter(dest, &src->mfailure);
-
-			gnd::conf::set_parameter(dest, &src->alpha);
+			gnd::conf::set_parameter(dest, &src->matching_false);
+			gnd::conf::set_parameter(dest, &src->false_positive);
 
 			return 0;
 		}
