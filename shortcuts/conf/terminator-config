@@ -171,6 +171,7 @@
       type = Terminal
       order = 1
       parent = child2
+      command = bash;
     [[[terminal7]]]
       profile = default
       type = Terminal
@@ -237,6 +238,20 @@
     [[[window0]]]
       type = Window
       parent = ""
+
+#=================================================
+# ptz / ptz-handlerの立ち上げ
+#=================================================
+  [[ptz]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+      title = ptz-handler
+      command = cd ${tamago_home}/ptz-handler; ./launcher;  echo "-----"; echo "./launcher"; echo "-----"; bash;
+    [[[window0]]]
+      type = Window
+      parent = ""
+
 
 [plugins]
 

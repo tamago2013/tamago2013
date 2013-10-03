@@ -12,6 +12,7 @@ rm -f ~/Desktop/platform.desktop
 rm -f ~/Desktop/ssm-killer.desktop
 rm -f ~/Desktop/urg.desktop
 rm -f ~/Desktop/visualizer.desktop
+rm -f ~/Desktop/ptz.desktop
 
 rm -fr ~/.config/tamago
 

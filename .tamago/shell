@@ -10,6 +10,7 @@ _LOCLIZER_DIR_=particle-localizer
 _PATH_PLAN_DIR_=ysd-path-planner
 _ROUTE_EDITOR_DIR_=tkg-route-editor
 _LS_CCONVERTER_DIR_=ls-coordinate-converter
+_LS_ACCUMULATOR_DIR_=ls-accumulator
 _VISUALIZER_DIR_=visualizer2
 _LOGGER_=multilogger
 _DATA_DIR_=data
@@ -18,6 +19,7 @@ _TEMPLATE_=data/.template
 
 _P_TRACKER_CONF_=opsm-position-tracker.conf
 _P_EVALUATOR_CONF_=opsm-particle-evaluator.conf
+_P_EVALUATOR_AC_CONF_=opsm-particle-evaluator-ac.conf
 _LOCLIZER_CONF_=particle-localizer.conf
 _PATH_PLAN_CONF_=ysd-path-planner.conf
 _PATH_PLAN_OPT_=ysd-path-planner.opt
@@ -26,6 +28,7 @@ _ROUTE_EDITOR_OPT_=tkg-route-editor.opt
 _FRONT_LS_CCONVERTER_CONF_=front-ls-coordinate-converter.conf
 _V_LS_CCONVERTER_CONF_=vertical-ls-coordinate-converter.conf
 _LS_CCONVERTER_OPT_=ls-coordinate-converter.opt
+_LS_ACCUMULATOR_CONF_=ls-accumulator.conf
 _VISUALIZER_CONF_=visualizer.conf
 _LOGGING_LIST_=logging.list
 
