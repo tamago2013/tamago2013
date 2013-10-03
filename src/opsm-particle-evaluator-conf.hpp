@@ -85,6 +85,21 @@ namespace opsm {
 				"sokuiki raw data ssm id"
 		};
 
+
+		// sokuiki-raw-name
+		static const gnd::conf::parameter_array<char, 512> ConfIni_SokuikiFSName = {
+				"sokuiki-fs-ssm-name",
+				"",		// ssm name
+				"sokuiki fs data ssm name. if sokuiki-raw-ssm-name and id are not defined, read sokuiki fs data from ssm"
+		};
+
+		// sokuiki-raw-id
+		static const gnd::conf::parameter<int> ConfIni_SokuikiFSID = {
+				"sokuiki-fs-ssm-id",
+				-1,		// id
+				"sokuiki fs data ssm id. if sokuiki-raw-ssm-name and id are not defined, read sokuiki fs data from ssm"
+		};
+
 		// odometry-raw-name
 		static const gnd::conf::parameter_array<char, 512> ConfIni_OdometryName = {
 				"odometry-ssm-name",
@@ -208,6 +223,8 @@ namespace opsm {
 			// online input output
 			gnd::conf::parameter_array<char, 512>	sokuikiraw_name;	///< Sokuiki ssm data name
 			gnd::conf::parameter<int> 				sokuikiraw_id;		///< Sokuiki ssm data id
+			gnd::conf::parameter_array<char, 512>	sokuikifs_name;		///< Sokuiki ssm data name
+			gnd::conf::parameter<int> 				sokuikifs_id;		///< Sokuiki ssm data id
 			gnd::conf::parameter_array<char, 512>	odometry_name;		///< Sokuiki ssm data name
 			gnd::conf::parameter<int> 				odometry_id;		///< Sokuiki ssm data id
 			gnd::conf::parameter_array<char, 512>	particle_name;		///< particles ssm data name
@@ -260,6 +277,8 @@ namespace opsm {
 			::memcpy(&conf->raw_map,			&ConfIni_RawMap,				sizeof(ConfIni_RawMap));
 			::memcpy(&conf->sokuikiraw_name,	&ConfIni_SokuikiRawName,		sizeof(ConfIni_SokuikiRawName) );
 			::memcpy(&conf->sokuikiraw_id,		&ConfIni_SokuikiRawID,			sizeof(ConfIni_SokuikiRawID) );
+			::memcpy(&conf->sokuikifs_name,		&ConfIni_SokuikiFSName,			sizeof(ConfIni_SokuikiFSName) );
+			::memcpy(&conf->sokuikifs_id,		&ConfIni_SokuikiFSID,			sizeof(ConfIni_SokuikiFSID) );
 			::memcpy(&conf->odometry_name,		&ConfIni_OdometryName,			sizeof(ConfIni_OdometryName) );
 			::memcpy(&conf->odometry_id,		&ConfIni_OdometryID,			sizeof(ConfIni_OdometryID) );
 			::memcpy(&conf->particle_name,		&ConfIni_ParticleName,			sizeof(ConfIni_ParticleName) );
@@ -295,6 +314,8 @@ namespace opsm {
 			gnd::conf::get_parameter(src, &dest->raw_map);
 			gnd::conf::get_parameter(src, &dest->sokuikiraw_name);
 			gnd::conf::get_parameter(src, &dest->sokuikiraw_id);
+			gnd::conf::get_parameter(src, &dest->sokuikifs_name);
+			gnd::conf::get_parameter(src, &dest->sokuikifs_id);
 			gnd::conf::get_parameter(src, &dest->particle_name);
 			gnd::conf::get_parameter(src, &dest->particle_id);
 			gnd::conf::get_parameter(src, &dest->odometry_name);
@@ -332,6 +353,8 @@ namespace opsm {
 			gnd::conf::set_parameter(dest, &src->raw_map);
 			gnd::conf::set_parameter(dest, &src->sokuikiraw_name);
 			gnd::conf::set_parameter(dest, &src->sokuikiraw_id);
+			gnd::conf::set_parameter(dest, &src->sokuikifs_name);
+			gnd::conf::set_parameter(dest, &src->sokuikifs_id);
 			gnd::conf::set_parameter(dest, &src->odometry_name);
 			gnd::conf::set_parameter(dest, &src->odometry_id);
 			gnd::conf::set_parameter(dest, &src->particle_name);
