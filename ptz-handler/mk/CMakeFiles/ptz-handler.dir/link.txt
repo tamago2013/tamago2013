@@ -1,1 +1,0 @@
-/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/ptz-handler.dir/src/ptz-handler.cpp.o  -o ../Release/ptz-handler -rdynamic -lm -lssm 

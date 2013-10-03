@@ -1,1 +1,0 @@
-/home/m-yoshida/TC13/tamago2013/ptz-handler/mk/CMakeFiles/ptz-handler.dir
