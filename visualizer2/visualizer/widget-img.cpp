@@ -18,10 +18,11 @@ WidgetIMG::WidgetIMG(Window* parent, tkg::ConfigGroup &conf)
     image  = NULL;
     ssmapi = new SSMApi<ssmimage>(tkg::parseStr(conf["ssm-name"]), tkg::parseInt(conf["ssm-id"]));
 
+    std::vector<std::string> fps = tkg::parseArray(conf["fps"]);
     fps_timer = new FpsMenuHandler(this);
     fps_timer->title = conf["title"];
-    std::vector<std::string> fps = tkg::parseArray(conf["fps"]);
-    for(int i=0; i<fps.size(); i++)
+    fps_timer->value = fps.empty() ? 1 : tkg::parseInt(fps.front());
+    for(uint i=0; i<fps.size(); i++)
     {
         fps_timer->list.push_back( SelectMenuElement(fps[i]+" fps", tkg::parseInt(fps[i])) );
     }

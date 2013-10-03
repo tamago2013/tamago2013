@@ -22,7 +22,8 @@ HEADERS += \
     ../../tkglib/tkg-config.hpp \
     menu-handler.hpp \
     map-viewer.hpp \
-    ../../tkglib/tkg-debug.hpp
+    ../../tkglib/tkg-debug.hpp \
+    structure.hpp
 
 SOURCES += \
     main.cpp \

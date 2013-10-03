@@ -19,6 +19,7 @@ class Point3
 		};
 
         Point3(double t = 0)                 : x(t), y(t), z(t) {}
+        Point3(double x, double y)           : x(x), y(y), z(0) {}
         Point3(double x, double y, double z) : x(x), y(y), z(z) {}
 
         Point3(double *v)

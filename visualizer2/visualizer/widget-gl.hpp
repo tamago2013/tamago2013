@@ -6,10 +6,10 @@
 #include "tkg-utility.hpp"
 #include "tkg-config.hpp"
 #include "tkg-opengl.hpp"
-#include "ssm-laser.hpp"
 #include "ssm-particles.hpp"
 #include "ssm-ptz.hpp"
 #include "ssmtype/spur-odometry.h"
+#include "structure.hpp"
 
 class Window;
 class MapViewer;
@@ -68,43 +68,18 @@ class WidgetGL : public QGLWidget
         FpsMenuHandler *fps_timer;
 
         // robot
-        tkg::Point3 robot_p;
-        double      robot_t;
-        std::vector<tkg::Point3> robot_log_p;
-        std::vector<double>      robot_log_t;
+        std::vector<Robot> robot_log;
 
+        // map
+        Field field;
+        Route route;
 
-        // opsm map
-        MapViewer         *map_opsm;
-        ToggleMenuHandler *tmh_opsm;
-
-        // route map
-        //RouteViewer       *map_route;
-        ToggleMenuHandler *tmh_route;
-        std::string                      route_name;
-        std::vector<tkg::Point3>         route_node;
-        std::vector<std::pair<int,int> > route_edge;
-
-        // ssm-odometry
-        SSMApi<Spur_Odometry> *ssm_robot;
-
-        // ssm-particles
-        SSMParticles      *ssm_particle;
-        ToggleMenuHandler *tmh_particle;
-
-        // ssm-laser
-        static const int      SSM_LASER_SIZE = 2;
-        SSMSOKUIKIData3D      *ssm_laser[SSM_LASER_SIZE];
-        SelectMenuHandler     *smh_laser[SSM_LASER_SIZE];
-        tkg::Color4          color_point[SSM_LASER_SIZE];
-        tkg::Color4          color_laser[SSM_LASER_SIZE];
-
-        //std::vector<SSMSOKUIKIData3D*> ssm_laser;
-        //std::vector<SelectMenuHandler> smh_laser;
-
-
-        // ssm-ptz
-        SSMApi<ysd::PTZ>      *ssm_ptz;
+        // ssm
+        PositionStream  position;
+        ParticleStream  particle;
+        PTZCameraStream ptzcamera;
+        std::vector<LaserStream>   lasers;
+        std::vector<ViewerStream*> stream;
 
         // screen
         int    width;
