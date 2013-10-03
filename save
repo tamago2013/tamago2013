@@ -15,9 +15,15 @@ fi
 # opsm-particle-evaluator
 if [ -f ${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_CONF_} ]; then
 	cp ${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_CONF_} ${_MAP_DIR_}/
-	echo "${_MAP_DIR_}/${_P_TRACKER_CONF_} ... ok"
+	echo "${_MAP_DIR_}/${_P_EVALUATOR_CONF_} ... ok"
 else 
 	echo "Error: ${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_CONF_} is not exist"
+fi
+if [ -f ${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_AC_CONF_} ]; then
+	cp ${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_AC_CONF_} ${_MAP_DIR_}/
+	echo "${_MAP_DIR_}/${_P_EVALUATOR_AC_CONF_} ... ok"
+else 
+	echo "Error: ${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_AC_CONF_} is not exist"
 fi
 
 # particle-localizer
@@ -87,6 +93,13 @@ else
 	echo "Error: ${_LS_CCONVERTER_DIR_}/${_LAUNCHER_OPT_} is not exist"
 fi
 
+# ls-accumulator
+if [ -f ${_LS_ACCUMULATOR_DIR_}/${_LS_ACCUMULATOR_CONF_} ]; then
+	cp ${_LS_ACCUMULATOR_DIR_}/${_LS_ACCUMULATOR_CONF_} ${_MAP_DIR_}/
+	echo "${_MAP_DIR_}/${_LS_ACCUMULATOR_CONF_} ... ok"
+else 
+	echo "Error: ${_LS_ACCUMULATOR_DIR_}/${_LS_ACCUMULATOR_CONF_} is not exist"
+fi
 
 # opsm-map
 if [ -d ${_WORKING_}/${_OPSM_MAP_} ]; then

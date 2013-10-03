@@ -25,6 +25,10 @@ if [ ${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_CONF_} -nt ${_CURRENT_WORKING_}/${_P_EV
 	echo "${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_CONF_} is modified."
 	_IS_NEW_=1
 fi
+if [ ${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_AC_CONF_} -nt ${_CURRENT_WORKING_}/${_P_EVALUATOR_AC_CONF_} ]; then
+	echo "${_P_EVALUATOR_DIR_}/${_P_EVALUATOR_AC_CONF_} is modified."
+	_IS_NEW_=1
+fi
 
 
 # particle-localizer
@@ -76,6 +80,11 @@ if [ ${_LS_CCONVERTER_DIR_}/${_LAUNCHER_OPT_} -nt ${_CURRENT_WORKING_}/${_LS_CCO
 	_IS_NEW_=1
 fi
 
+# ls-accumulator
+if [ ${_LS_ACCUMULATOR_DIR_}/${_LS_ACCUMULATOR_CONF_} -nt ${_CURRENT_WORKING_}/${_LS_ACCUMULATOR_CONF_} ]; then
+	echo "${_LS_ACCUMULATOR_DIR_}/${_LS_ACCUMULATOR_CONF_} is modified."
+	_IS_NEW_=1
+fi
 
 # opsm-map
 if [ ${_WORKING_}/${_OPSM_MAP_} -nt ${_CURRENT_WORKING_}/${_OPSM_MAP_} ]; then

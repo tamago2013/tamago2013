@@ -73,6 +73,12 @@ if [ -f ${_MAP_DIR_}/${_P_EVALUATOR_CONF_} ]; then
 else
 	echo "Warnning: ${_P_EVALUATOR_CONF_} is not exist"
 fi
+if [ -f ${_MAP_DIR_}/${_P_EVALUATOR_AC_CONF_} ]; then
+	cp -p ${_MAP_DIR_}/${_P_EVALUATOR_AC_CONF_} ${_P_EVALUATOR_DIR_}/
+	echo "${_P_EVALUATOR_AC_CONF_} ... ok"
+else
+	echo "Warnning: ${_P_EVALUATOR_AC_CONF_} is not exist"
+fi
 
 # particle-localizer
 if [ -f ${_MAP_DIR_}/${_LOCLIZER_CONF_} ]; then
@@ -142,6 +148,14 @@ if [ -f ${_MAP_DIR_}/${_LS_CCONVERTER_CONF_} ]; then
 	echo "${_LS_CCONVERTER_OPT_} ... ok"
 else
 	echo "Warnning: ${_LS_CCONVERTER_OPT_} is not exist"
+fi
+
+# ls-accumulator
+if [ -f ${_MAP_DIR_}/${_LS_ACCUMULATOR_CONF_} ]; then
+	cp -p ${_MAP_DIR_}/${_LS_ACCUMULATOR_CONF_} ${_LS_ACCUMULATOR_DIR_}/
+	echo "${_LS_ACCUMULATOR_CONF_} ... ok"
+else
+	echo "Warnning: ${_LS_ACCUMULATOR_CONF_} is not exist"
 fi
 
 
