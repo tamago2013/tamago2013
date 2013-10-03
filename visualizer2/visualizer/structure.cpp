@@ -1,4 +1,5 @@
 #include "structure.hpp"
+#include "window.hpp"
 #include "ssm-laser.hpp"
 #include "ssm-particles.hpp"
 #include "ssm-cluster.hpp"
@@ -7,9 +8,9 @@
 #include "menu-handler.hpp"
 #include "map-viewer.hpp"
 #include "ssm-message.hpp"
+#include "tkg-debug.hpp"
 
 
-#include "window.hpp"
 
 
 FieldViewer::FieldViewer(Window *window, tkg::ConfigGroup &conf)
@@ -33,17 +34,17 @@ std::string FieldViewer::load()
     return ""; //opsm->message();
 }
 
-void FieldViewer::draw()
+void FieldViewer::draw(const Robot &robot)
 {
     if(opsm->good() && menu->value)
     {
         return opsm->draw();
     }
 
-    /*
     double s = -30.0, g = 30.0;
 
     glColor3d(0.2,0.2,0.2);
+    glLineWidth(1);
     glBegin(GL_LINES);
     for(double d=s; d<=g; d+=1.0)
     {
@@ -52,13 +53,12 @@ void FieldViewer::draw()
         tkg::Point3 sy(s, d, 0.0);
         tkg::Point3 gy(g, d, 0.0);
 
-        glVertex3dv((position.robot.pos + sx.rotateZ(position.robot.ang)).vec);
-        glVertex3dv((position.robot.pos + gx.rotateZ(position.robot.ang)).vec);
-        glVertex3dv((position.robot.pos + sy.rotateZ(position.robot.ang)).vec);
-        glVertex3dv((position.robot.pos + gy.rotateZ(position.robot.ang)).vec);
+        tkg::glVertex(robot.pos + sx.rotateZ(robot.ang));
+        tkg::glVertex(robot.pos + gx.rotateZ(robot.ang));
+        tkg::glVertex(robot.pos + sy.rotateZ(robot.ang));
+        tkg::glVertex(robot.pos + gy.rotateZ(robot.ang));
     }
     glEnd();
-    */
 }
 
 
@@ -172,7 +172,8 @@ PositionViewer::PositionViewer(Window *window, tkg::ConfigGroup &conf) : StreamV
     menu->value = conf["view-state"] == "true";
     window->addMenuView(menu);
 
-    color = tkg::Color4(conf["color"]);
+    now_color = tkg::Color4(conf["now-color"]);
+    log_color = tkg::Color4(conf["log-color"]);
 }
 
 PositionViewer::~PositionViewer()
@@ -188,16 +189,17 @@ void PositionViewer::draw()
     // exec (not draw)
     robot = Robot( tkg::Point3(data.x, data.y), data.theta );
 
-    glColor3d(1.0, 0.5, 0);
-    glArrow(robot.pos, robot.ang, 0.5);
-
-    /*
-    glColor4d(1.0, 0.5, 0, 0.5);
-    for(uint i=0; i<robot_log.size(); i++)
+    if( menu->value )
     {
-        glArrow(robot_log[i].pos, robot_log[i].ang, 0.5);
+        glColor4dv(now_color.rgba);
+        glArrow(robot.pos, robot.ang, 0.5);
+
+        glColor4dv(log_color.rgba);
+        for(uint i=0; i<history.size(); i++)
+        {
+            glArrow(history[i].pos, history[i].ang, 0.5);
+        }
     }
-    */
 }
 
 
@@ -208,9 +210,12 @@ void PositionViewer::draw()
 PTZCameraViewer::PTZCameraViewer(Window *window, tkg::ConfigGroup &conf) : StreamViewer(conf)
 {
     ssm  = new SSMApi<ysd::PTZ> (tkg::parseStr(conf["ssm-name"]), tkg::parseInt(conf["ssm-id"]));
-    menu = new ToggleMenuHandler;
+    menu = new SelectMenuHandler;
     menu->title = conf["title"];
     menu->value = conf["view-state"] == "true";
+    menu->list.push_back( SelectMenuElement("non-display",      0) );
+    menu->list.push_back( SelectMenuElement("centerline"      , 1) );
+    menu->list.push_back( SelectMenuElement("range of vision" , 2) );
     window->addMenuView(menu);
 
     color  = tkg::Color4(conf["color"]);
@@ -229,16 +234,49 @@ void PTZCameraViewer::draw()
 
     if( menu->value )
     {
-        double v = (-data.tilt + 90) * tkg::pi / 180;
+        const int dy[] = {+1, +1, -1, -1};
+        const int dz[] = {+1, -1, -1, +1};
+        double v = (-data.tilt     ) * tkg::pi / 180;
         double h = (-data.pan  - 90) * tkg::pi / 180;
         tkg::Point3 ori = tkg::Point3(0.0, 0.0, height);
-        tkg::Point3 dir = tkg::Point3::polar(30.0, v, h);
 
-        glLineWidth(3);
-        glBegin(GL_LINES);
-        glVertex(robot.pos + ori);
-        glVertex(robot.pos + ori + dir.rotateZ(robot.ang));
-        glEnd();
+        if( menu->value == 1 )
+        {
+            glColor4dv(color.rgba);
+            glLineWidth(3);
+            glBegin(GL_LINES);
+            glVertex(robot.pos + ori);
+            glVertex(robot.pos + ori + tkg::Point3(20.0, 0.0, 0.0).rotateY(v).rotateZ(robot.ang + h));
+            glEnd();
+        }
+
+        if( menu->value == 2 )
+        {
+            glColor4dv(color.rgba);
+            glLineWidth(1);
+            glBegin(GL_LINES);
+            for(int d=1; d<=4; d++)
+            {
+                double tx = 5.0 * d;
+                double ty = tx / 2 / (data.zoom + 1000.0) * 1000.0;
+                double tz = tx / 3 / (data.zoom + 1000.0) * 1000.0;
+
+                tkg::Point3 pt[4];
+                for(int i=0; i<4; i++)
+                {
+                    pt[i] = tkg::Point3(tx, dy[i]*ty, dz[i]*tz).rotateY(v).rotateZ(robot.ang + h);
+                }
+
+                for(int i=0; i<4; i++)
+                {
+                    tkg::glVertex( robot.pos + ori );
+                    tkg::glVertex( robot.pos + ori + pt[i]);
+                    tkg::glVertex( robot.pos + ori + pt[i]);
+                    tkg::glVertex( robot.pos + ori + pt[(i+1)%4]);
+                }
+            }
+            glEnd();
+        }
     }
 }
 
@@ -249,7 +287,7 @@ void PTZCameraViewer::draw()
 
 ClusterViewer::ClusterViewer(Window *window, tkg::ConfigGroup &conf) : StreamViewer(conf)
 {
-    ssm  = new SSMApi<ysd::cluster> (tkg::parseStr(conf["ssm-name"]), tkg::parseInt(conf["ssm-id"]));
+    ssm  = new SSMApi<ysd::cluster>(tkg::parseStr(conf["ssm-name"]), tkg::parseInt(conf["ssm-id"]));
     menu = new ToggleMenuHandler;
     menu->title = conf["title"];
     menu->value = conf["view-state"] == "true";

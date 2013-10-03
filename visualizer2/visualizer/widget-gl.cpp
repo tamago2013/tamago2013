@@ -6,10 +6,11 @@
 #include "widget-gl.hpp"
 #include "widget-msg.hpp"
 #include "menu-handler.hpp"
-#include "tkg-opengl.hpp"
-
 #include "ssm-message.hpp"
+#include "tkg-opengl.hpp"
 #include "tkg-debug.hpp"
+
+#include "ssm-ptz.hpp"
 
 WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 {
@@ -76,7 +77,7 @@ WidgetGL::~WidgetGL()
 bool WidgetGL::init()
 {
     field->load();
-    window->message()->add_message( route->load().c_str() );
+    window->message()->add_message( route->load() );
 
     for(uint i=0; i<stream.size(); i++)
     {
@@ -126,8 +127,7 @@ void WidgetGL::paintGL()
 
     updateStream();
 
-    field->draw();
-    //drawGround();
+    field->draw(position->robot);
     route->draw();
     position->draw();
     particle->draw();
@@ -141,6 +141,14 @@ void WidgetGL::paintGL()
     //tkg::glString("");
 
     glFlush();
+
+    window->status()->set_message("");
+    window->status()->add_message( tkg::strf("robot_x = %f\n", position->robot.pos.x) );
+    window->status()->add_message( tkg::strf("robot_y = %f\n", position->robot.pos.y) );
+    window->status()->add_message( tkg::strf("robot_t = %f\n", position->robot.ang)   );
+    window->status()->add_message( tkg::strf("camera_pan  = %f\n", ((ysd::PTZ*)ptzcamera->ssm->data())->pan)  );
+    window->status()->add_message( tkg::strf("camera_tilt = %f\n", ((ysd::PTZ*)ptzcamera->ssm->data())->tilt) );
+    window->status()->add_message( tkg::strf("camera_zoom = %f\n", ((ysd::PTZ*)ptzcamera->ssm->data())->zoom) );
 }
 
 void WidgetGL::updateStream()
@@ -177,9 +185,9 @@ void WidgetGL::updateStream()
         }
     }
 
-    if(robot_log.empty() || (robot_log.back().pos - position->robot.pos).abs() > 3.0)
+    if(position->history.empty() || (position->history.back().pos - position->robot.pos).abs() > 3.0)
     {
-        robot_log.push_back(position->robot);
+        position->history.push_back(position->robot);
     }
 }
 

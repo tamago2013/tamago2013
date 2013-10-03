@@ -68,7 +68,7 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
     QSplitter *s_viewer = new QSplitter(Qt::Horizontal);
     QSplitter *s_others = new QSplitter(Qt::Horizontal);
 
-    s_camera->resize( QSize(320,480) );
+    s_camera->resize( QSize(240,360) );
 
     s_camera->addWidget(w_camera1);
     s_camera->addWidget(w_camera2);

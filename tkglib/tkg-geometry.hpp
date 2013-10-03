@@ -70,6 +70,15 @@ class Point3
 		}
         */
 
+        Point3 rotateY(double rad)
+        {
+            Point3 ret;
+            ret.z = z*cos(rad) - x*sin(rad);
+            ret.y = y;
+            ret.x = z*sin(rad) + x*cos(rad);
+            return ret;
+        }
+
         Point3 rotateZ(double rad)
         {
             Point3 ret;

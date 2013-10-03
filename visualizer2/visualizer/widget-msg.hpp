@@ -14,8 +14,8 @@ class WidgetMSG : public QLabel
 
     public slots:
 
-         void set_message(const char *msg);
-         void add_message(const char *msg);
+         void set_message(const std::string &str);
+         void add_message(const std::string &str);
 };
 
 #endif // WIDGET_MSG_HPP

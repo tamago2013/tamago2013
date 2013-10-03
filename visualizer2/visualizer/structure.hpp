@@ -31,8 +31,7 @@ class FieldViewer
         ~FieldViewer();
 
         std::string load();
-        void draw();
-        bool display();
+        void draw(const Robot &robot);
 
     private:
 
@@ -93,10 +92,16 @@ struct PositionViewer : public StreamViewer
 
         void draw();
 
+
+
+    // tmp
+    std::vector<Robot> history;
+
     private:
 
         ToggleMenuHandler *menu;
-        tkg::Color4 color;
+        tkg::Color4 now_color;
+        tkg::Color4 log_color;
 };
 
 
@@ -112,7 +117,7 @@ struct PTZCameraViewer : public StreamViewer
 
     private:
 
-        ToggleMenuHandler *menu;
+        SelectMenuHandler *menu;
         double height;
         tkg::Color4 color;
 };

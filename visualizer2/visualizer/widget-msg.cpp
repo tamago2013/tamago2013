@@ -13,13 +13,13 @@ WidgetMSG::~WidgetMSG()
     tkg::debug("delete WidgetMSG\n");
 }
 
-void WidgetMSG::set_message(const char *msg)
+void WidgetMSG::set_message(const std::string &str)
 {
-    setText(msg);
+    setText(str.c_str());
 }
 
-void WidgetMSG::add_message(const char *msg)
+void WidgetMSG::add_message(const std::string &str)
 {
-    setText(text() + msg);
+    setText(text() + str.c_str());
 }
 

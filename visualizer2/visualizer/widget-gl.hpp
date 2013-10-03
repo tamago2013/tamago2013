@@ -48,9 +48,6 @@ class WidgetGL : public QGLWidget
         Window   *window;
         FpsMenuHandler *fps_timer;
 
-        // robot
-        std::vector<Robot> robot_log;
-
         // map viewer
         FieldViewer *field;
         RouteViewer *route;
