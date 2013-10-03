@@ -215,7 +215,6 @@ int main ( int argc , char **argv )
         coordid_bs  = coordtree.add( "odometry" , "root" , &cm );    //オドメトリ(BS)座標系の作成(関係：単位行列＝つまり同じ座標系)
         coordid_fs  = coordtree.add( "robot" , "odometry" , &cm );   //ロボット(FS)座標系の作成(関係は本当は単位行列ではないが、初めは単位行列で初期化)
         coordid_sn = coordtree.add( "sensor" , "robot" , &ssm_sokuiki_raw.property.coordm ); //センサ座標系の作成(関係：scan_data2dに入っている変換行列)
-
     }
 
     //--------------------------------------
