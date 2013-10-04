@@ -1,23 +1,15 @@
 #include <cstdio>
-#include <cstdarg>
 #include <ssm.hpp>
 #include "widget-msg.hpp"
 #include "ssm-message.hpp"
+#include "tkg-utility.hpp"
 
 int sm_state = 0;
 WidgetMSG *w_msg = NULL;
 
-void logger(const char* format, ...)
+void logger(const std::string &str)
 {
-    if(!w_msg) return;
-
-    va_list arg;
-    char str[256];
-
-    va_start(arg, format);
-    vsprintf(str, format, arg);
-    w_msg->add_message(str);
-    va_end(arg);
+    if(w_msg) w_msg->add_message(str);
 }
 
 void smTarget(WidgetMSG *msg)
@@ -56,8 +48,8 @@ void smConnect(SSMApiBase *api)
     if(sm_state == 0) return;
     if(api->isOpen()) return;
 
-    if(api->open()) { logger("%s [%d] へ接続成功。\n", api->getStreamName(), api->getStreamId()); }
-    else            { logger("%s [%d] へ接続失敗。\n", api->getStreamName(), api->getStreamId()); }
+    if(api->open()) { logger( tkg::strf("%s [%d] へ接続成功。\n", api->getStreamName(), api->getStreamId()) ); }
+    else            { logger( tkg::strf("%s [%d] へ接続失敗。\n", api->getStreamName(), api->getStreamId()) ); }
 }
 
 bool smState(SSMApiBase *api)

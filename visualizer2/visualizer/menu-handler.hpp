@@ -13,7 +13,7 @@ class ToggleMenuHandler : public QObject
 
     public: // functions
 
-        ToggleMenuHandler(QObject *parent);
+        ToggleMenuHandler();
         ~ToggleMenuHandler();
 
     public slots:
@@ -42,7 +42,7 @@ class SelectMenuHandler : public QObject
 
     public: // functions
 
-        SelectMenuHandler(QObject *parent);
+        SelectMenuHandler();
         ~SelectMenuHandler();
 
     public slots:
@@ -62,7 +62,7 @@ class FpsMenuHandler : public SelectMenuHandler
 
     public: // functions
 
-        FpsMenuHandler(QObject *parent);
+        FpsMenuHandler();
         ~FpsMenuHandler();
 
     public slots:

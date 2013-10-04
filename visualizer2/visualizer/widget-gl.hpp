@@ -3,18 +3,10 @@
 
 #include <QtOpenGL/QGLWidget>
 #include "camera.hpp"
-#include "tkg-utility.hpp"
 #include "tkg-config.hpp"
-#include "tkg-opengl.hpp"
-#include "ssm-particles.hpp"
-#include "ssm-ptz.hpp"
-#include "ssmtype/spur-odometry.h"
 #include "structure.hpp"
 
 class Window;
-class MapViewer;
-class ToggleMenuHandler;
-class SelectMenuHandler;
 class FpsMenuHandler;
 
 class QKeyEvent;
@@ -48,18 +40,7 @@ class WidgetGL : public QGLWidget
 
     private:  // functions
 
-        bool loadMap();
-        bool loadRoute();
-
         void updateStream();
-
-        void drawGround();
-        void drawMap();
-        void drawRoute();
-        void drawRobot();
-        void drawLaser(int);
-        void drawParticles();
-        void drawPTZ();
 
     private: // variables
 
@@ -67,19 +48,17 @@ class WidgetGL : public QGLWidget
         Window   *window;
         FpsMenuHandler *fps_timer;
 
-        // robot
-        std::vector<Robot> robot_log;
+        // map viewer
+        FieldViewer *field;
+        RouteViewer *route;
 
-        // map
-        Field field;
-        Route route;
-
-        // ssm
-        PositionStream  position;
-        ParticleStream  particle;
-        PTZCameraStream ptzcamera;
-        std::vector<LaserStream>   lasers;
-        std::vector<ViewerStream*> stream;
+        // ssm viewer
+        PositionViewer  *position;
+        ParticleViewer  *particle;
+        ClusterViewer   *cluster;
+        PTZCameraViewer *ptzcamera;
+        std::vector<LaserViewer*>  lasers;
+        std::vector<StreamViewer*> stream;
 
         // screen
         int    width;

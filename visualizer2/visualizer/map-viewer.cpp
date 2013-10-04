@@ -125,6 +125,7 @@ void MapViewer::draw()
     double sy = floor(minfo.base_y), gy = ceil(minfo.base_y + minfo.height * minfo.unit_y);
 
     glColor3d(0.2,0.2,0.2);
+    glLineWidth(1);
     glBegin(GL_LINES);
     for(double x=sx; x<=gx; x+=1.0)
     {
@@ -170,7 +171,4 @@ void MapViewer::make()
     gluBuild2DMipmaps(GL_TEXTURE_2D, 3, minfo.width, minfo.height, GL_RGB, GL_UNSIGNED_BYTE, loader->data);
 
     state = true;
-
-    //delete loader; loader = NULL;
-    //delete thread; thread = NULL;
 }

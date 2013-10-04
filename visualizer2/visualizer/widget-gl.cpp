@@ -6,11 +6,11 @@
 #include "widget-gl.hpp"
 #include "widget-msg.hpp"
 #include "menu-handler.hpp"
-#include "tkg-opengl.hpp"
-#include "map-viewer.hpp"
-
 #include "ssm-message.hpp"
+#include "tkg-opengl.hpp"
 #include "tkg-debug.hpp"
+
+#include "ssm-ptz.hpp"
 
 WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 {
@@ -20,42 +20,35 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
 
     window = parent;
 
-    position.sync = (conf["Position"]["synchronize"]=="true");
-    position.ssm  = new SSMApi<Spur_Odometry> (tkg::parseStr(conf["Position"]["ssm-name"]), tkg::parseInt(conf["Position"]["ssm-id"]));
+    field = new FieldViewer(window, conf["Field"]);
+    route = new RouteViewer(window, conf["Route"]);
+
+    position  = new PositionViewer (window, conf["Position"]);
+    particle  = new ParticleViewer (window, conf["Particle"]);
+    cluster   = new ClusterViewer  (window, conf["Cluster"]);
+    ptzcamera = new PTZCameraViewer(window, conf["PTZCamera"]);
 
     for(int i=1; true; i++)
     {
         std::string group = tkg::strf("Laser%d", i);
-        if(conf.find(group) == conf.end()) { break; }
-
-
-        LaserStream laser;
-
-        laser.sync        = (conf[group]["synchronize"]=="true");
-        laser.point_color = tkg::Color4(conf[group]["point-color"]);
-        laser.laser_color = tkg::Color4(conf[group]["laser-color"]);
-
-        laser.ssm  = new SSMSOKUIKIData3D(tkg::parseStr(conf[group]["ssm-name"]), tkg::parseInt(conf[group]["ssm-id"]));
-        laser.menu = new SelectMenuHandler(this);
-
-        laser.menu->title = conf[group]["title"];
-        laser.menu->value  = 0;
-        laser.menu->value |= (conf[group]["view-point"]=="true" ? 1 : 0);
-        laser.menu->value |= (conf[group]["view-laser"]=="true" ? 2 : 0);
-
-        laser.menu->list.push_back( SelectMenuElement("non-display", 0) );
-        laser.menu->list.push_back( SelectMenuElement("point"      , 1) );
-        laser.menu->list.push_back( SelectMenuElement("laser"      , 2) );
-        laser.menu->list.push_back( SelectMenuElement("point+laser", 3) );
-
-        window->addMenuView(laser.menu);
-
-        lasers.push_back(laser);
+        if(conf.find(group) == conf.end()) break;
+        lasers.push_back( new LaserViewer(window, conf[group]) );
     }
 
 
+    stream.push_back(position);
+    stream.push_back(particle);
+    stream.push_back(cluster);
+    stream.push_back(ptzcamera);
+    for(uint i=0; i<lasers.size(); i++)
+    {
+        stream.push_back(lasers[i]);
+    }
+
+    camera = new Camera;
+
     std::vector<std::string> fps = tkg::parseArray(conf["Viewer"]["fps"]);
-    fps_timer = new FpsMenuHandler(this);
+    fps_timer = new FpsMenuHandler;
     fps_timer->title = conf["Viewer"]["title"];
     fps_timer->value = fps.empty() ? 1 : tkg::parseInt(fps.front());
     for(uint i=0; i<fps.size(); i++)
@@ -64,40 +57,6 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     }
     connect(fps_timer->timer, SIGNAL(timeout()), this, SLOT(update()));
     window->addMenuFps(fps_timer);
-
-    particle.sync = (conf["Particle"]["synchronize"]=="true");
-    particle.ssm  = new SSMParticles(tkg::parseStr(conf["Particle"]["ssm-name"]), tkg::parseInt(conf["Particle"]["ssm-id"]));
-    particle.menu = new ToggleMenuHandler(this);
-    particle.menu->title = conf["Particle"]["title"];
-    particle.menu->value = true;
-    window->addMenuView(particle.menu);
-
-    ptzcamera.sync = (conf["PTZCamera"]["synchronize"]=="true");
-    ptzcamera.ssm  = new SSMApi<ysd::PTZ>(tkg::parseStr(conf["PTZCamera"]["ssm-name"]), tkg::parseInt(conf["PTZCamera"]["ssm-id"]));
-
-
-    stream.push_back(&position);
-    stream.push_back(&particle);
-    stream.push_back(&ptzcamera);
-    for(uint i=0; i<lasers.size(); i++)
-    {
-        stream.push_back(&lasers[i]);
-    }
-
-    camera = new Camera;
-
-    field.opsm = new MapViewer(conf["Field"]["file"]);
-    field.menu = new ToggleMenuHandler(this);
-    field.menu->title = conf["Field"]["title"];
-    field.menu->value = (conf["Field"]["view-state"] == "true");
-    window->addMenuView(field.menu);
-
-
-    route.file = conf["Route"]["file"];
-    route.menu = new ToggleMenuHandler(this);
-    route.menu->title =  conf["Route"]["title"];
-    route.menu->value = (conf["Route"]["view-state"] == "true");
-    window->addMenuView(route.menu);
 }
 
 WidgetGL::~WidgetGL()
@@ -106,31 +65,19 @@ WidgetGL::~WidgetGL()
 
     delete camera;
 
-    delete field.opsm;
-    delete field.menu;
+    delete field;
+    delete route;
 
-    delete route.menu;
-
-
-    //各クラスのデストラクタに移動
-    delete position.ssm;
-
-    delete particle.ssm;
-    delete particle.menu;
-
-    delete ptzcamera.ssm;
-
-    for(uint i=0; i<lasers.size(); i++)
+    for(uint i=0; i<stream.size(); i++)
     {
-        delete lasers[i].ssm;
-        delete lasers[i].menu;
+        delete stream[i];
     }
 }
 
 bool WidgetGL::init()
 {
-    loadRoute();
-    loadMap();
+    field->load();
+    window->message()->add_message( route->load() );
 
     for(uint i=0; i<stream.size(); i++)
     {
@@ -171,7 +118,7 @@ void WidgetGL::paintGL()
     glLoadIdentity();
     gluPerspective(45.0, aspect, 0.1, 500);
 
-    camera->setpos(position.robot.pos.x, position.robot.pos.y, position.robot.ang);
+    camera->setpos(position->robot.pos.x, position->robot.pos.y, position->robot.ang);
     camera->update();
 
     // モデルの描画
@@ -180,20 +127,28 @@ void WidgetGL::paintGL()
 
     updateStream();
 
-    drawMap();
-    drawGround();
-    drawRoute();
-    drawRobot();
-    drawParticles();
+    field->draw(position->robot);
+    route->draw();
+    position->draw();
+    particle->draw();
     for(uint i=0; i<lasers.size(); i++)
     {
-        drawLaser(i);
+        lasers[i]->draw();
     }
-    drawPTZ();
+    ptzcamera->draw();
+    cluster->draw();
 
     //tkg::glString("");
 
     glFlush();
+
+    window->status()->set_message("");
+    window->status()->add_message( tkg::strf("robot_x = %f\n", position->robot.pos.x) );
+    window->status()->add_message( tkg::strf("robot_y = %f\n", position->robot.pos.y) );
+    window->status()->add_message( tkg::strf("robot_t = %f\n", position->robot.ang)   );
+    window->status()->add_message( tkg::strf("camera_pan  = %f\n", ((ysd::PTZ*)ptzcamera->ssm->data())->pan)  );
+    window->status()->add_message( tkg::strf("camera_tilt = %f\n", ((ysd::PTZ*)ptzcamera->ssm->data())->tilt) );
+    window->status()->add_message( tkg::strf("camera_zoom = %f\n", ((ysd::PTZ*)ptzcamera->ssm->data())->zoom) );
 }
 
 void WidgetGL::updateStream()
@@ -215,223 +170,25 @@ void WidgetGL::updateStream()
             if(!stream[i]->ssm->isUpdate()) continue;
 
             smReadLast(stream[i]->ssm);
-            if(stream[i]->ssm != position.ssm)
+            if(stream[i]->ssm != position->ssm)
             {
-                stream[i]->robot = position.robot;
+                stream[i]->robot = position->robot;
             }
         }
         else
         {
             smReadTime(stream[i]->ssm, ssm_time);
-            if(stream[i]->ssm != position.ssm)
+            if(stream[i]->ssm != position->ssm)
             {
-                stream[i]->robot = position.robot;
+                stream[i]->robot = position->robot;
             }
         }
     }
 
-
-
-    if(robot_log.empty() || (robot_log.back().pos - position.robot.pos).abs() > 3.0)
+    if(position->history.empty() || (position->history.back().pos - position->robot.pos).abs() > 3.0)
     {
-        robot_log.push_back(position.robot);
+        position->history.push_back(position->robot);
     }
-}
-
-bool WidgetGL::loadMap()
-{
-    field.opsm->load();
-    return true;
-}
-
-void WidgetGL::drawMap()
-{
-    if(field.menu->value) { field.opsm->draw(); }
-}
-
-bool WidgetGL::loadRoute()
-{
-    std::ifstream fin(route.file.c_str());
-    if(!fin)
-    {
-        window->message()->add_message("ルートの読込に失敗しました。[");
-        window->message()->add_message(route.file.c_str());
-        window->message()->add_message("]\n");
-        return false;
-    }
-
-    while(!fin.eof())
-    {
-        char c; double x,y;
-        fin >> c >> x >> y;
-        route.node.push_back( tkg::Point3(x,y,0) );
-    }
-
-    for(uint i=1; i<route.node.size(); i++)
-    {
-        route.edge.push_back( std::make_pair(i-1, i) );
-    }
-
-    window->message()->add_message("ルートの読込に成功しました。\n");
-    return true;
-}
-
-void WidgetGL::drawRoute()
-{
-    if( !route.menu->value ) return;
-
-    //glColor4dv(color_point[id].rgba);
-    glColor3d(1.0, 1.0, 0.0);
-    glPointSize(5);
-    glBegin(GL_POINTS);
-    for(uint i=0; i<route.node.size(); i++)
-    {
-        tkg::glVertex(route.node[i]);
-    }
-    glEnd();
-    glPointSize(1);
-
-    //glColor4dv(color_point[id].rgba);
-    glColor3d(1.0, 1.0, 0.0);
-    glLineWidth(1);
-    glBegin(GL_LINES);
-    for(uint i=0; i<route.edge.size(); i++)
-    {
-        tkg::glVertex(route.node[route.edge[i].first ]);
-        tkg::glVertex(route.node[route.edge[i].second]);
-    }
-    glEnd();
-
-    /*
-    glColor3d(1.0, 1.0, 1.0);
-    for(int i=0; i<route.size(); i++)
-    {
-        myString(route[i]+tkg::Point3(0,0,0.2), strprintf("%d",i).c_str());
-    }
-    */
-}
-
-void WidgetGL::drawGround()
-{
-    if( !field.opsm->good() || !field.menu->value )
-    {
-        double s = -30.0, g = 30.0;
-
-        glColor3d(0.2,0.2,0.2);
-        glBegin(GL_LINES);
-        for(double d=s; d<=g; d+=1.0)
-        {
-            tkg::Point3 sx(d, s, 0.0);
-            tkg::Point3 gx(d, g, 0.0);
-            tkg::Point3 sy(s, d, 0.0);
-            tkg::Point3 gy(g, d, 0.0);
-
-            glVertex3dv((position.robot.pos + sx.rotateZ(position.robot.ang)).vec);
-            glVertex3dv((position.robot.pos + gx.rotateZ(position.robot.ang)).vec);
-            glVertex3dv((position.robot.pos + sy.rotateZ(position.robot.ang)).vec);
-            glVertex3dv((position.robot.pos + gy.rotateZ(position.robot.ang)).vec);
-        }
-        glEnd();
-    }
-}
-
-void WidgetGL::drawRobot()
-{
-    SSMApi<Spur_Odometry> *ssmapi = (SSMApi<Spur_Odometry>*)position.ssm;
-
-    if(!smState(ssmapi)) return;
-    Spur_Odometry &data = ssmapi->data;
-
-    // exec (not draw)
-    position.robot = Robot( tkg::Point3(data.x, data.y), data.theta );
-
-    glColor3d(1.0, 0.5, 0);
-    glArrow(position.robot.pos, position.robot.ang, 0.5);
-
-    glColor4d(1.0, 0.5, 0, 0.5);
-    for(uint i=0; i<robot_log.size(); i++)
-    {
-        glArrow(robot_log[i].pos, robot_log[i].ang, 0.5);
-    }
-}
-
-void WidgetGL::drawParticles()
-{
-    if( !particle.menu->value ) return;
-
-    SSMParticles *ssmapi = (SSMParticles*)particle.ssm;
-
-    if( !smState(ssmapi) ) return;
-    particle_set_c &data = ssmapi->data;
-
-    for(uint i=0; i<data.size(); i++)
-    {
-        glColor3d(1.0, 0.0, 0.0);
-        tkg::Point3 pos(data[i][0][PARTICLE_X], data[i][0][PARTICLE_Y], 0.0 );
-        glArrow(pos, data[i][0][PARTICLE_THETA], 0.2);
-    }
-}
-
-void WidgetGL::drawLaser(int id)
-{
-    SSMSOKUIKIData3D *ssm = (SSMSOKUIKIData3D*)lasers[id].ssm;
-
-    if( !smState(ssm) ) return;
-    ssm::SOKUIKIData3D &data = ssm->data;
-
-    if(lasers[id].menu->value & 1)
-    {
-        glColor4dv(lasers[id].point_color.rgba);
-        glPointSize(3);
-        glBegin(GL_POINTS);
-
-        for(uint i=0; i<data.numPoints(); i++)
-        {
-            if(data[i].isWarning()) continue;
-
-            tkg::Point3 ref(data[i].reflect.vec);
-            glVertex(lasers[id].robot.pos + ref.rotateZ(lasers[id].robot.ang));
-        }
-        glEnd();
-        glPointSize(1);
-    }
-
-    if(lasers[id].menu->value & 2)
-    {
-        glColor4dv(lasers[id].laser_color.rgba);
-        glLineWidth(1);
-        glBegin(GL_LINES);
-        for(uint i=0; i<data.numPoints(); i++)
-        {
-            if(data[i].isWarning()) continue;
-
-            tkg::Point3 ori(data[i].origin.vec);
-            tkg::Point3 ref(data[i].reflect.vec);
-            glVertex(lasers[id].robot.pos + ori);
-            glVertex(lasers[id].robot.pos + ref.rotateZ(lasers[id].robot.ang));
-        }
-        glEnd();
-    }
-}
-
-void WidgetGL::drawPTZ()
-{
-    SSMApi<ysd::PTZ> *ssmapi = (SSMApi<ysd::PTZ>*)ptzcamera.ssm;
-
-    if( !smState(ssmapi) ) return;
-    ysd::PTZ &data = ssmapi->data;
-
-    glColor3d(1.0, 1.0, 0.0);
-
-    glLineWidth(3);
-    glBegin(GL_LINES);
-    double v = (-data.tilt + 90) * tkg::pi / 180;
-    double h = (-data.pan  - 90) * tkg::pi / 180;
-    tkg::Point3 ori(0, 0, 1.0);
-    tkg::Point3 dir = tkg::Point3::polar(30.0, v, h);
-    glVertex(ptzcamera.robot.pos + ori);
-    glVertex(ptzcamera.robot.pos + ori + dir.rotateZ(ptzcamera.robot.ang));
-    glEnd();
 }
 
 void WidgetGL::keyPressEvent(QKeyEvent *event)
