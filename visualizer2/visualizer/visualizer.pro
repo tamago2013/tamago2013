@@ -23,7 +23,7 @@ HEADERS += \
     menu-handler.hpp \
     map-viewer.hpp \
     ../../tkglib/tkg-debug.hpp \
-    structure.hpp
+    data-viewer.hpp
 
 SOURCES += \
     main.cpp \
@@ -35,7 +35,7 @@ SOURCES += \
     ssm-message.cpp \
     menu-handler.cpp \
     map-viewer.cpp \
-    structure.cpp
+    data-viewer.cpp
 
 LIBS += \
     -lGLU \

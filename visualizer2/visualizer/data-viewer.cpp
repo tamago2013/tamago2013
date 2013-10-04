@@ -1,4 +1,4 @@
-#include "structure.hpp"
+#include "data-viewer.hpp"
 #include "window.hpp"
 #include "ssm-laser.hpp"
 #include "ssm-particles.hpp"
