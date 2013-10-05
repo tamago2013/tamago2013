@@ -4,7 +4,7 @@
 #include <QtOpenGL/QGLWidget>
 #include "camera.hpp"
 #include "tkg-config.hpp"
-#include "structure.hpp"
+#include "data-viewer.hpp"
 
 class Window;
 class FpsMenuHandler;

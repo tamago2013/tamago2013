@@ -1,5 +1,5 @@
-#ifndef STRUCTURE_HPP
-#define STRUCTURE_HPP
+#ifndef DATA_VIEWER_HPP
+#define DATA_VIEWER_HPP
 
 #include <ssm.hpp>
 #include "tkg-opengl.hpp"
@@ -177,4 +177,4 @@ struct LaserViewer : public StreamViewer
 
 
 
-#endif // STRUCTURE_HPP
+#endif // DATA_VIEWER_HPP
