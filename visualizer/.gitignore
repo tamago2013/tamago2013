@@ -1,4 +1,4 @@
-*~
-*.o
-*.pro.user
-release
+*
+!src
+!mk
+!makefile

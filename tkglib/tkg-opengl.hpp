@@ -9,7 +9,10 @@
 namespace tkg
 {
 
-static const char *vec[] =
+// vector string
+static const double vspos[19] = {0, 3, 4, 6, 8, 9, 12, 15, 16, 18, 20, 21, 24, 27, 28, 30, 32, 33, 36};
+
+static const char *vsdata[] =
 {
     /* 0x20     */ "",
     /* 0x21  !  */ "",
@@ -28,16 +31,16 @@ static const char *vec[] =
     /* 0x2E  .  */ "",
     /* 0x2F  /  */ "",
 
-    /* 0x30  0  */ "AAMA MAMI MIAI AIAA",
-    /* 0x31  1  */ "AIGA GAMI DEJE",
-    /* 0x32  2  */ "",
-    /* 0x33  3  */ "",
-    /* 0x34  4  */ "",
-    /* 0x35  5  */ "",
-    /* 0x36  6  */ "",
-    /* 0x37  7  */ "",
-    /* 0x38  8  */ "",
-    /* 0x39  9  */ "",
+    /* 0x30  0  */ "CGAEACCAKAMCMEKGCGKA",
+    /* 0x31  1  */ "DAADMD MAMG",
+    /* 0x32  2  */ "CAACAECGEGMAMG",
+    /* 0x33  3  */ "CAACAECGEGGEGC GEIGKGMEMCKA",
+    /* 0x34  4  */ "HGHAAEME",
+    /* 0x35  5  */ "AGAAGAGEIGKGMEMA",
+    /* 0x36  6  */ "CGAEACCAKAMCMEKGIGGEGCIA",
+    /* 0x37  7  */ "CAAAAGCGMC",
+    /* 0x38  8  */ "GCEACAACAECGEGGEIGKGMEMCKAIAGCGE",
+    /* 0x39  9  */ "KAMCMEKGCGAEACCAEAGCGEEG",
     /* 0x3A  :  */ "",
     /* 0x3B  ;  */ "",
     /* 0x3C  <  */ "",
@@ -90,23 +93,37 @@ inline void glArrow(const Point3 &p, double t, double r)
     glEnd();
 }
 
-inline void glString(const std::string &str)
+inline void glString(const std::string &str, const Point3 &p, double s, double v, double h)
 {
-    double x=0,y=0;
+    const double div = 15.0;
+    double bx = - s / 2.0;
+    double by = - s / 2.0 * str.size();
 
+    glColor3d(1,1,0);
     glBegin(GL_LINES);
-    int c = 17;
-    for(int j=0; vec[c][j]; j++)
+    for(uint i=0; i<str.size(); i++)
     {
-        if(j%5 != 3) continue;
+        int ch = str[i] - 0x20;
+        for(int j=0,c=0; vsdata[ch][j]; j++)
+        {
+            if(vsdata[ch][j] == ' ')
+            {
+                c = 0;
+                continue;
+            }
+            if(++c != 4) continue;
 
-        double y1 = - (vec[c][j-3] - 'A') / 12.0;
-        double x1 =   (vec[c][j-2] - 'A') / 12.0 * 3;
-        double y2 = - (vec[c][j-1] - 'A') / 12.0;
-        double x2 =   (vec[c][j-0] - 'A') / 12.0 * 3;
+            c = 2;
+            double x1 = s * vspos[vsdata[ch][j-3]-'A'] / div;
+            double y1 = s * vspos[vsdata[ch][j-2]-'A'] / div;
+            double x2 = s * vspos[vsdata[ch][j-1]-'A'] / div;
+            double y2 = s * vspos[vsdata[ch][j-0]-'A'] / div;
 
-        glVertex2d(-x1, y1);
-        glVertex2d(-x2, y2);
+            tkg::Point3 p1(bx + x1, by + y1 + s*i);
+            tkg::Point3 p2(bx + x2, by + y2 + s*i);
+            glVertex(p + p1.rotateY(v).rotateZ(h));
+            glVertex(p + p2.rotateY(v).rotateZ(h));
+        }
     }
     glEnd();
 }

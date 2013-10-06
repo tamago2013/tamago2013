@@ -132,13 +132,12 @@ void RouteViewer::draw()
     }
     glEnd();
 
-    /*
-    glColor3d(1.0, 1.0, 1.0);
-    for(int i=0; i<route.size(); i++)
+    glColor4dv(node_color.rgba);
+    for(int i=0; i<node.size(); i++)
     {
-        myString(route[i]+tkg::Point3(0,0,0.2), strprintf("%d",i).c_str());
+        tkg::glString(tkg::strf("%d",i), node[i], 0.5, 0, 0);
     }
-    */
+
 }
 
 
