@@ -99,7 +99,6 @@ inline void glString(const std::string &str, const Point3 &p, double s, double v
     double bx = - s / 2.0;
     double by = - s / 2.0 * str.size();
 
-    glColor3d(1,1,0);
     glBegin(GL_LINES);
     for(uint i=0; i<str.size(); i++)
     {

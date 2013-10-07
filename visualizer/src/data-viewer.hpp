@@ -49,14 +49,15 @@ class RouteViewer
         ~RouteViewer();
 
         std::string load();
-        void draw();
+        void draw(double v, double roth);
 
     private:
 
-        ToggleMenuHandler *menu;
+        SelectMenuHandler *menu;
         std::string file;
         tkg::Color4 node_color;
         tkg::Color4 edge_color;
+        tkg::Color4 text_color;
         std::vector<tkg::Point3>         node;
         std::vector<std::pair<int,int> > edge;
 };
