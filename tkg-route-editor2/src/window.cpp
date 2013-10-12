@@ -1,0 +1,118 @@
+#include <QAction>
+#include <QMenu>
+#include <QMenuBar>
+#include <QSplitter>
+#include <QScrollArea>
+#include <QSignalMapper>
+#include <algorithm>
+#include "window.hpp"
+#include "widget-gl.hpp"
+#include "widget-msg.hpp"
+#include "menu-handler.hpp"
+#include "tkg-config.hpp"
+#include "tkg-debug.hpp"
+
+Window::Window(tkg::ConfigFile &conf) : QMainWindow()
+{
+    tkg::debug("new Window\n");
+
+    setWindowTitle(conf["Layout"]["title"].c_str());
+
+    int window_width  = 800;
+    int window_height = 600;
+
+    std::vector<std::string> size;
+    size = tkg::parseArray(conf["Layout"]["window-size"]);
+    if(size.size() == 2)
+    {
+        window_width  = tkg::parseInt(size[0]);
+        window_height = tkg::parseInt(size[1]);
+    }
+    resize(window_width, window_height);
+
+    if(conf["Layout"]["window-maximized"] == "true")
+    {
+        setWindowState(Qt::WindowMaximized);
+    }
+
+
+    // Menu
+    m_fps = menuBar()->addMenu(tr("&FPS"));
+    m_ssm = menuBar()->addMenu(tr("&View"));
+
+    w_viewer  = new WidgetGL (this, conf);
+    w_status  = new WidgetMSG();
+    w_message = new WidgetMSG();
+
+    w_status ->setMaximumHeight(150);
+    w_message->setMaximumHeight(150);
+
+    QScrollArea *m_scrollArea = new QScrollArea;
+    m_scrollArea->setWidget(w_message);
+    w_message->adjustSize();
+    m_scrollArea->setWidgetResizable(true);
+
+    QSplitter *s_widget = new QSplitter(Qt::Vertical);
+    QSplitter *s_others = new QSplitter(Qt::Horizontal);
+
+    s_others->addWidget(w_status);
+    s_others->addWidget(m_scrollArea);
+    s_widget->addWidget(w_viewer);
+    s_widget->addWidget(s_others);
+
+    setCentralWidget(s_widget);
+}
+
+Window::~Window()
+{
+    tkg::debug("delete Window\n");
+}
+
+bool Window::init()
+{
+    w_viewer->init();
+    return true;
+}
+
+void Window::addMenuView(SelectMenuHandler *handler)
+{
+    QMenu         *menu   = new QMenu(tr(handler->title.c_str()), this);
+    QActionGroup  *group  = new QActionGroup(this);
+    QSignalMapper *mapper = new QSignalMapper(this);
+
+    m_ssm->addMenu(menu);
+    group->setExclusive(true);
+
+    for(uint i=0; i<handler->list.size(); i++)
+    {
+        QAction *action = new QAction(tr(handler->list[i].title.c_str()), this);
+        action->setCheckable(true);
+        if(handler->list[i].value == handler->value)
+        {
+            action->setChecked(true);
+            handler->receive(handler->list[i].value);
+        }
+        menu  ->addAction(action);
+        group ->addAction(action);
+        mapper->setMapping(action, handler->list[i].value);
+        connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
+    }
+    connect(mapper, SIGNAL(mapped(int)), handler, SLOT(receive(int)));
+}
+
+
+void Window::addMenuView(ToggleMenuHandler *handler)
+{
+    QAction *action = new QAction(tr(handler->title.c_str()), this);
+
+    m_ssm->addAction(action);
+
+    action->setCheckable(true);
+    if(handler->value)
+    {
+        action->setChecked(true);
+        handler->receive(true);
+    }
+    connect(action, SIGNAL(toggled(bool)), handler, SLOT(receive(bool)));
+}
+
