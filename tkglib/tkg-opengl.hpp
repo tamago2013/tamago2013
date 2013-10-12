@@ -65,7 +65,31 @@ class Color4
 
 class Camera
 {
+    public:
 
+        Camera(double d=0.0) : dist(d), rotv(0.0), roth(0.0), pos(0.0) {}
+
+        void scale    (double d)           { dist = std::max(1.0, dist+d); }
+        void rotate   (double x, double y) { rotv = std::max(0.0, std::min(rotv+y, pi)); roth += x; }
+        void translate(double x, double y)
+        {
+            Point3 tmp(y*dist/2, x*dist/2, 0);
+            pos = pos + tmp.rotateZ(roth);
+        }
+
+        void setLookAt()
+        {
+            tkg::Point3 vec = tkg::Point3::polar(dist, rotv-tkg::pi/2, roth);
+            tkg::Point3 cam = tkg::Point3::polar(dist, rotv, roth) + pos;
+            gluLookAt(cam.x, cam.y, cam.z,  pos.x, pos.y, pos.z, vec.x, vec.y, vec.z);
+        }
+
+    private:
+
+        double dist;
+        double rotv;
+        double roth;
+        tkg::Point3 pos;
 };
 
 inline void glVertex(const Point3 &p)
