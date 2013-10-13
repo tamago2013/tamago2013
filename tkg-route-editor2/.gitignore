@@ -4,4 +4,6 @@
 !mk
 !mk/*
 !makefile
+!route-editor.conf
+!manual.txt
 !.gitignore
