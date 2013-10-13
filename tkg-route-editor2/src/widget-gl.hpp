@@ -8,6 +8,7 @@ class Window;
 class FpsMenuHandler;
 
 class MapViewer;
+class RouteEdit;
 class QKeyEvent;
 class QMouseEvent;
 class QWheelEvent;
@@ -37,23 +38,32 @@ class WidgetGL : public QGLWidget
         void mouseMoveEvent(QMouseEvent *event);
         void mousePressEvent(QMouseEvent *event);
         void mouseReleaseEvent(QMouseEvent *event);
+        void mouseDoubleClickEvent(QMouseEvent *event);
 
     private: // variables
+
+        double convertX(int mx);
+        double convertY(int my);
 
         // object
         Window   *window;
         FpsMenuHandler *fps_timer;
 
-        // opsm
+        // map
+        int savetimer;
         MapViewer *field;
+        RouteEdit *route;
 
         // camera
-        tkg::Camera *camera;
+        double camera_x;
+        double camera_y;
+        double camera_t;
+        double camera_s;
 
         // screen
-        int    width;
-        int    height;
-        double aspect;
+        int    wid;
+        int    hei;
+        double asp;
 
         // マウス制御クラスに移動予定
         int mouse_prev_x;

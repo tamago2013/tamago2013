@@ -4,6 +4,10 @@
 #include <QSplitter>
 #include <QScrollArea>
 #include <QSignalMapper>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QTableView>
+#include <QStandardItemModel>
 #include <algorithm>
 #include "window.hpp"
 #include "widget-gl.hpp"
@@ -37,28 +41,39 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
 
 
     // Menu
+    /*
     m_fps = menuBar()->addMenu(tr("&FPS"));
     m_ssm = menuBar()->addMenu(tr("&View"));
+    */
 
     w_viewer  = new WidgetGL (this, conf);
-    w_status  = new WidgetMSG();
-    w_message = new WidgetMSG();
+    //w_status  = new WidgetMSG();
+    //w_message = new WidgetMSG();
+    w_table   = new QTableWidget(0,2);
 
-    w_status ->setMaximumHeight(150);
-    w_message->setMaximumHeight(150);
+    QStringList header;
+    header << tr("x") << tr("y");
+    w_table->setHorizontalHeaderLabels(header);
+    w_table->setMaximumWidth(250);
 
-    QScrollArea *m_scrollArea = new QScrollArea;
-    m_scrollArea->setWidget(w_message);
-    w_message->adjustSize();
-    m_scrollArea->setWidgetResizable(true);
+    //w_status ->setMaximumHeight(1);
+    //w_message->setMaximumHeight(1);
+
+    //QScrollArea *a_scroll = new QScrollArea;
+    //a_scroll->setWidget(w_message);
+    //w_message->adjustSize();
+    //a_scroll->setWidgetResizable(true);
 
     QSplitter *s_widget = new QSplitter(Qt::Vertical);
-    QSplitter *s_others = new QSplitter(Qt::Horizontal);
+    QSplitter *s_viewer = new QSplitter(Qt::Horizontal);
+   //\QSplitter *s_others = new QSplitter(Qt::Horizontal);
 
-    s_others->addWidget(w_status);
-    s_others->addWidget(m_scrollArea);
-    s_widget->addWidget(w_viewer);
-    s_widget->addWidget(s_others);
+    s_viewer->addWidget(w_viewer);
+    s_viewer->addWidget(w_table);
+    //s_others->addWidget(w_status);
+    //s_others->addWidget(a_scroll);
+    s_widget->addWidget(s_viewer);
+    //s_widget->addWidget(s_others);
 
     setCentralWidget(s_widget);
 }

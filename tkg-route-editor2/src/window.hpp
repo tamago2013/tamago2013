@@ -6,6 +6,7 @@
 
 class WidgetGL;
 class WidgetMSG;
+class QTableWidget;
 class ToggleMenuHandler;
 class SelectMenuHandler;
 
@@ -23,9 +24,10 @@ class Window : public QMainWindow
         void addMenuView(SelectMenuHandler *handler);
         void addMenuView(ToggleMenuHandler *handler);
 
-        WidgetGL*  viewer () { return w_viewer;  }
-        WidgetMSG* status () { return w_status;  }
-        WidgetMSG* message() { return w_message; }
+        WidgetGL*     viewer () { return w_viewer;  }
+        //WidgetMSG*    status () { return w_status;  }
+        //WidgetMSG*    message() { return w_message; }
+        QTableWidget* table  () { return w_table;   }
 
     private:
 
@@ -34,9 +36,10 @@ class Window : public QMainWindow
 
         // widgets
 
-        WidgetGL  *w_viewer;
-        WidgetMSG *w_status;
-        WidgetMSG *w_message;
+        WidgetGL     *w_viewer;
+        //WidgetMSG    *w_status;
+        //WidgetMSG    *w_message;
+        QTableWidget *w_table;
 
         //int fps;
         QMenu *m_ssm;

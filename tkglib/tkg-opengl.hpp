@@ -14,7 +14,7 @@ static const double vspos[19] = {0, 3, 4, 6, 8, 9, 12, 15, 16, 18, 20, 21, 24, 2
 
 static const char *vsdata[] =
 {
-    /* 0x20     */ "",
+    /* 0x20 SPC */ "",
     /* 0x21  !  */ "",
     /* 0x22  "  */ "",
     /* 0x23  #  */ "",
@@ -48,7 +48,73 @@ static const char *vsdata[] =
     /* 0x3E  >  */ "",
     /* 0x3F  ?  */ "",
 
-    ""
+    /* 0x40  @  */ "",
+    /* 0x41  A  */ "",
+    /* 0x42  B  */ "",
+    /* 0x43  C  */ "",
+    /* 0x44  D  */ "",
+    /* 0x45  E  */ "",
+    /* 0x46  F  */ "MAAAAG GAGF",
+    /* 0x47  G  */ "",
+    /* 0x48  H  */ "",
+    /* 0x49  I  */ "",
+    /* 0x4A  J  */ "",
+    /* 0x4B  K  */ "",
+    /* 0x4C  L  */ "",
+    /* 0x4D  M  */ "",
+    /* 0x4E  N  */ "",
+    /* 0x4F  O  */ "",
+
+    /* 0x50  P  */ "",
+    /* 0x51  Q  */ "",
+    /* 0x52  R  */ "",
+    /* 0x53  S  */ "CGAEACCAEAGCGEIGKGMEMCKA",
+    /* 0x54  T  */ "",
+    /* 0x55  U  */ "",
+    /* 0x56  V  */ "",
+    /* 0x57  W  */ "",
+    /* 0x58  X  */ "",
+    /* 0x59  Y  */ "",
+    /* 0x5A  Z  */ "",
+    /* 0x5B  [  */ "",
+    /* 0x5C  \  */ "",
+    /* 0x5D  ]  */ "",
+    /* 0x5E  ^  */ "",
+    /* 0x5F  _  */ "",
+
+    /* 0x60  `  */ "",
+    /* 0x61  a  */ "JFHDHBJALAMBMDLF GFMFMG",
+    /* 0x62  b  */ "",
+    /* 0x63  c  */ "",
+    /* 0x64  d  */ "IGGEGCIAKAMCMEKG AGMG",
+    /* 0x65  e  */ "JAJGHGGFGBHALAMBMFLG",
+    /* 0x66  f  */ "",
+    /* 0x67  g  */ "",
+    /* 0x68  h  */ "",
+    /* 0x69  i  */ "DDFD GDMD",
+    /* 0x6A  j  */ "",
+    /* 0x6B  k  */ "",
+    /* 0x6C  l  */ "ACADMDME",
+    /* 0x6D  m  */ "",
+    /* 0x6E  n  */ "",
+    /* 0x6F  o  */ "",
+
+    /* 0x70  p  */ "",
+    /* 0x71  q  */ "",
+    /* 0x72  r  */ "",
+    /* 0x73  s  */ "HGGFGBHAJBJFLGMFMBLA",
+    /* 0x74  t  */ "",
+    /* 0x75  u  */ "",
+    /* 0x76  v  */ "GAMDGG",
+    /* 0x77  w  */ "",
+    /* 0x78  x  */ "",
+    /* 0x79  y  */ "",
+    /* 0x7A  z  */ "",
+    /* 0x7B  {  */ "",
+    /* 0x7C  |  */ "",
+    /* 0x7D  }  */ "",
+    /* 0x7E  ~  */ "",
+    /* 0x7F DEL */ ""
 };
 
 class Color4
@@ -63,6 +129,7 @@ class Color4
         double rgba[4];
 };
 
+/*
 class Camera
 {
     public:
@@ -79,10 +146,14 @@ class Camera
 
         void setLookAt()
         {
-            tkg::Point3 vec = tkg::Point3::polar(dist, rotv-tkg::pi/2, roth);
+            tkg::Point3 vec = tkg::Point3::polar(1.00, rotv-tkg::pi/2, roth);
             tkg::Point3 cam = tkg::Point3::polar(dist, rotv, roth) + pos;
             gluLookAt(cam.x, cam.y, cam.z,  pos.x, pos.y, pos.z, vec.x, vec.y, vec.z);
         }
+
+        double getDist() { return dist;  }
+        double getPosX() { return pos.x; }
+        double getPosY() { return pos.y; }
 
     private:
 
@@ -91,6 +162,19 @@ class Camera
         double roth;
         tkg::Point3 pos;
 };
+*/
+
+inline void glCircle(double x, double y, double r, int div=32)
+{
+    glBegin(GL_LINE_STRIP);
+    for(int i=0; i<=div; i++)
+    {
+        double rad = 2.0 * pi * i / div;
+        glVertex2d(x + r * cos(rad), y + r * sin(rad));
+    }
+    glEnd();
+}
+
 
 inline void glVertex(const Point3 &p)
 {
@@ -120,8 +204,8 @@ inline void glArrow(const Point3 &p, double t, double r)
 inline void glString(const std::string &str, const Point3 &p, double s, double v, double h)
 {
     const double div = 15.0;
-    double bx = - s / 2.0;
-    double by = - s / 2.0 * str.size();
+    double bx = - s / 2.0 * str.size();
+    double by = + s / 2.0;
 
     glBegin(GL_LINES);
     for(uint i=0; i<str.size(); i++)
@@ -137,13 +221,13 @@ inline void glString(const std::string &str, const Point3 &p, double s, double v
             if(++c != 4) continue;
 
             c = 2;
-            double x1 = s * vspos[vsdata[ch][j-3]-'A'] / div;
-            double y1 = s * vspos[vsdata[ch][j-2]-'A'] / div;
-            double x2 = s * vspos[vsdata[ch][j-1]-'A'] / div;
-            double y2 = s * vspos[vsdata[ch][j-0]-'A'] / div;
+            double y1 = - s * vspos[vsdata[ch][j-3]-'A'] / div;
+            double x1 = + s * vspos[vsdata[ch][j-2]-'A'] / div;
+            double y2 = - s * vspos[vsdata[ch][j-1]-'A'] / div;
+            double x2 = + s * vspos[vsdata[ch][j-0]-'A'] / div;
 
-            tkg::Point3 p1(bx + x1, by + y1 + s*i);
-            tkg::Point3 p2(bx + x2, by + y2 + s*i);
+            tkg::Point3 p1(bx + x1 + s*i, by + y1);
+            tkg::Point3 p2(bx + x2 + s*i, by + y2);
             glVertex(p + p1.rotateY(v).rotateZ(h));
             glVertex(p + p2.rotateY(v).rotateZ(h));
         }

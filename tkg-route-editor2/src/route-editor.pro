@@ -18,7 +18,8 @@ HEADERS += \
     widget-msg.hpp \
     widget-gl.hpp \
     ../../visualizer/src/menu-handler.hpp \
-    ../../visualizer/src/map-viewer.hpp
+    ../../visualizer/src/map-viewer.hpp \
+    route-edit.hpp
 
 SOURCES += \
     main.cpp \
@@ -26,7 +27,8 @@ SOURCES += \
     widget-msg.cpp \
     widget-gl.cpp \
     ../../visualizer/src/menu-handler.cpp \
-    ../../visualizer/src/map-viewer.cpp
+    ../../visualizer/src/map-viewer.cpp \
+    route-edit.cpp
 
 LIBS += \
     -lGLU

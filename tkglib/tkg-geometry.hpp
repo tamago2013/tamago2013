@@ -6,7 +6,9 @@
 namespace tkg
 {
 
-const double pi = 3.14159265358979323846;
+const double pi  = 3.14159265358979323846;
+const double inf = 1e10;
+const double eps = 1e-10;
 
 class Point3
 {
