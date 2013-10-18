@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ -e launcher.opt ] ; then
+ . launcher.opt
+ fi
+
+ if [ -e  ] ; then
+ ./Release/distance-checker -g   ${OPTION} $@
+ else
+ ./Release/distance-checker $@ -G 
+ fi
