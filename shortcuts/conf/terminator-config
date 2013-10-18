@@ -81,30 +81,35 @@
 
 
 #=================================================
-# platform / ssm-coordinator, ssm-monitor, yp-spur, echo "ypspur-joystick"の起動
+# platform / ssm-coordinator, ssm-monitor, yp-spur, working, distance-checkerの起動
 #=================================================
   [[platform]]
-    [[[child0]]]
-      position = 0:0
+ [[[child0]]]
+      position = 0:26
       type = Window
       order = 0
       parent = ""
       size = 1364, 689
     [[[child1]]]
-      position = 682
-      type = HPaned
+      position = 344
+      type = VPaned
       order = 0
       parent = child0
     [[[child2]]]
-      position = 344
-      type = VPaned
+      position = 682
+      type = HPaned
       order = 0
       parent = child1
     [[[child5]]]
-      position = 344
-      type = VPaned
+      position = 452
+      type = HPaned
       order = 1
       parent = child1
+    [[[child7]]]
+      position = 455
+      type = HPaned
+      order = 1
+      parent = child5
     [[[terminal3]]]
       profile = default
       type = Terminal
@@ -117,22 +122,29 @@
       type = Terminal
       order = 1
       parent = child2
-      title = ssm-monitor
+     title = ssm-monitor
       command = sleep 0.5; ssm-monitor; echo "-----"; echo "ssm-monitor"; echo "-----"; bash; 
     [[[terminal6]]]
       profile = default
       type = Terminal
       order = 0
       parent = child5
-      title = ypspur-coordinator
+     title = ypspur-coordinator
       command = sleep 1; ypspur-coordinator -p ${tamago_home}/data/Loop-new.param -d /dev/ttyACM0 --high-resolution; echo "-----"; echo "ypspur-coordinator -p "${tamago_home}"/data/Loop-new.param -d /dev/ttyACM0 --high-resolution"; echo "-----"; bash;  
-    [[[terminal7]]]
+    [[[terminal9]]]
       profile = default
       type = Terminal
       order = 1
-      parent = child5
+      parent = child7
       title = ./working
       command = sleep 1; cd ${tamago_home}; echo "working directory:"; ./working; bash; 
+    [[[terminal8]]]
+      profile = default
+      type = Terminal
+      order = 0
+      parent = child7
+      title = distance-checker
+      command = sleep 1; cd ${tamago_home}/distance-checker; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash; 
 
 #=================================================
 # localizer / particle-localizerとopsm-particle-evaluatorの立ち上げ
