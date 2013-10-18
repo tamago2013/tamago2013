@@ -83,6 +83,18 @@ namespace ls_accumulator
             }
         }
 
+        //is_filled：満タンだったらtrue,そうでなければfalse
+        bool is_filled()
+        {
+            return( _max_size == _data.size() );
+        }
+
+        //clear：中身を全消し
+        void clear()
+        {
+            _data.clear();
+        }
+
         //-------------------------------
         //getter
         //-------------------------------

@@ -102,8 +102,8 @@ int main ( int argc , char **argv )
 
     gnd::matrix::coord_tree coordtree;          //座標系の関係を表す木
     int coordid_sn = -1;
-    int coordid_fs     = -1;
-    int coordid_bs     = -1;
+    int coordid_fs = -1;
+    int coordid_bs = -1;
 
     Spur_Odometry past_odometry;        //1回前に覚えたオドメトリ
     unsigned long write_count = 0;      //書き込んだ回数のカウント
@@ -188,6 +188,7 @@ int main ( int argc , char **argv )
         }
         else
         {
+            //とりあえず空データを一発書きこむ
             for( size_t i = 0 ; i < ssm_sokuiki_ac.property.numPoints ; ++i )
             {
                 ssm_sokuiki_ac.data[i].intensity = 0.0;
@@ -197,10 +198,11 @@ int main ( int argc , char **argv )
                 ssm_sokuiki_ac.data[i].reflect.z = 0.0;
             }
 
+            ssm_sokuiki_ac.write();
+
             ssm_odometry.readLast();
             past_odometry = ssm_odometry.data;
 
-            ssm_sokuiki_ac.write( ssm_odometry.time );
             std::cerr << "OK.\n";
         }
     }
@@ -221,7 +223,7 @@ int main ( int argc , char **argv )
     // メインループ
     //--------------------------------------
     std::cout << "\n"
-              << "\n\n\n\n\n\n\n\n";
+              << "\n\n\n\n\n\n\n\n\n\n";
     while( !is_shutting_down )
     {
         //----------------------------------
@@ -233,13 +235,15 @@ int main ( int argc , char **argv )
         if( timer_console.clock() )
         {
             std::cout.flush();
-            std::cout << "\033[9A"
+            std::cout << "\033[11A"
                       << "\033[2K ------------- \033[1m\033[35m" << ls_accumulator::proc_name << " \033[39m\033[0m -------------\n"
                       << "\033[2K accumulate dist            : " << conf.data_accumulating_interval_distance.value << " [m]\n"
+                      << "\033[2K accumulate rotation        : " << conf.data_accumulating_interval_rotation.value << " [deg]\n"
                       << "\033[2K accumulate max dist        : " << conf.data_accumulating_max_distance.value << " [m]\n"
                       << "\033[2K # of points of single scan : " << ssm_sokuiki_raw.property.numPoints << "\n"
                       << "\033[2K # of accumulating scan     : " << data_accumulate_scannum << "\n"
                       << "\033[2K ring buffer total size     : " << ssm_sokuiki_raw.property.numPoints * data_accumulate_scannum << "\n"
+                      << "\033[2K filled data clear mode     : " << conf.filled_data_clear_mode.value << " ( 0 = off , 1 = on )\n"
                       << "\033[2K odometry (x,y,theta)       : " << ssm_odometry.data.x << " , " << ssm_odometry.data.y << " , " << ssm_odometry.data.theta << "\n"
                       << "\033[2K writing count              : " << write_count << "\n"
                       << "\033[2K \n";
@@ -257,13 +261,14 @@ int main ( int argc , char **argv )
         ssm_odometry.readTime( ssm_sokuiki_raw.time );
 
         //----------------------------------
-        //走行距離の計算
+        //走行距離・回転角度の計算
         double run_distance = ( ssm_odometry.data.x - past_odometry.x ) * ( ssm_odometry.data.x - past_odometry.x ) + ( ssm_odometry.data.y - past_odometry.y ) * ( ssm_odometry.data.y - past_odometry.y );
         run_distance = sqrt( run_distance );
+        double run_rotation = fabs(  ssm_odometry.data.theta - past_odometry.theta );
 
         //----------------------------------
-        //走行距離が閾値以上か？
-        if( run_distance < conf.data_accumulating_interval_distance.value )
+        //走行距離・回転角度が閾値以上か？
+        if( run_distance < conf.data_accumulating_interval_distance.value && run_rotation * 180.0 / M_PI < conf.data_accumulating_interval_rotation.value )
         {
             continue;
         }
@@ -388,6 +393,16 @@ int main ( int argc , char **argv )
         //SSM出力
         ssm_sokuiki_ac.write( ssm_sokuiki_raw.time );
         write_count++;
+
+        //----------------------------------
+        //リングバッファ満タン時クリアモードの時：リングバッファが満タンだったら捨てる
+        if( 1 == conf.filled_data_clear_mode.value )
+        {
+            if( ring_buf.is_filled() )
+            {
+                ring_buf.clear();
+            }
+        }
 
     }
 

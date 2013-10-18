@@ -86,12 +86,29 @@ namespace ls_accumulator
         "accumulating interval distance[m]"
     };
 
+    //データを蓄積するロボットの走行距離間隔
+    static const gnd::conf::parameter< float > ConfIni_DataAccumulatingIntervalRotation =
+    {
+        "accumulating-interval-rotation",
+        20.0,
+        "accumulating interval rotation[deg]"
+    };
+
+
     //データを蓄積するロボットの最大走行距離
     static const gnd::conf::parameter< float > ConfIni_DataAccumulatingMaxDistance =
     {
         "accumulating-max-distance",
         10.0,
         "accumulating maximum distance[m]"
+    };
+
+    //バッファが満タンになったらデータを捨てるかどうか
+    static const gnd::conf::parameter< int > ConfIni_FilledDataClearMode =
+    {
+        "filled-data-clear-mode",
+        0,
+        "clearing filled data on(1)/off(0)"
     };
 }
 
@@ -112,7 +129,9 @@ namespace ls_accumulator
 
         //プログラムの動作に関するコンフィグ
         gnd::conf::parameter< float > data_accumulating_interval_distance; //データを蓄積する、ロボットの走行距離
+        gnd::conf::parameter< float > data_accumulating_interval_rotation; //データを蓄積する、ロボットの回転角度
         gnd::conf::parameter< float > data_accumulating_max_distance; //データを蓄積する最大のロボットの走行距離
+        gnd::conf::parameter< int > filled_data_clear_mode; //これが1になっていれば、リングバッファが満タンになったらクリアする
 
         //初期化関数
         proc_configuration();
@@ -143,7 +162,9 @@ namespace ls_accumulator
         memcpy( &conf->odometry_id , &ConfIni_OdometryID , sizeof( ConfIni_OdometryID ) );
         memcpy( &conf->sokuiki_accumulated_name , &ConfIni_SokuikiAccumulatedName , sizeof( ConfIni_SokuikiAccumulatedName ) );
         memcpy( &conf->data_accumulating_interval_distance , &ConfIni_DataAccumulatingIntervalDistance , sizeof( ConfIni_DataAccumulatingIntervalDistance ) );
+        memcpy( &conf->data_accumulating_interval_rotation , &ConfIni_DataAccumulatingIntervalRotation , sizeof( ConfIni_DataAccumulatingIntervalRotation ) );
         memcpy( &conf->data_accumulating_max_distance , &ConfIni_DataAccumulatingMaxDistance , sizeof( ConfIni_DataAccumulatingMaxDistance ) );
+        memcpy( &conf->filled_data_clear_mode , &ConfIni_FilledDataClearMode , sizeof( ConfIni_FilledDataClearMode ) );
 
         return 0;
     }
@@ -160,7 +181,9 @@ namespace ls_accumulator
         gnd::conf::get_parameter( src , &dest->odometry_id );
         gnd::conf::get_parameter( src , &dest->sokuiki_accumulated_name );
         gnd::conf::get_parameter( src , &dest->data_accumulating_interval_distance );
+        gnd::conf::get_parameter( src , &dest->data_accumulating_interval_rotation );
         gnd::conf::get_parameter( src , &dest->data_accumulating_max_distance );
+        gnd::conf::get_parameter( src , &dest->filled_data_clear_mode );
 
         return 0;
     }
@@ -177,7 +200,9 @@ namespace ls_accumulator
         gnd::conf::set_parameter( dest , &src->odometry_id );
         gnd::conf::set_parameter( dest , &src->sokuiki_accumulated_name );
         gnd::conf::set_parameter( dest , &src->data_accumulating_interval_distance );
+        gnd::conf::set_parameter( dest , &src->data_accumulating_interval_rotation );
         gnd::conf::set_parameter( dest , &src->data_accumulating_max_distance );
+        gnd::conf::set_parameter( dest , &src->filled_data_clear_mode );
 
         return 0;
     }

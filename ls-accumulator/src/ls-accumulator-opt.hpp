@@ -12,7 +12,7 @@ namespace ls_accumulator
 {
 
     const char ConfFile[] = "ls-accumulator.conf";
-    const char ShortOpt[] = "hg:G:s:o:i:m";
+    const char ShortOpt[] = "hg:G:s:o:i:m:r:c:";
     const struct option LongOpt[] =
     {
         { "help" , no_argument , 0 , 'h' },
@@ -20,8 +20,10 @@ namespace ls_accumulator
         { "write-config" , optional_argument , 0 , 'G' },
         { ConfIni_SokuikiRawID.item , required_argument , 0 , 's' },
         { ConfIni_OdometryID.item , required_argument , 0 , 'o' },
+        { ConfIni_DataAccumulatingIntervalRotation.item , required_argument , 0 , 'r' },
         { ConfIni_DataAccumulatingIntervalDistance.item , required_argument , 0 , 'i' },
         { ConfIni_DataAccumulatingMaxDistance.item , required_argument , 0 , 'm' },
+        { ConfIni_FilledDataClearMode.item , required_argument , 0 , 'c' },
         { 0 , 0 , 0 , 0 }
     };
 
@@ -98,10 +100,24 @@ namespace ls_accumulator
                 break;
             }
 
+            //蓄積の角度間隔のセット
+            case 'r':
+            {
+                conf->data_accumulating_interval_rotation.value = atof( optarg );
+                break;
+            }
+
             //蓄積の最大距離のセット
             case 'm':
             {
                 conf->data_accumulating_max_distance.value = atoi( optarg );
+                break;
+            }
+
+            //データクリアモードのセット
+            case 'c':
+            {
+                conf->filled_data_clear_mode.value = atoi( optarg );
                 break;
             }
 
@@ -132,6 +148,12 @@ namespace ls_accumulator
                           << "\n"
                           << "\t\033[1m -i \033[0m ( \033[1m "<< ConfIni_DataAccumulatingIntervalDistance.item << " \033[0m ) <distance[m]>\n"
                           << "\t\t set data accumulating interval distance\n"
+                          << "\n"
+                          << "\t\033[1m -r \033[0m ( \033[1m "<< ConfIni_DataAccumulatingIntervalRotation.item << " \033[0m ) <rotation[deg]>\n"
+                          << "\t\t set data accumulating interval rotation\n"
+                          << "\n"
+                          << "\t\033[1m -c \033[0m ( \033[1m "<< ConfIni_FilledDataClearMode.item << " \033[0m ) <0 or 1>\n"
+                          << "\t\t set filled data clear mode on / off\n"
                           << "\n"
                           << "\t\033[1m -m \033[0m ( \033[1m "<< ConfIni_DataAccumulatingMaxDistance.item << " \033[0m ) <distance[m]>\n"
                           << "\t\t set data accumulating max distance\n"
