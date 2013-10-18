@@ -126,7 +126,7 @@ int main ( int argc , char **argv )
     // メインループ
     //--------------------------------------
     std::cout << "\n"
-              << "\n\n\n\n\n\n";
+              << "\n\n\n\n\n\n\n\n";
     bool first_read = true;
     while( !is_shutting_down )
     {
@@ -139,12 +139,14 @@ int main ( int argc , char **argv )
         if( timer_console.clock() )
         {
             std::cout.flush();
-            std::cout << "\033[6A"
-                      << "\033[2K ------------- \033[1m\033[33m" << "distance-checker" << " \033[39m\033[0m -------------\n"
-                      << "\033[2K total distance             : \033[1m" << total_distance << "\033[0m [m]\n"
-                      << "\033[2K odometry ssm name          : " << distance_checker::ssm_name << "\n"
-                      << "\033[2K odometry ssm id            : " << distance_checker::ssm_id << "\n"
-                      << "\033[2K odometry (x,y,theta)       : " << ssm_odometry.data.x << " , " << ssm_odometry.data.y << " , " << ssm_odometry.data.theta << "\n"
+            std::cout << "\033[8A"
+                      << "\033[2K --\033[1m\033[33m" << "distance-checker" << " \033[39m\033[0m --\n"
+                      << "\033[2K total distance    : \033[1m" << total_distance << "\033[0m [m]\n"
+                      << "\033[2K odometry ssm name : " << distance_checker::ssm_name << "\n"
+                      << "\033[2K odometry ssm id   : " << distance_checker::ssm_id << "\n"
+                      << "\033[2K odometry x        : " << ssm_odometry.data.x << " [m]\n"
+                      << "\033[2K odometry y        : " << ssm_odometry.data.y << " [m]\n"
+                      << "\033[2K odometry teta     : " << ssm_odometry.data.theta << " [rad]\n"
                       << "\033[2K \n";
         }
 
