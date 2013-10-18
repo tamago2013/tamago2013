@@ -66,14 +66,18 @@ void FieldViewer::draw(const Robot &robot)
 
 RouteViewer::RouteViewer(Window *window, tkg::ConfigGroup &conf)
 {
-    menu = new ToggleMenuHandler;
+    menu = new SelectMenuHandler;
     menu->title = conf["title"];
-    menu->value = conf["view-state"] == "true";
+    menu->value = 1;
+    menu->list.push_back( SelectMenuElement("non-display",     0) );
+    menu->list.push_back( SelectMenuElement("route only"     , 1) );
+    menu->list.push_back( SelectMenuElement("toute + number" , 3) );
     window->addMenuView(menu);
 
     file       = conf["file"];
     node_color = tkg::Color4(conf["node-color"]);
     edge_color = tkg::Color4(conf["edge-color"]);
+    text_color = tkg::Color4(conf["text-color"]);
 }
 
 RouteViewer::~RouteViewer()
@@ -108,37 +112,41 @@ std::string RouteViewer::load()
     return str;
 }
 
-void RouteViewer::draw()
+void RouteViewer::draw(double rotv, double roth)
 {
-    if( !menu->value ) return;
-
-    glColor4dv(node_color.rgba);
-    glPointSize(5);
-    glBegin(GL_POINTS);
-    for(uint i=0; i<node.size(); i++)
+    if( menu->value & 1)
     {
-        tkg::glVertex(node[i]);
-    }
-    glEnd();
-    glPointSize(1);
+        glColor4dv(node_color.rgba);
+        glPointSize(5);
+        glBegin(GL_POINTS);
+        for(uint i=0; i<node.size(); i++)
+        {
+            tkg::glVertex(node[i]);
+        }
+        glEnd();
+        glPointSize(1);
 
-    glColor4dv(edge_color.rgba);
-    glLineWidth(1);
-    glBegin(GL_LINES);
-    for(uint i=0; i<edge.size(); i++)
-    {
-        tkg::glVertex(node[edge[i].first ]);
-        tkg::glVertex(node[edge[i].second]);
+        glColor4dv(edge_color.rgba);
+        glLineWidth(1);
+        glBegin(GL_LINES);
+        for(uint i=0; i<edge.size(); i++)
+        {
+            tkg::glVertex(node[edge[i].first ]);
+            tkg::glVertex(node[edge[i].second]);
+        }
+        glEnd();
     }
-    glEnd();
 
-    /*
-    glColor3d(1.0, 1.0, 1.0);
-    for(int i=0; i<route.size(); i++)
+    if( menu->value & 2 )
     {
-        myString(route[i]+tkg::Point3(0,0,0.2), strprintf("%d",i).c_str());
+        const tkg::Point3 height(0.0, 0.0, 1.0);
+
+        glColor4dv(text_color.rgba);
+        for(uint i=0; i<node.size(); i++)
+        {
+            tkg::glString(tkg::strf("%d",i), node[i]+height, 0.5, rotv, roth);
+        }
     }
-    */
 }
 
 

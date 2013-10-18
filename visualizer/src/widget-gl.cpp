@@ -128,7 +128,7 @@ void WidgetGL::paintGL()
     updateStream();
 
     field->draw(position->robot);
-    route->draw();
+    route->draw(camera->rotv, camera->roth);
     position->draw();
     particle->draw();
     for(uint i=0; i<lasers.size(); i++)
@@ -137,8 +137,6 @@ void WidgetGL::paintGL()
     }
     ptzcamera->draw();
     cluster->draw();
-
-    //tkg::glString("");
 
     glFlush();
 

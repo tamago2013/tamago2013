@@ -33,10 +33,8 @@ void Camera::rotate(double x, double y)
 void Camera::translate(double x, double y)
 {
     tkg::Point3 tmp(y*dist/2, x*dist/2, 0);
-    //tmp.rotY(rotv); // not grounding
     tmp = tmp.rotateZ(roth);
     pos = pos + tmp;
-    //if(grounding==1) { camCent.z=0; }
 }
 
 void Camera::setpos(double x, double y, double t)
