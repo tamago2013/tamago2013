@@ -86,11 +86,11 @@ namespace ls_accumulator
         "accumulating interval distance[m]"
     };
 
-    //データを蓄積するロボットの走行距離間隔
+    //データを蓄積するロボットの走行角度間隔
     static const gnd::conf::parameter< float > ConfIni_DataAccumulatingIntervalRotation =
     {
         "accumulating-interval-rotation",
-        20.0,
+        180.0,
         "accumulating interval rotation[deg]"
     };
 
