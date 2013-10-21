@@ -557,8 +557,17 @@ int main(int argc, char* argv[], char *envp[]) {
 
 			// read ssm motor
 			if( mtr.readNext() ){
-				int cnt2 = (pconf.k_lwheel_crot.value ? -1 : 1) * mtr.data.counter1;
-				int cnt1 = (pconf.k_rwheel_crot.value ? -1 : 1) * mtr.data.counter2;
+				int cnt1 = (pconf.k_lwheel_crot.value ? -1 : 1) * mtr.data.counter1;
+				int cnt2 = (pconf.k_rwheel_crot.value ? -1 : 1) * mtr.data.counter2;
+
+				//swap right-left motor if flag is true.
+				if( pconf.k_swap_rwmotor.value )
+				{
+					int buf = cnt1;
+					cnt1 = cnt2;
+					cnt2 = buf;
+				}
+
 				// compute pertilecs motion
 				if( !pconf.gyro.value ) {
 					ssm_particle.data.odometry_motion(cnt1, cnt2);
