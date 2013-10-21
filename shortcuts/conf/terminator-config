@@ -213,17 +213,34 @@
       parent = ""
 
 #=================================================
-# path-planner / path-plannerの立ち上げ
+# path-planner / path-planner とサウンドプレイの立ち上げ
 #=================================================
   [[path-planner]]
+    [[[child0]]]
+      position = 0:0
+      type = Window
+      order = 0
+      parent = ""
+      size = 1364, 689
     [[[child1]]]
+      position = 681
+      type = HPaned
+      order = 0
+      parent = child0
+    [[[terminal3]]]
+      profile = default
       type = Terminal
-      parent = window0
+      order = 1
+      parent = child1
       title = path-planner
       command = cd ${tamago_home}/ysd-path-planner; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash;
-    [[[window0]]]
-      type = Window
-      parent = ""
+    [[[terminal2]]]
+      profile = default
+      type = Terminal
+      order = 0
+      parent = child1 
+      title = sound-player
+      command = cd ${tamago_home}/sound; echo "*****************************"; echo "効果音：魔王魂";  echo "http://maoudamashii.jokersounds.com/"; echo "*****************************"; vlc --loop sound.mp3 silence-1sec.mp3 silence-1sec.mp3 silence-1sec.mp3 > /dev/null 2>&1; echo ""; echo "-----"; echo "vlc --loop sound.mp3 silence-1sec.mp3 silence-1sec.mp3 silence-1sec.mp3 > /dev/null 2>&1"; echo "-----"; bash;
 
 #=================================================
 # multi-logger / multi-loggerの立ち上げ
