@@ -240,7 +240,7 @@
       order = 0
       parent = child1 
       title = sound-player
-      command = cd ${tamago_home}/sound; echo "*****************************"; echo "効果音：魔王魂";  echo "http://maoudamashii.jokersounds.com/"; echo "*****************************"; vlc --loop sound.mp3 silence-1sec.mp3 silence-1sec.mp3 silence-1sec.mp3 > /dev/null 2>&1; echo ""; echo "-----"; echo "vlc --loop sound.mp3 silence-1sec.mp3 silence-1sec.mp3 silence-1sec.mp3 > /dev/null 2>&1"; echo "-----"; bash;
+      command = cd ${tamago_home}/sound; echo "*****************************"; echo "効果音：魔王魂";   echo "http://maoudamashii.jokersounds.com/"; echo "*****************************"; cvlc --loop talk.wav silence-10sec.wav > /dev/null 2>&1; echo ""; echo "-----"; echo "cvlc --loop talk.wav silence-10sec.wav > /dev/null 2>&1"; echo "-----"; bash;
 
 #=================================================
 # multi-logger / multi-loggerの立ち上げ
