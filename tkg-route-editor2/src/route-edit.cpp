@@ -20,21 +20,26 @@ RouteEdit::RouteEdit(tkg::ConfigGroup &conf)
         text_color[i]   = tkg::Color4(conf[std::string("text-color-") + (char)(i+'A')]);
         circle_color[i] = tkg::Color4(conf[std::string("circle-color-") + (char)(i+'A')]);
     }
-    load();
 }
+
+#include "tkg-debug.hpp"
 
 void RouteEdit::load()
 {
     std::ifstream fin(file.c_str());
     if( !fin ) return;
 
+    WayPoint w;
+
     node.clear();
-    while(fin.good())
+    while(fin >> w.flag, fin.good())
     {
-        WayPoint w;
-        fin >> w.flag >> w.pos.x >> w.pos.y >> w.rad >> w.spd;
+        fin >> w.pos.x >> w.pos.y >> w.rad >> w.spd;
+
+        tkg::debug("%c %f %f %f %f\n", w.flag, w.pos.x, w.pos.y, w.rad, w.spd);
         node.push_back( w );
     }
+    update = true;
 }
 
 void RouteEdit::save()
@@ -75,7 +80,7 @@ void RouteEdit::drawTable(QTableWidget *table)
 
 void RouteEdit::readTable(QTableWidget *table)
 {
-    for(uint i=0; i<node.size(); i++)
+    for(uint i=0; i<table->rowCount(); i++)
     {
         node[i].flag  = table->item(i,0)->text().toAscii().at(0);
         node[i].pos.x = table->item(i,1)->text().toAscii().toDouble();
@@ -201,11 +206,15 @@ void RouteEdit::move(double x, double y)
     update = true;
 }
 
-void RouteEdit::rad(double r)
+void RouteEdit::change(double r, double s)
 {
     if(select<0 || node.size()<=select) return;
+
     node[select].rad += r;
     if(node[select].rad < 0) node[select].rad = 0;
+
+    node[select].spd += s;
+    if(node[select].spd < 0) node[select].spd = 0;
 
     update = true;
 }

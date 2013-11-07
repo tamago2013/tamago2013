@@ -43,7 +43,7 @@ WidgetGL::~WidgetGL()
 bool WidgetGL::init()
 {
     field->load();
-    //window->message()->add_message( route->load() );
+    route->load();
     return true;
 }
 
@@ -116,17 +116,17 @@ void WidgetGL::keyPressEvent(QKeyEvent *event)
     double dx = 0;
     double dy = 0;
 
-    if(event->key() == Qt::Key_Up   ) dy -= 0.25;
-    if(event->key() == Qt::Key_Down ) dy += 0.25;
-    if(event->key() == Qt::Key_Left ) dx -= 0.25;
-    if(event->key() == Qt::Key_Right) dx += 0.25;
+    if(event->key() == Qt::Key_Up   ) dy -= 0.1;
+    if(event->key() == Qt::Key_Down ) dy += 0.1;
+    if(event->key() == Qt::Key_Left ) dx -= 0.1;
+    if(event->key() == Qt::Key_Right) dx += 0.1;
 
-    if(event->key() == Qt::Key_W ) dy -= 0.25;
-    if(event->key() == Qt::Key_S ) dy += 0.25;
-    if(event->key() == Qt::Key_A ) dx -= 0.25;
-    if(event->key() == Qt::Key_D ) dx += 0.25;
+    if(event->key() == Qt::Key_W ) dy -= 0.1;
+    if(event->key() == Qt::Key_S ) dy += 0.1;
+    if(event->key() == Qt::Key_A ) dx -= 0.1;
+    if(event->key() == Qt::Key_D ) dx += 0.1;
 
-    if(route->selected())   route->rad(-dy);
+    if(route->selected())   route->change(-10*dy,dx);
     else                    camera_s = std::max(1.0, camera_s + dy);
 
 
@@ -158,7 +158,7 @@ void WidgetGL::wheelEvent(QWheelEvent *event)
 {
     double dd = (double) event->delta() / 120;
 
-    if(route->selected())   route->rad(dd);
+    if(route->selected())   route->change(dd, 0);
     else                    camera_s = std::max(1.0, camera_s - dd);
 }
 

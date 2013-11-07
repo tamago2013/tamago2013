@@ -48,7 +48,7 @@ class RouteEdit
         void set (double x, double y, double r);
         void push(double x, double y);
         void move(double x, double y);
-        void rad (double r);
+        void change(double r, double s);
 
     private:
 
