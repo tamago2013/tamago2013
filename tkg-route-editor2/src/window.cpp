@@ -47,14 +47,19 @@ Window::Window(tkg::ConfigFile &conf) : QMainWindow()
     */
 
     w_viewer  = new WidgetGL (this, conf);
-    //w_status  = new WidgetMSG();
-    //w_message = new WidgetMSG();
-    w_table   = new QTableWidget(0,2);
+    w_table   = new QTableWidget(0,5);
 
     QStringList header;
-    header << tr("x") << tr("y");
+    header << tr("f") << tr("x") << tr("y") << tr("r") << tr("s");
     w_table->setHorizontalHeaderLabels(header);
-    w_table->setMaximumWidth(250);
+    w_table->setFixedWidth(400);
+    w_table->verticalHeader()->setFixedWidth(50);
+    w_table->setColumnWidth(0, 30);
+    w_table->setColumnWidth(1, 80);
+    w_table->setColumnWidth(2, 80);
+    w_table->setColumnWidth(3, 80);
+    w_table->setColumnWidth(4, 80);
+
 
     //w_status ->setMaximumHeight(1);
     //w_message->setMaximumHeight(1);

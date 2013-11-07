@@ -88,13 +88,8 @@ void WidgetGL::paintGL()
 
     field->draw();
     route->draw();
-
-    static int test = 0;
-    if(test++ == 10)
-    {
-        test = 0;
-        route->drawTable(window->table());
-    }
+    route->drawTable(window->table());
+    route->readTable(window->table());
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -120,10 +115,21 @@ void WidgetGL::keyPressEvent(QKeyEvent *event)
 {
     double dx = 0;
     double dy = 0;
-    if(event->key() == Qt::Key_Up   ) dy -= 0.1;
-    if(event->key() == Qt::Key_Down ) dy += 0.1;
-    if(event->key() == Qt::Key_Left ) dx -= 0.1;
-    if(event->key() == Qt::Key_Right) dx += 0.1;
+
+    if(event->key() == Qt::Key_Up   ) dy -= 0.25;
+    if(event->key() == Qt::Key_Down ) dy += 0.25;
+    if(event->key() == Qt::Key_Left ) dx -= 0.25;
+    if(event->key() == Qt::Key_Right) dx += 0.25;
+
+    if(event->key() == Qt::Key_W ) dy -= 0.25;
+    if(event->key() == Qt::Key_S ) dy += 0.25;
+    if(event->key() == Qt::Key_A ) dx -= 0.25;
+    if(event->key() == Qt::Key_D ) dx += 0.25;
+
+    if(route->selected())   route->rad(-dy);
+    else                    camera_s = std::max(1.0, camera_s + dy);
+
+
 /*
     if(event->modifiers() & Qt::ControlModifier)
     {
@@ -151,7 +157,9 @@ void WidgetGL::keyReleaseEvent(QKeyEvent *event)
 void WidgetGL::wheelEvent(QWheelEvent *event)
 {
     double dd = (double) event->delta() / 120;
-    camera_s = std::max(1.0, camera_s - dd);
+
+    if(route->selected())   route->rad(dd);
+    else                    camera_s = std::max(1.0, camera_s - dd);
 }
 
 void WidgetGL::mouseMoveEvent(QMouseEvent *event)

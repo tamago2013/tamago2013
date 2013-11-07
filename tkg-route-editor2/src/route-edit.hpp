@@ -7,6 +7,15 @@
 
 class QTableWidget;
 
+
+struct WayPoint
+{
+    char flag;
+    double rad;
+    double spd;
+    tkg::Point3 pos;
+};
+
 enum LogType
 {
     NONE,
@@ -18,7 +27,7 @@ struct LogElement
 {
     LogType type;
     int select;
-    tkg::Point3 pos;
+    WayPoint pos;
 };
 
 class RouteEdit
@@ -31,25 +40,29 @@ class RouteEdit
         void save();
         void draw();
         void drawTable(QTableWidget *table);
+        void readTable(QTableWidget *table);
 
+        bool selected();
         void undo();
         void reset();
         void set (double x, double y, double r);
         void push(double x, double y);
         void move(double x, double y);
+        void rad (double r);
 
     private:
 
+        bool   update;
         int    select;
         double radius;
         LogElement tmplog;
         std::vector<LogElement>  log;
-        std::vector<tkg::Point3> node;
+        std::vector<WayPoint> node;
         std::string file;
-        tkg::Color4 node_color;
-        tkg::Color4 edge_color;
-        tkg::Color4 text_color;
-        tkg::Color4 circle_color;
+        tkg::Color4 node_color[26];
+        tkg::Color4 edge_color[26];
+        tkg::Color4 text_color[26];
+        tkg::Color4 circle_color[26];
 };
 
 #endif // ROUTE_EDIT_HPP

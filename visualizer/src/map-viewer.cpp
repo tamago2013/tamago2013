@@ -31,26 +31,34 @@ void MapLoader::load()
     gnd::opsm::cmap_t cnt_map;
     gnd::bmp8_t       bmp_map;
 
-    // read  map raw data
-    if( gnd::opsm::read_counting_map(&cnt_map, dirname) < 0)
+    if(4 <= fname.size() && fname.substr(fname.size()-4) == ".bmp")
     {
-        //window->message()->add_message("マップの読込に失敗しました。[");
-        //window->message()->add_message(dirname);
-        //window->message()->add_message("]\n");
-        emit send_make(); return;
+        gnd::bmp::read8(fname.c_str(), &bmp_map);
     }
-
-    if( gnd::opsm::build_map(&opsm_map, &cnt_map, gnd_mm2dist(1)) < 0 ) {
-        //window->message()->add_message("マップの作成に失敗しました。\n");
-        emit send_make(); return;
-    }
-
-    if( gnd::opsm::build_bmp(&bmp_map, &opsm_map, gnd_m2dist(1.0/10)) < 0 )
+    else
     {
-        //window->message()->add_message("マップの画像化に失敗しました。\n");
-        emit send_make(); return;emit send_make(); return;
+        // read  map raw data
+        if( gnd::opsm::read_counting_map(&cnt_map, fname.c_str()) < 0)
+        {
+            //window->message()->add_message("マップの読込に失敗しました。[");
+            //window->message()->add_message(dirname);
+            //window->message()->add_message("]\n");
+            emit send_make(); return;
+        }
+
+        if( gnd::opsm::build_map(&opsm_map, &cnt_map, gnd_mm2dist(1)) < 0 ) {
+            //window->message()->add_message("マップの作成に失敗しました。\n");
+            emit send_make(); return;
+        }
+
+        if( gnd::opsm::build_bmp(&bmp_map, &opsm_map, gnd_m2dist(1.0/10)) < 0 )
+        {
+            //window->message()->add_message("マップの画像化に失敗しました。\n");
+            emit send_make(); return;emit send_make(); return;
+        }
+        //window->message()->add_message("マップの読込に成功しました。\n");
+
     }
-    //window->message()->add_message("マップの読込に成功しました。\n");
 
     minfo.width  = bmp_map.column();
     minfo.height = bmp_map.row();

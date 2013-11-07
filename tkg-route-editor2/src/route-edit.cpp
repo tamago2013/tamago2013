@@ -5,17 +5,21 @@
 
 RouteEdit::RouteEdit(tkg::ConfigGroup &conf)
 {
+    update = false;
     select = -1;
     radius = 1.0;
     tmplog.type = NONE;
 
     file         = conf["file"];
     radius       = tkg::parseInt(conf["radius"]);
-    node_color   = tkg::Color4(conf["node-color"]);
-    edge_color   = tkg::Color4(conf["edge-color"]);
-    text_color   = tkg::Color4(conf["text-color"]);
-    circle_color = tkg::Color4(conf["circle-color"]);
 
+    for(char i=0; i<26; i++)
+    {
+        node_color[i]   = tkg::Color4(conf[std::string("node-color-") + (char)(i+'A')]);
+        edge_color[i]   = tkg::Color4(conf[std::string("edge-color-") + (char)(i+'A')]);
+        text_color[i]   = tkg::Color4(conf[std::string("text-color-") + (char)(i+'A')]);
+        circle_color[i] = tkg::Color4(conf[std::string("circle-color-") + (char)(i+'A')]);
+    }
     load();
 }
 
@@ -27,10 +31,9 @@ void RouteEdit::load()
     node.clear();
     while(fin.good())
     {
-        char c;
-        double x,y;
-        fin >> c >> x >> y;
-        node.push_back(tkg::Point3(x,y,0));
+        WayPoint w;
+        fin >> w.flag >> w.pos.x >> w.pos.y >> w.rad >> w.spd;
+        node.push_back( w );
     }
 }
 
@@ -41,60 +44,86 @@ void RouteEdit::save()
 
     for(uint i=0; i<node.size(); i++)
     {
-        fout << 'A' << node[i].x << " " << node[i].y << std::endl;
+        WayPoint &w = node[i];
+        fout << w.flag << " " << w.pos.x << " " << w.pos.y << " " << w.rad << " " << w.spd << std::endl;
     }
 }
 
 void RouteEdit::drawTable(QTableWidget *table)
 {
-    //w_table->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
-    //w_table->verticalHeader()->hide();
-    //w_table->setShowGrid(true);
+    if(!update) return;
+    update=false;
+
+   if(select<0 && select<node.size())
+   {
+        QTableWidgetItem *pItem = table->item(select, 1);
+        table->scrollToItem( pItem );
+   }
 
     table->setRowCount(0);
     for(uint i=0; i<node.size(); i++)
     {
         table->insertRow(i);
-        table->setItem(i, 0, new QTableWidgetItem(tkg::strf("%f", node[i].x).c_str()));
-        table->setItem(i, 1, new QTableWidgetItem(tkg::strf("%f", node[i].y).c_str()));
+        table->setItem(i, 0, new QTableWidgetItem(tkg::strf("%c",    node[i].flag ).c_str()));
+        table->setItem(i, 1, new QTableWidgetItem(tkg::strf("%+.2f", node[i].pos.x).c_str()));
+        table->setItem(i, 2, new QTableWidgetItem(tkg::strf("%+.2f", node[i].pos.y).c_str()));
+        table->setItem(i, 3, new QTableWidgetItem(tkg::strf("%+.2f", node[i].rad  ).c_str()));
+        table->setItem(i, 4, new QTableWidgetItem(tkg::strf("%+.2f", node[i].spd  ).c_str()));
     }
 
+}
+
+void RouteEdit::readTable(QTableWidget *table)
+{
+    for(uint i=0; i<node.size(); i++)
+    {
+        node[i].flag  = table->item(i,0)->text().toAscii().at(0);
+        node[i].pos.x = table->item(i,1)->text().toAscii().toDouble();
+        node[i].pos.y = table->item(i,2)->text().toAscii().toDouble();
+        node[i].rad   = table->item(i,3)->text().toAscii().toDouble();
+        node[i].spd   = table->item(i,4)->text().toAscii().toDouble();
+    }
 }
 
 void RouteEdit::draw()
 {
     glColor3d(1.0, 1.0, 0.0);
 
-    glColor4dv(node_color.rgba);
     glPointSize(5);
     glBegin(GL_POINTS);
     for(uint i=0; i<node.size(); i++)
     {
-        tkg::glVertex( node[i] );
+        glColor4dv(edge_color[node[i].flag-'A'].rgba);
+        tkg::glVertex( node[i].pos );
     }
     glEnd();
 
-    glColor4dv(edge_color.rgba);
     glLineWidth(1);
     glBegin(GL_LINES);
     for(uint i=1; i<node.size(); i++)
     {
-        tkg::glVertex( node[i-1] );
-        tkg::glVertex( node[i  ] );
+        glColor4dv(edge_color[node[i-1].flag-'A'].rgba);
+        tkg::glVertex( node[i-1].pos );
+        tkg::glVertex( node[i  ].pos );
     }
     glEnd();
 
-    glColor4dv(circle_color.rgba);
     for(uint i=0; i<node.size(); i++)
     {
-        tkg::glCircle(node[i].x, node[i].y, radius);
+        glColor4dv(edge_color[node[i].flag-'A'].rgba);
+        tkg::glCircle(node[i].pos.x, node[i].pos.y, node[i].rad);
     }
 
-    glColor4dv(text_color.rgba);
     for(uint i=0; i<node.size(); i++)
     {
-        tkg::glString(tkg::strf("%d",i+1), node[i]+tkg::Point3(0,1,0), 0.5, 0, 0);
+        glColor4dv(edge_color[node[i].flag-'A'].rgba);
+        tkg::glString(tkg::strf("%d",i+1), node[i].pos+tkg::Point3(0,1,0), 0.5, 0, 0);
     }
+}
+
+bool RouteEdit::selected()
+{
+    return (select != -1);
 }
 
 void RouteEdit::undo()
@@ -112,6 +141,8 @@ void RouteEdit::undo()
             node[g.select] = g.pos;
             break;
     }
+
+    update = true;
 }
 
 void RouteEdit::reset()
@@ -131,7 +162,7 @@ void RouteEdit::set(double x, double y, double r)
 
     for(uint i=0; i<node.size(); i++)
     {
-        double dist = (node[i] - p).abs();
+        double dist = (node[i].pos - p).abs();
         if( dist > r) continue;
         if( dist < mindist )
         {
@@ -151,11 +182,30 @@ void RouteEdit::set(double x, double y, double r)
 void RouteEdit::push(double x, double y)
 {
     tmplog.type   = PUSH;
-    node.push_back( tkg::Point3(x,y,0) );
+
+    WayPoint w;
+    w.flag = 'A';
+    w.pos  = tkg::Point3(x,y);
+    w.rad  = radius;
+    w.spd =  0.7;
+
+    node.push_back( w );
+    update = true;
 }
 
 void RouteEdit::move(double x, double y)
 {
-    if(select<0 && node.size()<=select) return;
-    node[select] = tkg::Point3(x,y,0);
+    if(select<0 || node.size()<=select) return;
+    node[select].pos = tkg::Point3(x,y,0);
+
+    update = true;
+}
+
+void RouteEdit::rad(double r)
+{
+    if(select<0 || node.size()<=select) return;
+    node[select].rad += r;
+    if(node[select].rad < 0) node[select].rad = 0;
+
+    update = true;
 }
