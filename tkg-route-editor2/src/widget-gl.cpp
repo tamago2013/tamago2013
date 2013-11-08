@@ -18,7 +18,7 @@ WidgetGL::WidgetGL(Window *parent, tkg::ConfigFile &conf) : QGLWidget()
     setFocusPolicy(Qt::StrongFocus);
 
     window = parent;
-    route  = new RouteEdit(conf["Route"]);
+    route  = new RouteEdit(conf);
     field  = new MapViewer(conf["Field"]["file"]);
 
     savetimer = 0;
@@ -44,6 +44,7 @@ bool WidgetGL::init()
 {
     field->load();
     route->load();
+    route->loadReference();
     return true;
 }
 
@@ -87,6 +88,7 @@ void WidgetGL::paintGL()
     glLoadIdentity();
 
     field->draw();
+    route->drawReference();
     route->draw();
     route->drawTable(window->table());
     route->readTable(window->table());
@@ -113,39 +115,28 @@ double WidgetGL::convertY(int my) { return - (2.0 * my - hei) / hei * 1.0 * came
 
 void WidgetGL::keyPressEvent(QKeyEvent *event)
 {
-    double dx = 0;
-    double dy = 0;
-
-    if(event->key() == Qt::Key_Up   ) dy -= 0.1;
-    if(event->key() == Qt::Key_Down ) dy += 0.1;
-    if(event->key() == Qt::Key_Left ) dx -= 0.1;
-    if(event->key() == Qt::Key_Right) dx += 0.1;
-
-    if(event->key() == Qt::Key_W ) dy -= 0.1;
-    if(event->key() == Qt::Key_S ) dy += 0.1;
-    if(event->key() == Qt::Key_A ) dx -= 0.1;
-    if(event->key() == Qt::Key_D ) dx += 0.1;
-
-    if(route->selected())   route->change(-10*dy,dx);
-    else                    camera_s = std::max(1.0, camera_s + dy);
-
-
-/*
-    if(event->modifiers() & Qt::ControlModifier)
-    {
-        camera_s = std::max(1.0, camera_s + dy*10);
-    }
-    else // (NoModifier)
-    {
-        camera_x += dx;
-        camera_y += dy;
-    }
-  */
-
     if(event->modifiers() & Qt::ControlModifier)
     {
         if(event->key() == Qt::Key_S) { route->save(); savetimer = 30; }
         if(event->key() == Qt::Key_Z) { route->undo(); }
+    }
+    else
+    {
+        double dx = 0;
+        double dy = 0;
+
+        if(event->key() == Qt::Key_Up   ) dy -= 0.1;
+        if(event->key() == Qt::Key_Down ) dy += 0.1;
+        if(event->key() == Qt::Key_Left ) dx -= 0.1;
+        if(event->key() == Qt::Key_Right) dx += 0.1;
+
+        if(event->key() == Qt::Key_W ) dy -= 0.1;
+        if(event->key() == Qt::Key_S ) dy += 0.1;
+        if(event->key() == Qt::Key_A ) dx -= 0.1;
+        if(event->key() == Qt::Key_D ) dx += 0.1;
+
+        if(route->selected())   route->change(-10*dy,dx);
+        else                    camera_s = std::max(1.0, camera_s + dy);
     }
 }
 
@@ -210,6 +201,6 @@ void WidgetGL::mouseDoubleClickEvent(QMouseEvent *event)
     {
         double px = convertX( event->x() );
         double py = convertY( event->y() );
-        route->push(px, py);
+        route->push(px, py, camera_s/50.0);
     }
 }

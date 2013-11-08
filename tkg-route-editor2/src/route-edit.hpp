@@ -20,7 +20,9 @@ enum LogType
 {
     NONE,
     PUSH,
-    MOVE
+    MOVE,
+    DELETE,
+    INSERT
 };
 
 struct LogElement
@@ -34,11 +36,13 @@ class RouteEdit
 {
     public:
 
-        RouteEdit(tkg::ConfigGroup &conf);
+        RouteEdit(tkg::ConfigFile &conf);
 
         void load();
+        void loadReference();
         void save();
         void draw();
+        void drawReference();
         void drawTable(QTableWidget *table);
         void readTable(QTableWidget *table);
 
@@ -46,7 +50,7 @@ class RouteEdit
         void undo();
         void reset();
         void set (double x, double y, double r);
-        void push(double x, double y);
+        void push(double x, double y, double r);
         void move(double x, double y);
         void change(double r, double s);
 
@@ -59,10 +63,14 @@ class RouteEdit
         std::vector<LogElement>  log;
         std::vector<WayPoint> node;
         std::string file;
+        tkg::Color4 text_color;
         tkg::Color4 node_color[26];
         tkg::Color4 edge_color[26];
-        tkg::Color4 text_color[26];
-        tkg::Color4 circle_color[26];
+        tkg::Color4 circle_color;
+
+        std::vector< std::string >           reference_file;
+        std::vector< tkg::Color4 >           reference_color;
+        std::vector< std::vector<WayPoint> > reference_node;
 };
 
 #endif // ROUTE_EDIT_HPP

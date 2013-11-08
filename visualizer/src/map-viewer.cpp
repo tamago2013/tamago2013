@@ -1,3 +1,4 @@
+#include <fstream>
 #include "map-viewer.hpp"
 #include "gnd-bmp.hpp"
 #include "gnd-opsm.hpp"
@@ -23,52 +24,61 @@ void MapLoader::file(std::string path)
 
 void MapLoader::load()
 {
-    const char *dirname = fname.c_str();
-    if( dirname == NULL) { emit send_make(); return; }
-    if(*dirname == '\0') { emit send_make(); return; }
+    if(fname.empty()) { emit send_make(); return; }
 
+    gnd::bmp8_t       bmp_map;
+/*
     gnd::opsm::map_t  opsm_map;
     gnd::opsm::cmap_t cnt_map;
-    gnd::bmp8_t       bmp_map;
 
-    if(4 <= fname.size() && fname.substr(fname.size()-4) == ".bmp")
+    // read  map raw data
+    if( gnd::opsm::read_counting_map(&cnt_map, fname.c_str()) < 0 )
     {
-        gnd::bmp::read8(fname.c_str(), &bmp_map);
+        //window->message()->add_message("マップの読込に失敗しました。[");
+        //window->message()->add_message(dirname);
+        //window->message()->add_message("]\n");
+        emit send_make(); return;
     }
-    else
+
+    if( gnd::opsm::build_map(&opsm_map, &cnt_map, gnd_mm2dist(1)) < 0 ) {
+        //window->message()->add_message("マップの作成に失敗しました。\n");
+        emit send_make(); return;
+    }
+
+    if( gnd::opsm::build_bmp(&bmp_map, &opsm_map, gnd_m2dist(1.0/10)) < 0 )
     {
-        // read  map raw data
-        if( gnd::opsm::read_counting_map(&cnt_map, fname.c_str()) < 0)
-        {
-            //window->message()->add_message("マップの読込に失敗しました。[");
-            //window->message()->add_message(dirname);
-            //window->message()->add_message("]\n");
-            emit send_make(); return;
-        }
+        //window->message()->add_message("マップの画像化に失敗しました。\n");
+        emit send_make(); return;
+    }
+    //window->message()->add_message("マップの読込に成功しました。\n");
 
-        if( gnd::opsm::build_map(&opsm_map, &cnt_map, gnd_mm2dist(1)) < 0 ) {
-            //window->message()->add_message("マップの作成に失敗しました。\n");
-            emit send_make(); return;
-        }
+    minfo.base_x = bmp_map.xorg();
+    minfo.base_y = bmp_map.yorg();
+    }
+*/
 
-        if( gnd::opsm::build_bmp(&bmp_map, &opsm_map, gnd_m2dist(1.0/10)) < 0 )
-        {
-            //window->message()->add_message("マップの画像化に失敗しました。\n");
-            emit send_make(); return;emit send_make(); return;
-        }
-        //window->message()->add_message("マップの読込に成功しました。\n");
+    if( fname[fname.size()-1] != '/' ) { fname += '/'; }
 
+    if( gnd::bmp::read8((fname+"opsm.bmp").c_str(), &bmp_map) < 0 )
+    {
+        tkg::debug("bmpの読み込みに失敗しました\n");
+        emit send_make(); return;
+    }
+
+    std::ifstream fin((fname+"origin.txt").c_str());
+    if( fin )
+    {
+        fin >> minfo.base_x >> minfo.base_y;
     }
 
     minfo.width  = bmp_map.column();
     minfo.height = bmp_map.row();
-    minfo.base_x = bmp_map.xorg();
-    minfo.base_y = bmp_map.yorg();
     minfo.unit_x = bmp_map.xrsl();
     minfo.unit_y = bmp_map.yrsl();
 
     data = new uchar[minfo.width * minfo.height * 3];
 
+    uchar h=0,l=255;
     for(int y=0; y<minfo.height; y++)
     for(int x=0; x<minfo.width;  x++)
     {

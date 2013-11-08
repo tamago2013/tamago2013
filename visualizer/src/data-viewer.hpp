@@ -40,6 +40,12 @@ class FieldViewer
 };
 
 
+struct WayPoint
+{
+    char flag;
+    tkg::Point3 pos;
+    double rad,spd;
+};
 
 class RouteViewer
 {
@@ -55,11 +61,11 @@ class RouteViewer
 
         SelectMenuHandler *menu;
         std::string file;
-        tkg::Color4 node_color;
-        tkg::Color4 edge_color;
+        tkg::Color4 node_color[26];
+        tkg::Color4 edge_color[26];
         tkg::Color4 text_color;
-        std::vector<tkg::Point3>         node;
-        std::vector<std::pair<int,int> > edge;
+        tkg::Color4 circle_color;
+        std::vector<WayPoint> node;
 };
 
 

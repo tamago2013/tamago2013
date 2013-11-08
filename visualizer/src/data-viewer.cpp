@@ -75,9 +75,17 @@ RouteViewer::RouteViewer(Window *window, tkg::ConfigGroup &conf)
     window->addMenuView(menu);
 
     file       = conf["file"];
-    node_color = tkg::Color4(conf["node-color"]);
-    edge_color = tkg::Color4(conf["edge-color"]);
-    text_color = tkg::Color4(conf["text-color"]);
+
+    text_color   = tkg::Color4(conf["text-color"]);
+    circle_color = tkg::Color4(conf["circle-color"]);
+
+    for(char i=0; i<26; i++)
+    {
+        node_color[i] = tkg::Color4(conf[std::string("node-color-") + (char)(i+'A')]);
+        edge_color[i] = tkg::Color4(conf[std::string("edge-color-") + (char)(i+'A')]);
+    }
+
+
 }
 
 RouteViewer::~RouteViewer()
@@ -96,16 +104,12 @@ std::string RouteViewer::load()
         return str;
     }
 
-    while(!fin.eof())
+    WayPoint w;
+    while(fin >> w.flag, fin.good())
     {
-        char c; double x,y;
-        fin >> c >> x >> y;
-        node.push_back( tkg::Point3(x,y,0) );
-    }
 
-    for(uint i=1; i<node.size(); i++)
-    {
-        edge.push_back( std::make_pair(i-1, i) );
+        fin >> w.pos.x >> w.pos.y >> w.rad >> w.spd;
+        node.push_back( w );
     }
 
     str += "ルートの読込に成功しました。\n";
@@ -114,27 +118,36 @@ std::string RouteViewer::load()
 
 void RouteViewer::draw(double rotv, double roth)
 {
-    if( menu->value & 1)
+    if( menu->value & 1 )
     {
-        glColor4dv(node_color.rgba);
         glPointSize(5);
         glBegin(GL_POINTS);
         for(uint i=0; i<node.size(); i++)
         {
-            tkg::glVertex(node[i]);
+            glColor4dv(node_color[node[i].flag-'A'].rgba);
+            tkg::glVertex(node[i].pos);
         }
         glEnd();
         glPointSize(1);
 
-        glColor4dv(edge_color.rgba);
         glLineWidth(1);
         glBegin(GL_LINES);
-        for(uint i=0; i<edge.size(); i++)
+        for(uint i=1; i<node.size(); i++)
         {
-            tkg::glVertex(node[edge[i].first ]);
-            tkg::glVertex(node[edge[i].second]);
+            glColor4dv(edge_color[node[i-1].flag-'A'].rgba);
+            tkg::glVertex(node[i-1].pos);
+            tkg::glVertex(node[i  ].pos);
         }
         glEnd();
+
+
+        glColor4dv(circle_color.rgba);
+        glLineWidth(1);
+        for(uint i=0; i<node.size(); i++)
+        {
+            if(node[i].flag != 'C') continue;
+            tkg::glCircle(node[i].pos.x, node[i].pos.y, node[i].rad);
+        }
     }
 
     if( menu->value & 2 )
@@ -144,7 +157,7 @@ void RouteViewer::draw(double rotv, double roth)
         glColor4dv(text_color.rgba);
         for(uint i=0; i<node.size(); i++)
         {
-            tkg::glString(tkg::strf("%d",i), node[i]+height, 0.5, rotv, roth);
+            tkg::glString(tkg::strf("%d",i), node[i].pos+height, 0.5, rotv, roth, true);
         }
     }
 }

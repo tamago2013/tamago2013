@@ -201,7 +201,7 @@ inline void glArrow(const Point3 &p, double t, double r)
     glEnd();
 }
 
-inline void glString(const std::string &str, const Point3 &p, double s, double v, double h)
+inline void glString(const std::string &str, const Point3 &p, double s, double v, double h, bool xy_rot=false)
 {
     const double div = 15.0;
     double bx = - s / 2.0 * str.size();
@@ -228,6 +228,11 @@ inline void glString(const std::string &str, const Point3 &p, double s, double v
 
             tkg::Point3 p1(bx + x1 + s*i, by + y1);
             tkg::Point3 p2(bx + x2 + s*i, by + y2);
+            if(xy_rot)
+            {
+                p1 = p1.rotateZ(pi/2);
+                p2 = p2.rotateZ(pi/2);
+            }
             glVertex(p + p1.rotateY(v).rotateZ(h));
             glVertex(p + p2.rotateY(v).rotateZ(h));
         }
