@@ -61,7 +61,7 @@ namespace opsm {
 		static const gnd::conf::parameter_array<char, 512> ConfIni_BMPMap = {
 				"bmp-map",
 				"",		// file path
-				"load map with bmp file"
+                                "load map with bmp map directory"
 		};
 
 		// raw-map

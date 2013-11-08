@@ -94,8 +94,36 @@ int sokuikiraw_main(opsm::peval::proc_configuration &pconf, char **env) {
 		} // <--- show initialize sequence
 
 
-		// ---> read map raw data
-		if( !is_proc_shutoff() && pconf.raw_map.value[0] != '\0' ) {
+                // ---> read map data
+                if( !is_proc_shutoff() && pconf.bmp_map.value[0] != '\0' ){ //if bmp_map.value is not empty , load bitmap ( 2013-11-08 modified by MTM )
+                        char fname[512];
+                        ::fprintf(stderr, "\n");
+                        ::fprintf(stderr, " => BitMap Data Reading\n");
+
+                        sprintf( fname , "%s/opsm.bmp" , pconf.bmp_map.value );
+                        ::fprintf(stderr, "    map file is \"\x1b[4m%s\x1b[0m\"\n", fname );
+                        if( gnd::bmp::read( fname , &map ) < 0 )
+                        {
+                                  ::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to read map data\n");
+                        }
+                        else
+                        {
+
+                                   //load origin
+                                   FILE *fp = 0;
+                                   double ox , oy;
+                                   sprintf( fname , "%s/origin.txt" , pconf.bmp_map.value );
+                                   if( !( fp = fopen( fname , "r" ) ) || fscanf( fp , "%lf %lf" , &ox , &oy ) == -1 ){
+                                           ::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to read bmp origin data\n");
+                                   }
+                                   else{
+                                           ::fprintf(stderr, " ...read origin data( %lf , %lf )\n" , ox , oy );
+                                           map.pset_origin( ox , oy );
+                                           fclose( fp );
+                                   }
+                        }
+                }
+                else if( !is_proc_shutoff() && pconf.raw_map.value[0] != '\0' ) {  //read bmp data
 			gnd::opsm::cmap_t cnt_map;			// counting map
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => Raw Map Data Reading\n");
@@ -116,7 +144,13 @@ int sokuikiraw_main(opsm::peval::proc_configuration &pconf, char **env) {
 					::fprintf(stderr, " ...\x1b[1mOK\x1b[0m\n");
 				}
 			}
-		} // <--- read map raw data
+                }
+                else
+                {
+                    ::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: bmp&raw map name is empty!!\n");
+                    ::proc_shutoff();
+                }
+                // <--- read map data
 
 
 		// ---> ssm initlaize
@@ -141,6 +175,18 @@ int sokuikiraw_main(opsm::peval::proc_configuration &pconf, char **env) {
 			gnd_get_working_directory(env, path, sizeof(path));
 			::strcat(path, "/view-map.bmp");
 			gnd::bmp::write( path, &map );
+
+                        //output origin
+                        FILE *fp = 0;
+                        double ox , oy;
+                        map.pget_origin( &ox , &oy );
+                        if( !( fp = fopen( "origin.txt" , "w" ) ) || ::fprintf( fp , "%lf %lf" , ox , oy ) == -1 ){
+                                ::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to read bmp origin data\n");
+                        }
+                        else{
+                                ::fprintf(stderr, " ...\x1b[1msave origin data\x1b[0m\n");
+                                fclose( fp );
+                        }
 
 			{ // ---> set parameter
 				::strcpy( ssm_map.property.fname, path);
@@ -601,8 +647,36 @@ int sokuikifs_main(opsm::peval::proc_configuration &pconf, char **env) {
 		} // <--- show initialize sequence
 
 
-		// ---> read map raw data
-		if( !is_proc_shutoff() && pconf.raw_map.value[0] != '\0' ) {
+                // ---> read map data
+                if( !is_proc_shutoff() && pconf.bmp_map.value[0] != '\0' ){ //if bmp_map.value is not empty , load bitmap ( 2013-11-08 modified by MTM )
+                        char fname[512];
+                        ::fprintf(stderr, "\n");
+                        ::fprintf(stderr, " => BitMap Data Reading\n");
+
+                        sprintf( fname , "%s/opsm.bmp" , pconf.bmp_map.value );
+                        ::fprintf(stderr, "    map file is \"\x1b[4m%s\x1b[0m\"\n", fname );
+                        if( gnd::bmp::read( fname , &map ) < 0 )
+                        {
+                                  ::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to read map data\n");
+                        }
+                        else
+                        {
+
+                                   //load origin
+                                   FILE *fp = 0;
+                                   double ox , oy;
+                                   sprintf( fname , "%s/origin.txt" , pconf.bmp_map.value );
+                                   if( !( fp = fopen( fname , "r" ) ) || fscanf( fp , "%lf %lf" , &ox , &oy ) == -1 ){
+                                           ::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to read bmp origin data\n");
+                                   }
+                                   else{
+                                           ::fprintf(stderr, " ...read origin data( %lf , %lf )\n" , ox , oy );
+                                           map.pset_origin( ox , oy );
+                                           fclose( fp );
+                                   }
+                        }
+                }
+                else if( !is_proc_shutoff() && pconf.raw_map.value[0] != '\0' ) {
 			gnd::opsm::cmap_t cnt_map;			// counting map
 			::fprintf(stderr, "\n");
 			::fprintf(stderr, " => Raw Map Data Reading\n");
@@ -623,7 +697,13 @@ int sokuikifs_main(opsm::peval::proc_configuration &pconf, char **env) {
 					::fprintf(stderr, " ...\x1b[1mOK\x1b[0m\n");
 				}
 			}
-		} // <--- read map raw data
+                }
+                else
+                {
+                    ::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: bmp&raw map name is empty!!\n");
+                    ::proc_shutoff();
+                }
+                // <--- read map raw data
 
 
 		// ---> ssm initlaize
@@ -648,6 +728,18 @@ int sokuikifs_main(opsm::peval::proc_configuration &pconf, char **env) {
 			gnd_get_working_directory(env, path, sizeof(path));
 			::strcat(path, "/view-map.bmp");
 			gnd::bmp::write( path, &map );
+
+                        //output origin
+                        FILE *fp = 0;
+                        double ox , oy;
+                        map.pget_origin( &ox , &oy );
+                        if( !( fp = fopen( "origin.txt" , "w" ) ) || ::fprintf( fp , "%lf %lf" , ox , oy ) == -1 ){
+                                ::fprintf(stderr, " ... \x1b[1m\x1b[31mERROR\x1b[39m\x1b[0m: fail to read bmp origin data\n");
+                        }
+                        else{
+                                ::fprintf(stderr, " ...\x1b[1msave origin data\x1b[0m\n");
+                                fclose( fp );
+                        }
 
 			{ // ---> set parameter
 				::strcpy( ssm_map.property.fname, path);
