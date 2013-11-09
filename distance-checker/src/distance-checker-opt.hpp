@@ -9,7 +9,6 @@
 namespace distance_checker
 {
 
-    const char ConfFile[] = "ls-accumulator.conf";
     const char ShortOpt[] = "hn:i:";
     const struct option LongOpt[] =
     {

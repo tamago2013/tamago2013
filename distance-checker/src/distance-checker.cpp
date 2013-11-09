@@ -146,7 +146,7 @@ int main ( int argc , char **argv )
                       << "\033[2K odometry ssm id   : " << distance_checker::ssm_id << "\n"
                       << "\033[2K odometry x        : " << ssm_odometry.data.x << " [m]\n"
                       << "\033[2K odometry y        : " << ssm_odometry.data.y << " [m]\n"
-                      << "\033[2K odometry teta     : " << ssm_odometry.data.theta << " [rad]\n"
+                      << "\033[2K odometry theta    : " << ssm_odometry.data.theta << " [rad]\n"
                       << "\033[2K \n";
         }
 
