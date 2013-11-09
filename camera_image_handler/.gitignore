@@ -1,0 +1,8 @@
+*
+!src
+!src/*
+!mk
+!mk/*
+!makefile
+!.gitignore
+!camera_image_handler.pro
