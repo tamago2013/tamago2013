@@ -4,6 +4,9 @@
 //YSD 2013/9/30
 //
 
+#ifndef SSM_CLUSTER_HPP_
+#define SSM_CLUSTER_HPP_
+
 #include <ssm.hpp>
 
 #define SNAME_CLUSTER "cluster"
@@ -68,3 +71,5 @@ public:
 };
 
 }	//<--- name space ysd
+
+#endif
