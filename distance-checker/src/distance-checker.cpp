@@ -15,6 +15,7 @@
 //c,c++
 #include<csignal>
 #include<iostream>
+#include<fstream>
 #include<ctime>
 #include<cmath>
 
@@ -77,7 +78,9 @@ int main ( int argc , char **argv )
     //--------------------------------------
     Spur_Odometry past_odometry;        //1回前に覚えたオドメトリ
     double total_distance = 0.0;
-    gnd::inttimer timer_console;
+    gnd::inttimer timer_console;        //コンソール表示用GNDタイマ
+    bool log_mode = false;              //ログを吐き出すかどうか
+    std::ofstream ofs_logger;           //ログ吐き出し用のFileStream
     timer_console.begin( CLOCK_REALTIME , 1.0 , -1.0 );
 
     //--------------------------------------
@@ -123,10 +126,30 @@ int main ( int argc , char **argv )
     }
 
     //--------------------------------------
+    // ログ吐き出し用ファイルストリームの初期化
+    //--------------------------------------
+    if( distance_checker::log_name != "" )
+    {
+        std::cerr << "opeing final output file ... ";
+        ofs_logger.open( distance_checker::log_name.c_str() );
+
+        if( !ofs_logger )
+        {
+            std::cerr << "[\033[1m\033[31mERROR\033[30m\033[0m]:fail to open log-file " << distance_checker::log_name << "\n";
+            log_mode = false;
+        }
+        else
+        {
+            std::cerr << "OK. opened \"" << distance_checker::log_name << "\"\n";
+            log_mode = true;
+        }
+    }
+
+    //--------------------------------------
     // メインループ
     //--------------------------------------
     std::cout << "\n"
-              << "\n\n\n\n\n\n\n\n";
+              << "\n\n\n\n\n\n\n\n\n\n";
     bool first_read = true;
     while( !is_shutting_down )
     {
@@ -139,15 +162,24 @@ int main ( int argc , char **argv )
         if( timer_console.clock() )
         {
             std::cout.flush();
-            std::cout << "\033[8A"
+            std::cout << "\033[9A"
                       << "\033[2K --\033[1m\033[33m" << "distance-checker" << " \033[39m\033[0m --\n"
                       << "\033[2K total distance    : \033[1m" << total_distance << "\033[0m [m]\n"
                       << "\033[2K odometry ssm name : " << distance_checker::ssm_name << "\n"
                       << "\033[2K odometry ssm id   : " << distance_checker::ssm_id << "\n"
                       << "\033[2K odometry x        : " << ssm_odometry.data.x << " [m]\n"
                       << "\033[2K odometry y        : " << ssm_odometry.data.y << " [m]\n"
-                      << "\033[2K odometry theta    : " << ssm_odometry.data.theta << " [rad]\n"
-                      << "\033[2K \n";
+                      << "\033[2K odometry theta    : " << ssm_odometry.data.theta << " [rad]\n";
+            if( log_mode )
+            {
+                std::cout << "\033[2K final output file : " << distance_checker::log_name << "\n";
+            }
+            else
+            {
+                std::cout << "\033[2K final output file : " << "(non-output)" << "\n";
+            }
+
+            std::cout << "\033[2K \n";
         }
 
         //----------------------------------
@@ -181,6 +213,20 @@ int main ( int argc , char **argv )
               << "total distance : \033[1m" << total_distance << "\033[0m [m]\n"
               << "*******************************\n"
               << "\n";
+
+    //ログファイルが開けていれば、最終走行距離を出力して終了。(ssm-killer終了でもファイルが残る。端末ごとシャットダウンなど、強制終了すると残らない。)
+    if( log_mode )
+    {
+        time_t now = time(NULL);
+        struct tm *pnow = localtime(&now);
+
+        ofs_logger << "save date: " << pnow->tm_year+1900 << "/" << pnow->tm_mon + 1 << "/" << pnow->tm_mday << std::endl;
+        ofs_logger << "save time: " << pnow->tm_hour << ":" << pnow->tm_min << ":" << pnow->tm_sec << std::endl;
+        ofs_logger << "total-distance: " << total_distance << " [m]" << std::endl;
+        ofs_logger.close();
+
+        std::cout << "output distance logfile -> \033[1m" << distance_checker::log_name << "\033[0m\n";
+    }
 
     return 0;
 }

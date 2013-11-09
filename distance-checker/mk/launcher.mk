@@ -3,7 +3,7 @@
 LAUNCHER		:=launcher
 
 #lanch option
-LAUNCH_CMD		:=./$(RELEASE_DIR)$(TARGET)
+LAUNCH_CMD		:=./$(RELEASE_DIR)$(TARGET) -l distance-output.txt
 
 #launcher shell script name
 LAUNCHER_INC		:=launcher.opt

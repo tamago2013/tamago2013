@@ -3,32 +3,35 @@
 
 #include<getopt.h>
 #include<iostream>
+#include<string>
+
 //================================
 // 固定値の定義
 //================================
 namespace distance_checker
 {
 
-    const char ShortOpt[] = "hn:i:";
+    const char ShortOpt[] = "hn:i:l:";
     const struct option LongOpt[] =
     {
         { "help" , no_argument , 0 , 'h' },
         { "ssm-name" , required_argument , 0 , 'n' },
         { "ssm-id" , required_argument , 0 , 'i' },
+        { "log-name" , required_argument , 0 , 'l' },
         { 0 , 0 , 0 , 0 }
     };
 
 }
 
 //================================
-// ssm-id、ssm-nameの定義
+// オプションで決定する変数の定義
 //================================
 namespace distance_checker
 {
 
     int ssm_id = 0;
     std::string ssm_name = "spur_odometry";
-
+    std::string log_name = "";  //ログ出力のファイル名（空で出力しない）
 }
 
 
@@ -66,6 +69,13 @@ namespace distance_checker
                 break;
             }
 
+            //ログ出力設定
+            case 'l':
+            {
+                log_name = optarg;
+                break;
+            }
+
 
             //ヘルプの表示
             case 'h':
@@ -85,6 +95,9 @@ namespace distance_checker
                           << "\n"
                           << "\t\033[1m -n \033[0m ( \033[1m --ssm-name \033[0m ) <ssm-name>\n"
                           << "\t\t set odometry data ssm-name( default = \"spur_odometry\" )\n"
+                          << "\n"
+                          << "\t\033[1m -l \033[0m ( \033[1m  --log-name \033[0m ) <log-file-name>\n"
+                          << "\t\t set distance logging mode and output file name/ off\n"
                           << "\n";
                 return 1;
             }
