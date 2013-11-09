@@ -190,14 +190,14 @@
       order = 1
       parent = child5
       title = opsm-particle-evaluator
-      command = cd ${tamago_home}/opsm-particle-evaluator; ./launcher -g opsm-particle-evaluator.conf; echo "-----"; echo "./launcher psm-particle-evaluator.conf"; echo "-----"; bash; 
+      command = cd ${tamago_home}/opsm-particle-evaluator; ./launcher -g opsm-particle-evaluator.conf; echo "-----"; echo "./launcher -g opsm-particle-evaluator.conf"; echo "-----"; bash; 
     [[[terminal6]]]
       profile = default
       type = Terminal
       order = 0
       parent = child5
       title = opsm-particle-evaluator( AC )
-      command = cd ${tamago_home}/opsm-particle-evaluator; ./launcher -g opsm-particle-evaluator-ac.conf; echo "-----"; echo "./launcher psm-particle-evaluator-ac.conf"; echo "-----"; bash; 
+      command = cd ${tamago_home}/opsm-particle-evaluator; ./launcher -g opsm-particle-evaluator-ac.conf; echo "-----"; echo "./launcher -g opsm-particle-evaluator-ac.conf"; echo "-----"; bash; 
 
 #=================================================
 # visualizer / visualizerの立ち上げ
@@ -240,7 +240,7 @@
       order = 0
       parent = child1 
       title = sound-player
-      command = cd ${tamago_home}/sound; echo "*****************************"; echo "効果音：魔王魂";   echo "http://maoudamashii.jokersounds.com/"; echo "*****************************"; cvlc --loop talk.wav silence-10sec.wav > /dev/null 2>&1; echo ""; echo "-----"; echo "cvlc --loop talk.wav silence-10sec.wav > /dev/null 2>&1"; echo "-----"; bash;
+      command = cd ${tamago_home}/sound; echo "*****************************"; echo "効果音：OpenJTalk"; echo "*****************************"; cvlc --loop talk.wav silence-10sec.wav > /dev/null 2>&1; echo ""; echo "-----"; echo "cvlc --loop talk.wav silence-10sec.wav > /dev/null 2>&1"; echo "-----"; bash;
 
 #=================================================
 # multi-logger / multi-loggerの立ち上げ
