@@ -11,7 +11,7 @@
 #include <math.h>
 #include <string.h>
 
-#include <curl/curl.h>
+//#include <curl/curl.h>
 
 #include <opencv2/opencv.hpp>
 #include <kaw_lib/SSM-Image.hpp>
@@ -158,7 +158,7 @@ int main( int argc, char* argv[] )
 
     double interval = 0.05;
 
-    CURL *curl;
+//    CURL *curl;
 
     bool iskakukaku = true;
 
@@ -231,20 +231,20 @@ int main( int argc, char* argv[] )
 
     ysd::setSigInt();
 
-    curl = curl_easy_init();
-    if(!curl)
-    {
-        printf("couldn't init curl\n");
-        return 1;
-    }
+//    curl = curl_easy_init();
+//    if(!curl)
+//    {
+//        printf("couldn't init curl\n");
+//        return 1;
+//    }
 
     fprintf(stderr, "move to home possition...\n");
-//    ret = system("curl http://172.16.30.15/axis-cgi/com/ptz.cgi?move=home");    //ホームポジション移動
+    ret = system("curl http://172.16.30.15/axis-cgi/com/ptz.cgi?move=home");    //ホームポジション移動
 
     //    double tstart = ysd::time::gettimeofday_sec();
-    curl_easy_setopt( curl, CURLOPT_URL, "http://172.16.30.15/axis-cgi/com/ptz.cgi?move=home");
-    CURLcode curl_ret;
-    curl_ret = curl_easy_perform( curl );
+//    curl_easy_setopt( curl, CURLOPT_URL, "http://172.16.30.15/axis-cgi/com/ptz.cgi?move=home");
+//    CURLcode curl_ret;
+//    curl_ret = curl_easy_perform( curl );
 //    fprintf(stderr, "\ntime: %lf\n", ysd::time::gettimeofday_sec() - tstart);
 
 
@@ -442,7 +442,7 @@ int main( int argc, char* argv[] )
     ret = system("rm /dev/shm/ptz");
     cerr << "/dev/shm/ptz removed" << endl;
 
-    curl_easy_cleanup( curl );
+//    curl_easy_cleanup( curl );
 
     cam_image.close();
     ptz.release();
