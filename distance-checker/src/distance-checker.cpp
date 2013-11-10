@@ -81,6 +81,7 @@ int main ( int argc , char **argv )
     gnd::inttimer timer_console;        //コンソール表示用GNDタイマ
     bool log_mode = false;              //ログを吐き出すかどうか
     std::ofstream ofs_logger;           //ログ吐き出し用のFileStream
+    bool logging_started = false;             //最初の1回、ログを吐き出したかどうか
     timer_console.begin( CLOCK_REALTIME , 1.0 , -1.0 );
 
     //--------------------------------------
@@ -202,6 +203,19 @@ int main ( int argc , char **argv )
         run_distance = sqrt( run_distance );
         past_odometry = ssm_odometry.data;
         total_distance += run_distance;
+
+        //----------------------------------
+        //最初の1回のログ吐き出し
+        if( log_mode && !logging_started && total_distance >= 0.3 )
+        {
+            time_t now = time(NULL);
+            struct tm *pnow = localtime(&now);
+
+            ofs_logger << "date: " << pnow->tm_year+1900 << "/" << pnow->tm_mon + 1 << "/" << pnow->tm_mday << std::endl;
+            ofs_logger << "start time: " << pnow->tm_hour << ":" << pnow->tm_min << ":" << pnow->tm_sec << std::endl;
+
+            logging_started = true;
+        }
     }
 
     //--------------------------------------
@@ -220,8 +234,7 @@ int main ( int argc , char **argv )
         time_t now = time(NULL);
         struct tm *pnow = localtime(&now);
 
-        ofs_logger << "save date: " << pnow->tm_year+1900 << "/" << pnow->tm_mon + 1 << "/" << pnow->tm_mday << std::endl;
-        ofs_logger << "save time: " << pnow->tm_hour << ":" << pnow->tm_min << ":" << pnow->tm_sec << std::endl;
+        ofs_logger << "goal time: " << pnow->tm_hour << ":" << pnow->tm_min << ":" << pnow->tm_sec << std::endl;
         ofs_logger << "total-distance: " << total_distance << " [m]" << std::endl;
         ofs_logger.close();
 
