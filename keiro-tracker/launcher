@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ -e launcher.opt ] ; then
+ . launcher.opt
+ fi
+
+ if [ -e  ] ; then
+ ./Release/keiro-tracker -g   ${OPTION} $@
+ else
+ ./Release/keiro-tracker $@ -G 
+ fi
