@@ -1,2 +1,8 @@
-*.user
-
+*
+!src
+!src/*
+!mk
+!mk/*
+!makefile
+!.gitignore
+!ptz-handler.pro

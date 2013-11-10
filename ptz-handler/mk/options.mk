@@ -12,7 +12,7 @@ _DBG_OPTION_	:=
 _PRE_OPTION_	:=-DNDEBUG=yes
 
 #linker option
-_LNK_OPTION_	:=$(patsubst %,-l%,$(LIBS))
+_LNK_OPTION_	:=$(patsubst %,-l%,$(LIBS)) /usr/local/lib/kaw_lib.a `pkg-config --libs opencv`
 
 #header directory option
 _HDIR_OPTION_	:=$(patsubst %,-I$(WORKSPACE)%,$(HEADER_DIR_LIST))
