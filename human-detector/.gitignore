@@ -1,0 +1,8 @@
+l*
+!src
+!src/*
+!mk
+!mk/*
+!makefile
+!.gitignore
+!human-detector.pro
