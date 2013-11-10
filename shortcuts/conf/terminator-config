@@ -289,14 +289,14 @@
       order = 1
       parent = child1
  	title = ptz-handler
-      command = cd ${tamago_home}/ptz-handler; ./launcher;  echo "-----"; echo "./launcher"; echo "-----"; bash;
+      command = sleep 1; cd ${tamago_home}/ptz-handler; ./launcher;  echo "-----"; echo "./launcher"; echo "-----"; bash;
     [[[terminal2]]]
       profile = default
       type = Terminal
       order = 0
       parent = child1
  	title = camera_image_handler
-      command = sleep 1; cd ${tamago_home}/camera_image_handler; ./launcher;  echo "-----"; echo "./launcher"; echo "-----"; bash;
+      command = cd ${tamago_home}/camera_image_handler; ./launcher;  echo "-----"; echo "./launcher"; echo "-----"; bash;
 
 #=================================================
 # human-detector / human-detectorの立ち上げ
