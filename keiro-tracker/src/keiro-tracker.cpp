@@ -127,13 +127,12 @@ int main ( int argc , char **argv )
     //--------------------------------------
     // keiro吐き出し用ファイルストリームの初期化
     //--------------------------------------
-    const std::string output_keiro_name = "keiro-output.dat";
-    std::cerr << output_keiro_name << " ... ";
-    ofs_keiro.open( output_keiro_name.c_str() );
+    std::cerr << "open " << keiro_tracker::output_name << " ... ";
+    ofs_keiro.open( keiro_tracker::output_name.c_str() );
 
     if( !ofs_keiro )
     {
-        std::cerr << "[\033[1m\033[31mERROR\033[30m\033[0m]:fail to open keiro-output.dat\n";
+        std::cerr << "[\033[1m\033[31mERROR\033[30m\033[0m]:fail to open " << keiro_tracker::output_name << "\n";
         return 1;
     }
     else
@@ -145,7 +144,7 @@ int main ( int argc , char **argv )
     // メインループ
     //--------------------------------------
     std::cout << "\n"
-              << "\n\n\n\n\n\n\n\n";
+              << "\n\n\n\n\n\n\n\n\n";
     bool first_read = true;
     while( !is_shutting_down )
     {
@@ -158,13 +157,14 @@ int main ( int argc , char **argv )
         if( timer_console.clock() )
         {
             std::cout.flush();
-            std::cout << "\033[8A"
-                      << "\033[2K --\033[1m\033[33m" << "keiro-tracker" << " \033[39m\033[0m --\n"
+            std::cout << "\033[9A"
+                      << "\033[2K --\033[1m\033[33m" << "keiro-tracker" << "\033[39m\033[0m --\n"
                       << "\033[2K odometry ssm name : " << keiro_tracker::ssm_name << "\n"
                       << "\033[2K odometry ssm id   : " << keiro_tracker::ssm_id << "\n"
                       << "\033[2K odometry x        : " << ssm_odometry.data.x << " [m]\n"
                       << "\033[2K odometry y        : " << ssm_odometry.data.y << " [m]\n"
                       << "\033[2K odometry theta    : " << ssm_odometry.data.theta << " [rad]\n"
+                      << "\033[2K output file       : " << keiro_tracker::output_name << "\n"
                       << "\033[2K output waypoint   : " << keiro_counter << " pts\n";
             std::cout << "\033[2K \n";
         }
@@ -206,7 +206,7 @@ int main ( int argc , char **argv )
     finalize_ssm();
     ofs_keiro.close();
 
-    std::cout << "keiro-output.dat closed ( total " << keiro_counter << " waypoints )\n";
+    std::cout << keiro_tracker::output_name << " closed ( total " << keiro_counter << " waypoints )\n";
 
     return 0;
 }

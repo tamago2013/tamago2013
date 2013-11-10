@@ -13,7 +13,7 @@
 namespace keiro_tracker
 {
 
-    const char ShortOpt[] = "hn:i:t:a:";
+    const char ShortOpt[] = "hn:i:t:a:o:";
     const struct option LongOpt[] =
     {
         { "help" , no_argument , 0 , 'h' },
@@ -21,6 +21,7 @@ namespace keiro_tracker
         { "ssm-id" , required_argument , 0 , 'i' },
         { "tracking-interval" , required_argument , 0 , 't' },
         { "tracking-angular-interval" , required_argument , 0 , 'a' },
+        { "output-name" , required_argument , 0 , 'o' },
         { 0 , 0 , 0 , 0 }
     };
 
@@ -34,7 +35,8 @@ namespace keiro_tracker
 
     int ssm_id = 0;
     std::string ssm_name = "spur_adjust";
-    double track_interval = 3.0;
+    std::string output_name = "keiro1.dat";
+    double track_interval = 1.0;
     double angle_interval = 60 * M_PI / 180.0;
 }
 
@@ -87,6 +89,13 @@ namespace keiro_tracker
                 break;
             }
 
+            //出力ファイル名の設定
+            case 'o':
+            {
+                output_name = optarg;
+                break;
+            }
+
             //ヘルプの表示
             case 'h':
             {
@@ -111,6 +120,9 @@ namespace keiro_tracker
                           << "\n"
                           << "\t\033[1m -a \033[0m ( \033[1m  --angular-interval \033[0m ) <angular interval[deg]>\n"
                           << "\t\t set keiro tracking angular interval[m](default = 60.0[deg])\n"
+                          << "\n"
+                          << "\t\033[1m -o \033[0m ( \033[1m  --output-name \033[0m ) <output file name>\n"
+                          << "\t\t set output file name(default = keiro1.dat)\n"
                           << "\n";
                 return 1;
             }
