@@ -1,4 +1,4 @@
 
 OBJS	:=$(patsubst %.cpp,%.o,$(SRCS))
 
-LIBS	:= ssm ypspur cvblob
+LIBS	:= ssm ypspur
