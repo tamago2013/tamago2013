@@ -91,13 +91,13 @@ namespace distance_checker
                           << "\t\t print help\n"
                           << "\n"
                           << "\t\033[1m -i \033[0m ( \033[1m  --ssm-id \033[0m ) <ssm-id>\n"
-                          << "\t\t set odometry data ssm-id( default = 1 ) / off\n"
+                          << "\t\t set odometry data ssm-id( default = 1 )\n"
                           << "\n"
                           << "\t\033[1m -n \033[0m ( \033[1m --ssm-name \033[0m ) <ssm-name>\n"
                           << "\t\t set odometry data ssm-name( default = \"spur_odometry\" )\n"
                           << "\n"
                           << "\t\033[1m -l \033[0m ( \033[1m  --log-name \033[0m ) <log-file-name>\n"
-                          << "\t\t set distance logging mode and output file name/ off\n"
+                          << "\t\t set distance logging mode and output file name\n"
                           << "\n";
                 return 1;
             }
@@ -112,7 +112,7 @@ namespace distance_checker
 
 }
 
-#endif // LS_ACCUMULATOR_OPT_HPP_
+#endif // DISTANCE_CHECKER_OPT_HPP_
 
 
 

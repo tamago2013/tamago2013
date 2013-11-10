@@ -6,4 +6,4 @@ INCLUDEPATH += \
     ../ssmtype
 
 HEADERS += \
-    src/ls-accumulator-opt.hpp
+    src/distance-checker-opt.hpp

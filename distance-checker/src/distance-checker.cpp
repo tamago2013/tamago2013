@@ -131,7 +131,7 @@ int main ( int argc , char **argv )
     //--------------------------------------
     if( distance_checker::log_name != "" )
     {
-        std::cerr << "opeing final output file ... ";
+        std::cerr << "opening final output file ... ";
         ofs_logger.open( distance_checker::log_name.c_str() );
 
         if( !ofs_logger )

@@ -4,7 +4,7 @@ if [ -e launcher.opt ] ; then
  fi
 
  if [ -e  ] ; then
- ./Release/distance-checker -g   ${OPTION} $@
+ ./Release/distance-checker -l distance-output.txt -g   ${OPTION} $@
  else
- ./Release/distance-checker $@ -G 
+ ./Release/distance-checker -l distance-output.txt $@ -G 
  fi
