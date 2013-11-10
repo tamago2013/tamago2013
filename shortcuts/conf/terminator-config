@@ -213,9 +213,9 @@
       parent = ""
 
 #=================================================
-# path-planner / path-planner とサウンドプレイの立ち上げ
+# main-controller / main-controller とサウンドプレイの立ち上げ
 #=================================================
-  [[path-planner]]
+  [[main-controller]]
     [[[child0]]]
       position = 0:0
       type = Window
@@ -232,8 +232,8 @@
       type = Terminal
       order = 1
       parent = child1
-      title = path-planner
-      command = cd ${tamago_home}/ysd-path-planner; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash;
+      title = main-controller
+      command = cd ${tamago_home}/main-controler; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash;
     [[[terminal2]]]
       profile = default
       type = Terminal
@@ -269,18 +269,47 @@
       parent = ""
 
 #=================================================
-# ptz / ptz-handlerの立ち上げ
+# ptz / ptz-handlerとcamera-image-handlerの立ち上げ
 #=================================================
   [[ptz]]
+    [[[child0]]]
+      position = 0:0
+      type = Window
+      order = 0
+      parent = ""
+      size = 1364, 689
+    [[[child1]]]
+      position = 681
+      type = HPaned
+      order = 0
+      parent = child0
+    [[[terminal3]]]
+      profile = default
+      type = Terminal
+      order = 1
+      parent = child1
+ 	title = ptz-handler
+      command = cd ${tamago_home}/ptz-handler; ./launcher;  echo "-----"; echo "./launcher"; echo "-----"; bash;
+    [[[terminal2]]]
+      profile = default
+      type = Terminal
+      order = 0
+      parent = child1
+ 	title = camera_image_handler
+      command = sleep 1; cd ${tamago_home}/camera_image_handler; ./launcher;  echo "-----"; echo "./launcher"; echo "-----"; bash;
+
+#=================================================
+# human-detector / human-detectorの立ち上げ
+#=================================================
+  [[human-detector]]
     [[[child1]]]
       type = Terminal
       parent = window0
-      title = ptz-handler
-      command = cd ${tamago_home}/ptz-handler; ./launcher;  echo "-----"; echo "./launcher"; echo "-----"; bash;
+      title = human-detector
+      command = cd ${tamago_home}/human-detector; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash;
     [[[window0]]]
       type = Window
       parent = ""
-
 
 [plugins]
 

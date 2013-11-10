@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================
-# path-plannerの起動
+# main-controllerの起動
 #==============================================
 
 #tamagoディレクトリホームパスの取得
@@ -38,7 +38,7 @@ if [ ${make_buckup} = "1" ] ; then
 fi
 
 #実行
-terminator -l path-planner -T path-planner
+terminator -l main-controller -T main-controller
 
 #バックアップを自分で作ったときは、バックアップから元のコンフィグを復元
 if [ ${make_buckup} = "1" ] ; then
