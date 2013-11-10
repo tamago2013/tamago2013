@@ -1,0 +1,4 @@
+HEIGHT_OFFSET 75.0 //2.020 [m] //実際の長さから0.85くらい差し引くと丁度良い
+DEPTH_OFFSET 10.0 [cm]
+PITCH_ROTATION -10.5.0 [degree]
+DEBUG 0

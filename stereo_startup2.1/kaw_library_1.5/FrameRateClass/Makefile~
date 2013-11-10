@@ -1,0 +1,16 @@
+CC=g++
+CFLAGS = -O2 -Wall
+LDLIBS = 
+OBJS = FrameRateClass
+
+#.cpp.o:
+#	$(CC) $(CFLAGS) -c $< 
+
+$(OBJS).o:$(OBJS).cpp
+	$(CC) $(CFLAGS) -c $<
+	cp FrameRateClass.hpp ../include/
+	cp FrameRateClass.o ../lib/
+#	$(CC) -o $@ $^ $(LDLIBS) 
+	
+clean:
+	rm -f *.o

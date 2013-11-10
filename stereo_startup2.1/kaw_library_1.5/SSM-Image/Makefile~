@@ -1,0 +1,16 @@
+CC=g++
+CFLAGS = -O2 -Wall
+LDLIBS = 
+OBJS = SSM-Image
+
+#.cpp.o:
+#	$(CC) $(CFLAGS) -c $< 
+
+$(OBJS).o:$(OBJS).cpp
+	$(CC) $(CFLAGS) -c $<
+	cp $(OBJS).hpp ../include/
+	cp $(OBJS).o ../lib/
+#	$(CC) -o $@ $^ $(LDLIBS) 
+	
+clean:
+	rm -f *.o
