@@ -3,7 +3,7 @@
 
 namespace ysd{
 
-bool gShutOff;
+bool gShutOff = false;
 
 void ctrlC( int aStatus )
 {
