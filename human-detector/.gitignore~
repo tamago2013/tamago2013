@@ -1,9 +1,0 @@
-*
-!src
-!src/*
-!mk
-!mk/*
-!makefile
-!main-controler.conf
-!.gitignore
-!main-controler.pro
