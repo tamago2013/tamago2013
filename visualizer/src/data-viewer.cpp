@@ -74,18 +74,17 @@ RouteViewer::RouteViewer(Window *window, tkg::ConfigGroup &conf)
     menu->list.push_back( SelectMenuElement("toute + number" , 3) );
     window->addMenuView(menu);
 
-    file       = conf["file"];
-
-    text_color   = tkg::Color4(conf["text-color"]);
-    circle_color = tkg::Color4(conf["circle-color"]);
+    file        = conf["file"];
+    detect      = tkg::parseInt(conf["detect-length"]) / 1000.0;
+    text_color  = tkg::Color4(conf["text-color"]);
+    inner_color = tkg::Color4(conf["inner-color"]);
+    outer_color = tkg::Color4(conf["outer-color"]);
 
     for(char i=0; i<26; i++)
     {
         node_color[i] = tkg::Color4(conf[std::string("node-color-") + (char)(i+'A')]);
         edge_color[i] = tkg::Color4(conf[std::string("edge-color-") + (char)(i+'A')]);
     }
-
-
 }
 
 RouteViewer::~RouteViewer()
@@ -108,7 +107,7 @@ std::string RouteViewer::load()
     while(fin >> w.flag, fin.good())
     {
 
-        fin >> w.pos.x >> w.pos.y >> w.rad >> w.spd;
+        fin >> w.pos.x >> w.pos.y >> w.right >> w.left >> w.ex >> w.spd;
         node.push_back( w );
     }
 
@@ -140,13 +139,22 @@ void RouteViewer::draw(double rotv, double roth)
         }
         glEnd();
 
-
-        glColor4dv(circle_color.rgba);
         glLineWidth(1);
         for(uint i=0; i<node.size(); i++)
         {
             if(node[i].flag != 'C') continue;
-            tkg::glCircle(node[i].pos.x, node[i].pos.y, node[i].rad);
+
+            std::vector<tkg::Point3> outer = outer_box(i);
+            glColor4dv(outer_color.rgba);
+            glBegin(GL_LINE_LOOP);
+            for(int j=0; j<4; j++) tkg::glVertex(outer[j]);
+            glEnd();
+
+            std::vector<tkg::Point3> inner = inner_box(i);
+            glColor4dv(inner_color.rgba);
+            glBegin(GL_LINE_LOOP);
+            for(int j=0; j<4; j++) tkg::glVertex(inner[j]);
+            glEnd();
         }
     }
 
@@ -162,7 +170,31 @@ void RouteViewer::draw(double rotv, double roth)
     }
 }
 
+std::vector<tkg::Point3> RouteViewer::inner_box(int i)
+{
+    tkg::Point3 v = (node[i+1].pos - node[i].pos).unit();
+    tkg::Point3 w = v.rotateZ(tkg::pi/2);
 
+    std::vector<tkg::Point3> ret(4);
+    ret[0] = node[i  ].pos + w * node[i].left;
+    ret[1] = node[i+1].pos + w * node[i].left  + v * node[i].ex;
+    ret[2] = node[i+1].pos - w * node[i].right + v * node[i].ex;
+    ret[3] = node[i  ].pos - w * node[i].right;
+    return ret;
+}
+
+std::vector<tkg::Point3> RouteViewer::outer_box(int i)
+{
+    tkg::Point3 v = (node[i+1].pos - node[i].pos).unit();
+    tkg::Point3 w = v.rotateZ(tkg::pi/2);
+
+    std::vector<tkg::Point3> ret(4);
+    ret[0] = node[i  ].pos + w * (node[i].left  + detect);
+    ret[1] = node[i+1].pos + w * (node[i].left  + detect) + v * node[i].ex;
+    ret[2] = node[i+1].pos - w * (node[i].right + detect) + v * node[i].ex;
+    ret[3] = node[i  ].pos - w * (node[i].right + detect);
+    return ret;
+}
 
 
 

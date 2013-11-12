@@ -44,7 +44,7 @@ struct WayPoint
 {
     char flag;
     tkg::Point3 pos;
-    double rad,spd;
+    double right,left,ex,spd;
 };
 
 class RouteViewer
@@ -59,13 +59,18 @@ class RouteViewer
 
     private:
 
+        double detect;
         SelectMenuHandler *menu;
         std::string file;
         tkg::Color4 node_color[26];
         tkg::Color4 edge_color[26];
         tkg::Color4 text_color;
-        tkg::Color4 circle_color;
+        tkg::Color4 inner_color;
+        tkg::Color4 outer_color;
         std::vector<WayPoint> node;
+
+        std::vector<tkg::Point3> inner_box(int i);
+        std::vector<tkg::Point3> outer_box(int i);
 };
 
 
@@ -83,9 +88,9 @@ class StreamViewer
         //std::string init();
         //update();
 
-    bool  sync;
-    Robot robot;
-    SSMApiBase *ssm;
+        bool  sync;
+        Robot robot;
+        SSMApiBase *ssm;
 };
 
 
