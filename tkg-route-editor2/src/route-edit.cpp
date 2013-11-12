@@ -1,20 +1,48 @@
 #include "route-edit.hpp"
 #include "tkg-utility.hpp"
 #include <fstream>
+#include <sstream>
 #include <QTableWidget>
+
+std::vector<tkg::Point3> RouteEdit::inner_box(int i)
+{
+    tkg::Point3 v = (node[i+1].pos - node[i].pos).unit();
+    tkg::Point3 w = v.rotateZ(tkg::pi/2);
+
+    std::vector<tkg::Point3> ret(4);
+    ret[0] = node[i  ].pos + w * node[i].left;
+    ret[1] = node[i+1].pos + w * node[i].left  + v * node[i].ex;
+    ret[2] = node[i+1].pos - w * node[i].right + v * node[i].ex;
+    ret[3] = node[i  ].pos - w * node[i].right;
+    return ret;
+}
+
+std::vector<tkg::Point3> RouteEdit::outer_box(int i)
+{
+    tkg::Point3 v = (node[i+1].pos - node[i].pos).unit();
+    tkg::Point3 w = v.rotateZ(tkg::pi/2);
+
+    std::vector<tkg::Point3> ret(4);
+    ret[0] = node[i  ].pos + w * (node[i].left  + detect);
+    ret[1] = node[i+1].pos + w * (node[i].left  + detect) + v * node[i].ex;
+    ret[2] = node[i+1].pos - w * (node[i].right + detect) + v * node[i].ex;
+    ret[3] = node[i  ].pos - w * (node[i].right + detect);
+    return ret;
+}
 
 RouteEdit::RouteEdit(tkg::ConfigFile &conf)
 {
-    update = false;
-    select = -1;
-    radius = 1.0;
+    update      = false;
+    node_select = -1;
+    edge_select = -1;
     tmplog.type = NONE;
 
-    file         = conf["Route"]["file"];
-    radius       = tkg::parseInt(conf["Route"]["radius"]);
+    file        = conf["Route"]["file"];
+    detect      = tkg::parseInt(conf["Route"]["detect-length"]) / 1000.0;
 
-    text_color   = tkg::Color4(conf["Route"]["text-color"]);
-    circle_color = tkg::Color4(conf["Route"]["circle-color"]);
+    text_color  = tkg::Color4(conf["Route"]["text-color"]);
+    inner_color = tkg::Color4(conf["Route"]["innerbox-color"]);
+    outer_color = tkg::Color4(conf["Route"]["outerbox-color"]);
 
     for(char i=0; i<26; i++)
     {
@@ -41,7 +69,7 @@ void RouteEdit::load()
 
     while(fin >> w.flag, fin.good())
     {
-        fin >> w.pos.x >> w.pos.y >> w.rad >> w.spd;
+        fin >> w.pos.x >> w.pos.y >> w.right >> w.left >> w.ex >> w.spd;
         node.push_back( w );
     }
     update = true;
@@ -59,7 +87,11 @@ void RouteEdit::loadReference()
 
         while(fin >> w.flag, fin.good())
         {
-            fin >> w.pos.x >> w.pos.y >> w.rad >> w.spd;
+            std::string str;
+            std::getline(fin, str);
+            std::istringstream sin(str);
+
+            sin >> w.pos.x >> w.pos.y;
             reference_node.back().push_back( w );
         }
     }
@@ -73,7 +105,8 @@ void RouteEdit::save()
     for(uint i=0; i<node.size(); i++)
     {
         WayPoint &w = node[i];
-        fout << w.flag << " " << w.pos.x << " " << w.pos.y << " " << w.rad << " " << w.spd << std::endl;
+        fout << w.flag << " " << w.pos.x << " " << w.pos.y << " ";
+        fout << w.right << " " << w.left << " " << w.ex << " " << w.spd << std::endl;
     }
 }
 
@@ -96,10 +129,12 @@ void RouteEdit::drawTable(QTableWidget *table)
         table->insertRow(i);
         table->setItem(i, 0, new QTableWidgetItem(tkg::strf("%d",    i            ).c_str()));
         table->setItem(i, 1, new QTableWidgetItem(tkg::strf("%c",    node[i].flag ).c_str()));
-        table->setItem(i, 2, new QTableWidgetItem(tkg::strf("%+.2f", node[i].pos.x).c_str()));
-        table->setItem(i, 3, new QTableWidgetItem(tkg::strf("%+.2f", node[i].pos.y).c_str()));
-        table->setItem(i, 4, new QTableWidgetItem(tkg::strf("%+.2f", node[i].rad  ).c_str()));
-        table->setItem(i, 5, new QTableWidgetItem(tkg::strf("%+.2f", node[i].spd  ).c_str()));
+        table->setItem(i, 2, new QTableWidgetItem(tkg::strf("%+.1f", node[i].pos.x).c_str()));
+        table->setItem(i, 3, new QTableWidgetItem(tkg::strf("%+.1f", node[i].pos.y).c_str()));
+        table->setItem(i, 4, new QTableWidgetItem(tkg::strf("%+.2f", node[i].right).c_str()));
+        table->setItem(i, 5, new QTableWidgetItem(tkg::strf("%+.2f", node[i].left ).c_str()));
+        table->setItem(i, 6, new QTableWidgetItem(tkg::strf("%+.2f", node[i].ex   ).c_str()));
+        table->setItem(i, 7, new QTableWidgetItem(tkg::strf("%+.2f", node[i].spd  ).c_str()));
     }
 
 }
@@ -109,7 +144,7 @@ void RouteEdit::readTable(QTableWidget *table)
     for(uint i=0; i<table->rowCount(); i++)
     {
         WayPoint w;
-        QByteArray old_str[6], new_str[6];
+        QByteArray old_str[8], new_str[8];
 
         // Noは変更不可 & FlagはACEのみ
 
@@ -130,25 +165,31 @@ void RouteEdit::readTable(QTableWidget *table)
         w = node[i];
 
         old_str[1] = tkg::strf("%c",    node[i].flag ).c_str();
-        old_str[2] = tkg::strf("%+.2f", node[i].pos.x).c_str();
-        old_str[3] = tkg::strf("%+.2f", node[i].pos.y).c_str();
-        old_str[4] = tkg::strf("%+.2f", node[i].rad  ).c_str();
-        old_str[5] = tkg::strf("%+.2f", node[i].spd  ).c_str();
+        old_str[2] = tkg::strf("%+.1f", node[i].pos.x).c_str();
+        old_str[3] = tkg::strf("%+.1f", node[i].pos.y).c_str();
+        old_str[4] = tkg::strf("%+.2f", node[i].right).c_str();
+        old_str[5] = tkg::strf("%+.2f", node[i].left ).c_str();
+        old_str[6] = tkg::strf("%+.2f", node[i].ex   ).c_str();
+        old_str[7] = tkg::strf("%+.2f", node[i].spd  ).c_str();
 
         node[i].flag  = table->item(i,1)->text().toAscii().at(0);
         node[i].pos.x = table->item(i,2)->text().toAscii().toDouble();
         node[i].pos.y = table->item(i,3)->text().toAscii().toDouble();
-        node[i].rad   = table->item(i,4)->text().toAscii().toDouble();
-        node[i].spd   = table->item(i,5)->text().toAscii().toDouble();
+        node[i].right = table->item(i,4)->text().toAscii().toDouble();
+        node[i].left  = table->item(i,5)->text().toAscii().toDouble();
+        node[i].ex    = table->item(i,6)->text().toAscii().toDouble();
+        node[i].spd   = table->item(i,7)->text().toAscii().toDouble();
 
         new_str[1] = tkg::strf("%c",    node[i].flag ).c_str();
-        new_str[2] = tkg::strf("%+.2f", node[i].pos.x).c_str();
-        new_str[3] = tkg::strf("%+.2f", node[i].pos.y).c_str();
-        new_str[4] = tkg::strf("%+.2f", node[i].rad  ).c_str();
-        new_str[5] = tkg::strf("%+.2f", node[i].spd  ).c_str();
+        new_str[2] = tkg::strf("%+.1f", node[i].pos.x).c_str();
+        new_str[3] = tkg::strf("%+.1f", node[i].pos.y).c_str();
+        new_str[4] = tkg::strf("%+.2f", node[i].right).c_str();
+        new_str[5] = tkg::strf("%+.2f", node[i].left ).c_str();
+        new_str[6] = tkg::strf("%+.2f", node[i].ex   ).c_str();
+        new_str[7] = tkg::strf("%+.2f", node[i].spd  ).c_str();
 
         bool changed = false;
-        for(int j=1; j<6; j++)
+        for(int j=1; j<8; j++)
         {
             if(old_str[j] != new_str[j])
             {
@@ -191,11 +232,26 @@ void RouteEdit::draw()
     }
     glEnd();
 
-    glColor4dv(circle_color.rgba);
-    for(uint i=0; i<node.size(); i++)
+    for(uint i=0; i+1<node.size(); i++)
     {
         if( node[i].flag != 'C') continue;
-        tkg::glCircle(node[i].pos.x, node[i].pos.y, node[i].rad);
+
+        tkg::Point3 v,w;
+        v = node[i+1].pos - node[i].pos;
+        v = v.unit();
+        w = v.rotateZ(tkg::pi/2);
+
+        std::vector<tkg::Point3> outer = outer_box(i);
+        glColor4dv(outer_color.rgba);
+        glBegin(GL_LINE_LOOP);
+        for(int j=0; j<4; j++) tkg::glVertex(outer[j]);
+        glEnd();
+
+        std::vector<tkg::Point3> inner = inner_box(i);
+        glColor4dv(inner_color.rgba);
+        glBegin(GL_LINE_LOOP);
+        for(int j=0; j<4; j++) tkg::glVertex(inner[j]);
+        glEnd();
     }
 
     glColor4dv(text_color.rgba);
@@ -238,7 +294,7 @@ void RouteEdit::drawReference()
 
 bool RouteEdit::selected()
 {
-    return (select != -1);
+    return (node_select != -1);
 }
 
 void RouteEdit::undo()
@@ -270,35 +326,70 @@ void RouteEdit::undo()
 
 void RouteEdit::reset()
 {
-    select = -1;
-    if(tmplog.type == NONE) return;
+    node_select = -1;
+    edge_select = -1;
 
-    log.push_back(tmplog);
-    tmplog.type = NONE;
+    if(tmplog.type != NONE)
+    {
+        log.push_back(tmplog);
+        tmplog.type = NONE;
+    }
 }
 
 void RouteEdit::set(double x, double y, double r)
 {
-    tkg::Point3 p(x,y,0);
-    select = -1;
+    node_select = -1;
+    edge_select = -1;
+
+    tkg::Point3 pos(x,y,0);
     double mindist = tkg::inf;
 
     for(uint i=0; i<node.size(); i++)
     {
-        double dist = (node[i].pos - p).abs();
+        double dist = (node[i].pos - pos).abs();
         if( dist > r) continue;
         if( dist < mindist )
         {
-            select  = i;
-            mindist = dist;
+            node_select = i;
+            mindist     = dist;
         }
     }
 
-    if(0 <= select && select < node.size())
+    if(0 <= node_select && node_select < node.size())
     {
         tmplog.type   = MOVE;
-        tmplog.select = select;
-        tmplog.pos    = node[select];
+        tmplog.select = node_select;
+        tmplog.pos    = node[node_select];
+        return;
+    }
+
+    for(uint i=0; i+1<node.size(); i++)
+    {
+        std::vector<tkg::Point3> box = inner_box(i);
+        for(int j=0; j<3; j++)
+        {
+            tkg::Point3 u = box[j+1] - box[j];
+            tkg::Point3 v =      pos - box[j];
+
+            double dot = ( u.x * v.x + u.y * v.y ) / (u.abs() * u.abs());
+            if(dot < 0.0 || 1.0 < dot) continue;
+
+            double dist = abs( u.x * v.y - u.y * v.x ) / u.abs();
+            if( dist > r) continue;
+            if( dist < mindist )
+            {
+                edge_select = i * 10 + j;
+                mindist     = dist;
+            }
+        }
+    }
+
+    if(0 <= (edge_select/10) && (edge_select/10)+1 < node.size())
+    {
+        tmplog.type   = MOVE;
+        tmplog.select = edge_select/10;
+        tmplog.pos    = node[edge_select/10];
+        return;
     }
 }
 
@@ -363,10 +454,12 @@ void RouteEdit::push(double x, double y, double r)
         tmplog.type = NONE;
 
         WayPoint w;
-        w.flag = node[target-1].flag;
-        w.pos  = pos;
-        w.rad  = node[target-1].rad;
-        w.spd  = node[target-1].spd;
+        w.flag  = node[target-1].flag;
+        w.pos   = pos;
+        w.right = node[target-1].right;
+        w.left  = node[target-1].left;
+        w.ex    = node[target-1].ex;
+        w.spd   = node[target-1].spd;
         node.insert(node.begin() + target, w);
 
         update = true; return;
@@ -379,10 +472,12 @@ void RouteEdit::push(double x, double y, double r)
     tmplog.type = NONE;
 
     WayPoint w;
-    w.flag = 'A';
-    w.pos  = pos;
-    w.rad  = radius;
-    w.spd =  0.7;
+    w.flag  = 'A';
+    w.pos   = pos;
+    w.right = 2.0;
+    w.left  = 2.0;
+    w.ex    = 0.0;
+    w.spd   = 0.7;
 
     node.push_back( w );
     update = true; return;
@@ -392,21 +487,39 @@ void RouteEdit::push(double x, double y, double r)
 
 void RouteEdit::move(double x, double y)
 {
-    if(select<0 || node.size()<=select) return;
-    node[select].pos = tkg::Point3(x,y,0);
+    if(0 <= node_select && node_select < node.size())
+    {
+        node[node_select].pos = tkg::Point3(x,y,0);
+        update = true;
+    }
 
-    update = true;
+    if(0 <= (edge_select/10) && (edge_select/10)+1 < node.size())
+    {
+        int i = edge_select / 10;
+
+        tkg::Point3 pos(x,y,0);
+        tkg::Point3 u = node[i].pos - node[i+1].pos;
+        tkg::Point3 v =         pos - node[i+1].pos;
+
+        if(edge_select % 10 == 1) u = u.rotateZ(tkg::pi/2);
+
+        double dist = (u.x * v.y - u.y * v.x) / u.abs();
+        switch(edge_select % 10)
+        {
+            case 0: node[i].left  = std::max(0.0, -dist); break;
+            case 1: node[i].ex    = std::max(0.0,  dist); break;
+            case 2: node[i].right = std::max(0.0,  dist); break;
+        }
+        update = true;
+    }
 }
 
-void RouteEdit::change(double r, double s)
+void RouteEdit::change(double s)
 {
-    if(select<0 || node.size()<=select) return;
+    if(node_select<0 || node.size()<=node_select) return;
 
-    node[select].rad += r;
-    if(node[select].rad < 0) node[select].rad = 0;
-
-    node[select].spd += s;
-    if(node[select].spd < 0) node[select].spd = 0;
+    node[node_select].spd += s;
+    if(node[node_select].spd < 0) node[node_select].spd = 0;
 
     update = true;
 }

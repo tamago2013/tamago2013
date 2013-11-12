@@ -42,12 +42,18 @@ class Point3
 
         Point3 operator+(const Point3 &t) const { return Point3(x+t.x, y+t.y, z+t.z); }
         Point3 operator-(const Point3 &t) const { return Point3(x-t.x, y-t.y, z-t.z); }
-
+        Point3 operator*(const Point3 &t) const { return Point3(x*t.x, y*t.y, z*t.z); }
+        Point3 operator/(const Point3 &t) const { return Point3(x/t.x, y/t.y, z/t.z); }
 
 		double abs() const
 		{
 			return sqrt(x*x + y*y + z*z);
 		}
+
+        Point3 unit() const
+        {
+            return (*this) / abs();
+        }
 
         /*
 		void rotX(double rad)

@@ -11,9 +11,11 @@ class QTableWidget;
 struct WayPoint
 {
     char flag;
-    double rad;
-    double spd;
     tkg::Point3 pos;
+    double right;
+    double left;
+    double ex;
+    double spd;
 };
 
 enum LogType
@@ -52,13 +54,15 @@ class RouteEdit
         void set (double x, double y, double r);
         void push(double x, double y, double r);
         void move(double x, double y);
-        void change(double r, double s);
+        void change(double s);
 
     private:
 
         bool   update;
-        int    select;
-        double radius;
+        double detect;
+        int    node_select;
+        int    edge_select;
+
         LogElement tmplog;
         std::vector<LogElement>  log;
         std::vector<WayPoint> node;
@@ -66,11 +70,15 @@ class RouteEdit
         tkg::Color4 text_color;
         tkg::Color4 node_color[26];
         tkg::Color4 edge_color[26];
-        tkg::Color4 circle_color;
+        tkg::Color4 inner_color;
+        tkg::Color4 outer_color;
 
         std::vector< std::string >           reference_file;
         std::vector< tkg::Color4 >           reference_color;
         std::vector< std::vector<WayPoint> > reference_node;
+
+        std::vector< tkg::Point3 > inner_box(int i);
+        std::vector< tkg::Point3 > outer_box(int i);
 };
 
 #endif // ROUTE_EDIT_HPP
