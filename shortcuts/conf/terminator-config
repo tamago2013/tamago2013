@@ -130,7 +130,7 @@
       order = 0
       parent = child5
      title = ypspur-coordinator
-      command = sleep 1; ypspur-coordinator -p ${tamago_home}/data/Loop-new.param -d /dev/ttyACM0 --high-resolution; echo "-----"; echo "ypspur-coordinator -p "${tamago_home}"/data/Loop-new.param -d /dev/ttyACM0 --high-resolution"; echo "-----"; bash;  
+      command = sleep 1; ypspur-coordinator -p ${tamago_home}/data/Loop-new.param -d /dev/ttyACM0 --high-resolution --verbose; echo "-----"; echo "ypspur-coordinator -p "${tamago_home}"/data/Loop-new.param -d /dev/ttyACM0 --high-resolution --verbose"; echo "-----"; bash;  
     [[[terminal9]]]
       profile = default
       type = Terminal
@@ -147,7 +147,7 @@
       command = sleep 1; cd ${tamago_home}/distance-checker; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash; 
 
 #=================================================
-# localizer / particle-localizerとopsm-particle-evaluatorの立ち上げ
+# localizer / particle-localizerとopsm-particle-evaluatorとkeiro-trackerの立ち上げ
 #=================================================
   [[localizer]]
     [[[child0]]]
@@ -183,7 +183,8 @@
       type = Terminal
       order = 1
       parent = child2
-      command = echo""; bash;
+      title = keiro-tracker
+      command = cd ${tamago_home}/keiro-tracker; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash;
     [[[terminal7]]]
       profile = default
       type = Terminal
@@ -263,7 +264,7 @@
       type = Terminal
       parent = window0
       title = joystick
-      command = ypspur-joystick -d /dev/input/js0 -V 1.0 -W 3.0 -A 1.0 -O 3.0 0.5 0.8; echo "-----"; echo "ypspur-joystick -d /dev/input/js0 -V 1.0 -W 3.0 -A 1.0 -O 3.0 0.5 0.8"; echo "-----"; bash;
+      command = ypspur-joystick -d /dev/input/js0 -V 1.0 -W 3.0 -A 1.0 -O 3.0 0.8 0.8; echo "-----"; echo "ypspur-joystick -d /dev/input/js0 -V 1.0 -W 3.0 -A 1.0 -O 3.0 0.8 0.8"; echo "-----"; bash;
     [[[window0]]]
       type = Window
       parent = ""
