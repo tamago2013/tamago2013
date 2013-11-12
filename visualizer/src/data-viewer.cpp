@@ -332,15 +332,17 @@ void ClusterViewer::draw()
     {
         glLineWidth(3);
         glColor4dv(color.rgba);
-        glBegin(GL_LINES);
+//        glBegin(GL_LINES);
         for(int i=0; i<data.num_clusters(); i++)
         {
+        glBegin(GL_LINE_LOOP);		//YSD
             glVertex3d(data.rect[i].x1, data.rect[i].y1, height);
             glVertex3d(data.rect[i].x1, data.rect[i].y2, height);
             glVertex3d(data.rect[i].x2, data.rect[i].y2, height);
             glVertex3d(data.rect[i].x2, data.rect[i].y1, height);
+        glEnd();					//YSD
         }
-        glEnd();
+//        glEnd();
     }
 }
 
