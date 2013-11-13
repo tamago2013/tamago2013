@@ -50,7 +50,7 @@ namespace main_controler
     static const gnd::conf::parameter<double> ConfIni_YPspurMaxAngVel =
     {
         "YPspur-max-angle-velocity",
-        3.14,
+        1.57,
         "YPspur max angle velocity[rad/sec]"
     };
 
@@ -75,7 +75,7 @@ namespace main_controler
     static const gnd::conf::parameter_array< char , 512 > ConfIni_OdometryName =
     {
         "odometry-ssm-name",
-        SNAME_ODOMETRY,
+        SNAME_GLOBAL,
         "odometry data ssm name"
     };
 
@@ -170,6 +170,38 @@ namespace main_controler
         "stop waiting time till avoiding [sec]"
     };
 
+    //waiting time
+    static const gnd::conf::parameter<bool> ConfIni_RunOnlyMode =
+    {
+        "run-only-mode",
+        false,
+        "run only mode"
+    };
+
+    //waiting time
+    static const gnd::conf::parameter<double> ConfIni_TargetApproachMergin =
+    {
+        "target-approach-mergin",
+        0.8,
+        "target approach mergin [m]"
+    };
+
+    //waiting time
+    static const gnd::conf::parameter<double> ConfIni_TargetDetectionStopTime =
+    {
+        "target-detection-stop-time",
+        10.0,
+        "target detection stop time [sec]"
+    };
+
+    //detect area maergin y
+    static const gnd::conf::parameter<double> ConfIni_DetectAreaYMergin =
+    {
+        "detect-area-y-mergin",
+        1.5,
+        "detect area y mergin [m]"
+    };
+
 
 
 
@@ -202,6 +234,10 @@ namespace main_controler
         gnd::conf::parameter<double> pre_crash_safety_megin_y;
         gnd::conf::parameter<double> spur_over_line_mergin;
         gnd::conf::parameter<double> stop_waiting_time;
+        gnd::conf::parameter<bool> run_only_mode;
+        gnd::conf::parameter<double> target_approach_mergin;
+        gnd::conf::parameter<double> target_detection_stop_time;
+        gnd::conf::parameter<double> detect_area_y_mergin;
 
         //初期化関数
         proc_configuration();
@@ -243,6 +279,10 @@ namespace main_controler
         memcpy( &conf->pre_crash_safety_megin_y, &ConfIni_PreCrashSafetyMerginY, sizeof(ConfIni_PreCrashSafetyMerginY) );
         memcpy( &conf->spur_over_line_mergin, &ConfIni_SpurStopLineMergin, sizeof(ConfIni_SpurStopLineMergin) );
         memcpy( &conf->stop_waiting_time, &ConfIni_StopWaitingTime, sizeof(ConfIni_StopWaitingTime) );
+        memcpy( &conf->run_only_mode, &ConfIni_RunOnlyMode, sizeof(ConfIni_RunOnlyMode) );
+        memcpy( &conf->target_approach_mergin, &ConfIni_TargetApproachMergin, sizeof(ConfIni_TargetApproachMergin) );
+        memcpy( &conf->target_detection_stop_time, &ConfIni_TargetDetectionStopTime, sizeof(ConfIni_TargetDetectionStopTime) );
+        memcpy( &conf->detect_area_y_mergin, &ConfIni_DetectAreaYMergin, sizeof(ConfIni_DetectAreaYMergin) );
 
 
         return 0;
@@ -271,6 +311,11 @@ namespace main_controler
         gnd::conf::get_parameter(src, &dest->pre_crash_safety_megin_y);
         gnd::conf::get_parameter(src, &dest->spur_over_line_mergin);
         gnd::conf::get_parameter(src, &dest->stop_waiting_time);
+        gnd::conf::get_parameter(src, &dest->run_only_mode);
+        gnd::conf::get_parameter(src, &dest->target_approach_mergin);
+        gnd::conf::get_parameter(src, &dest->target_detection_stop_time);
+        gnd::conf::get_parameter(src, &dest->detect_area_y_mergin);
+
 
         return 0;
     }
@@ -298,6 +343,11 @@ namespace main_controler
         gnd::conf::set_parameter(dest, &src->pre_crash_safety_megin_y);
         gnd::conf::set_parameter(dest, &src->spur_over_line_mergin);
         gnd::conf::set_parameter(dest, &src->stop_waiting_time);
+        gnd::conf::set_parameter(dest, &src->run_only_mode);
+        gnd::conf::set_parameter(dest, &src->target_approach_mergin);
+        gnd::conf::set_parameter(dest, &src->target_detection_stop_time);
+        gnd::conf::set_parameter(dest, &src->detect_area_y_mergin);
+
 
         return 0;
     }

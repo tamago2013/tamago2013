@@ -162,54 +162,67 @@ namespace target_recognizer
     {
         if (target_pos.y1 <= 0.0 && target_pos.y2 <= 0.0)       //右にいる
         {
-
             *max_x = min(target_pos.x1, target_pos.x2);
             *max_y = min(target_pos.y1, target_pos.y2);
             *min_x = max(target_pos.x1, target_pos.x2);
             *min_y = max(target_pos.y1, target_pos.y2);
-//            cerr << "!\n";
 //            fprintf(stderr, "min (%lf, %lf)\n", *min_x, *min_y);
 //            fprintf(stderr, "max (%lf, %lf)\n", *max_x, *max_y);
-
         }
         else if(target_pos.y1 > 0.0 && target_pos.y2 > 0.0)     //左にいる
         {
-
             *max_x = max(target_pos.x1, target_pos.x2);
             *max_y = min(target_pos.y1, target_pos.y2);
             *min_x = min(target_pos.x1, target_pos.x2);
             *min_y = max(target_pos.y1, target_pos.y2);
-//            cerr << "!!\n";
 //            fprintf(stderr, "min (%lf, %lf)\n", *min_x, *min_y);
 //            fprintf(stderr, "max (%lf, %lf)\n", *max_x, *max_y);
-
         }
         else                                                    //ほぼ正面にいる
         {
-
             *max_x = min(target_pos.x1, target_pos.x2);
             *max_y = min(target_pos.y1, target_pos.y2);
             *min_x = min(target_pos.x1, target_pos.x2);
             *min_y = max(target_pos.y1, target_pos.y2);
-//            cerr << "!!\n";
 //            fprintf(stderr, "min (%lf, %lf)\n", *min_x, *min_y);
 //            fprintf(stderr, "max (%lf, %lf)\n", *max_x, *max_y);
-
         }
-
     }
 
+    double C = 2.0*640.0/(M_PI*51.6/180.0);
 
+    int calc_pixel_width(double distance, double real_width)
+    {
+        return C*atan2(real_width, 2.0*distance);
+    }
 
-
-    bool target_recognize( const cv::Mat src,      //最適な角度で取得された画像
+    bool target_recognize( cv::Mat src,      //最適な角度で取得された画像
                            cv::Mat *out,     //描画用の画像
-                           const double camera_pan,       //srcのときのカメラpan角度
+                           const double camera_pan,       //srcのときのカメラpan角度[rad]
                            const ysd::_rect *target_pos    //target_の位置 <~~ camera座標系
                            /*, color_threshold*/ )
     {
+
+//        cv::imshow("ret", src);
+//        cv::waitKey(0);
+//        return true;    //debug
+
+
         //declaration
-        ysd::color_detector::threshold_HSV threshold_cap(17.000, 177.000, 190.000, 63.000, 255.000, 235.000); //target3
+//        ysd::color_detector::threshold_HSV threshold_cap(17.000, 177.000, 190.000, 63.000, 255.000, 235.000);
+//        ysd::color_detector::threshold_HSV threshold_cap(41, 157, 255, 42, 255, 66); //全て含む
+
+        ysd::color_detector::threshold_HSV threshold_cap(13.000, 157.000, 255.000, 50.000, 255.000, 66.000); //2
+//        ysd::color_detector::threshold_HSV threshold_cap(120.000, 82.000, 157.000, 0.000, 217.000, 65.000); //blue
+
+
+
+        double cap_real_width_min = 0.15;
+        double cap_real_width_max = 0.40;
+        double distance = sqrt( (target_pos->x_g*target_pos->x_g)+(target_pos->y_g*target_pos->y_g) );
+        double cap_pixel_width_min = calc_pixel_width(distance, cap_real_width_min);
+        double cap_pixel_width_max = calc_pixel_width(distance, cap_real_width_max);
+
 
         cv::Mat mask_cap;
 //        ysd::color_detector::color_detct(src, mask_cap, threshold_cap);
@@ -224,8 +237,8 @@ namespace target_recognizer
         double max_x, max_y, min_x, min_y;
         target_recognizer::find_range_pos(*target_pos, &min_x, &min_y, &max_x, &max_y);
 
-        fprintf(stderr, "min (%lf, %lf)\n", min_x, min_y);  //debug
-        fprintf(stderr, "max (%lf, %lf)\n", max_x, max_y);  //debug
+//        fprintf(stderr, "min (%lf, %lf)\n", min_x, min_y);  //debug
+//        fprintf(stderr, "max (%lf, %lf)\n", max_x, max_y);  //debug
 
         double pos1_th = atan2(min_y, min_x);
         int column1 = target_recognizer::A * (1.0 - target_recognizer::B*tan(pos1_th-camera_pan) );
@@ -235,14 +248,48 @@ namespace target_recognizer
         cerr << "column1 " << column1 << "\n";  //debug
         cerr << "column2 " << column2 << "\n";  //debug
 
+        if(0 > column1 || column1 > 640 || 0 > column2 || column2 > 640 || column1 >= column2)
+        {
+            cerr << "はんいがおかしい！！！\n";
+//            return false;
+        }
+
+        if(0 > column1)
+        {
+            column1 = 0;
+            cerr << "1\n";
+        }
+        if(column1 > 640)
+        {
+            column1 = 640;
+            cerr << "2\n";
+        }
+        if(0 > column2)
+        {
+            column2 = 0;
+            cerr << "3\n";
+        }
+        if(column2 > 640)
+        {
+            column2 = 640;
+            cerr << "4\n";
+        }
+        if(column1 >= column2)
+        {
+            int a = column1;
+            column1 = column2;
+            column2 = a;
+            cerr << "5\n";
+        }
+
         cv::rectangle(*out, cv::Point(column1, 0), cv::Point(column2, 240), cv::Scalar(255,255,255), 2, 4); //debug
-        cv::imshow("out", *out);    //debug
+//        cerr << "!\n";
+//        cv::imshow("out", src);    //debug
 
         cv::Rect cap_detect_area(column1, 0, column2-column1, 240);    //(x, y, w, h)
         cv::Mat cap_detect_rect = mask_cap(cap_detect_area);
 
-        cv::imshow("cap_detect_rect", cap_detect_rect); //debug
-
+//        cv::imshow("cap_detect_rect", cap_detect_rect); //debug
 
         //blob detect
         IplImage img = cap_detect_rect;    //debug
@@ -253,6 +300,9 @@ namespace target_recognizer
         cvb::cvRenderBlobs(labelImg, blobs_cap, &img, &img);    //debug
         cv::Mat cap_detect = cv::cvarrToMat(&img);              //debug
 
+        cvb::cvFilterByArea(blobs_cap, 5, 100000);
+
+
         cv::imshow("cap_detect", cap_detect);
 
         //判断してreturn true/false
@@ -260,18 +310,34 @@ namespace target_recognizer
         { // ---> for each cap blob
             cvb::CvBlob *blob_cap=(*it).second;
 
+            double width = blob_cap->maxx - blob_cap->minx;
+            double hight = blob_cap->maxy - blob_cap->miny;
+
+//            fprintf(stderr, "\n---------------------------------------\n");
+            fprintf(stderr, "max(%d, %d) min(%d, %d) ", blob_cap->maxx, blob_cap->maxy, blob_cap->minx, blob_cap->miny);
+            fprintf(stderr, "centroid(%lf, %lf) ", blob_cap->centroid.x, blob_cap->centroid.y);
+            cerr << "blob->area " << blob_cap->area;
+            cerr << " blob->label " << blob_cap->label;
+            cerr << "\n";
 
 
+//            if(/*width > 1.7*hight && */blob_cap->area > 25)    //これも買えないと
+            if( cap_pixel_width_min <= (blob_cap->maxx-blob_cap->minx)
+                    && (blob_cap->maxx-blob_cap->minx) <= cap_pixel_width_max )
+            {
+                cerr << "HIT!\n";
+//                return true;
+            }
 
         }
-
-
-
 
         //描画用の画像をoutに格納
 
 
-cv::waitKey(0);     //debug
+//        cv::waitKey(0);     //debug
+
+        return false;
+
     }
 
 }   // ---> namespace target_recognizer

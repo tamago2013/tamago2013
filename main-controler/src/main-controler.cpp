@@ -64,6 +64,7 @@ SSMApi<ysd::PTZ> ptz;
 
 SSMApi<double> human_detector_start_cue;    //dataはdetectin radius
 SSMApi<bool> ptz_move_start_cue;
+SSMApi<Spur_Odometry>	ssm_initpos;	// start poisition
 
 inline void finalize_ssm()
 {
@@ -95,6 +96,8 @@ inline void finalize_ssm()
 
     human_detector_start_cue.release();
     ptz_move_start_cue.release();
+    ssm_initpos.release();
+
 
     if( ssm_isopen )
     {
@@ -143,6 +146,9 @@ public:
     bool is_avoiding;           // <-write:master / read:master | true: 回避動作中 / false: 通常
     bool is_foward_target;      // <-write:master / read:master | true: 探索対象に向かってる / false: 通常
 
+    bool is_adhoc;
+
+
     bool enable_avoiding;       // <-write:master / read:master |
     bool enable_seemless;       // <-write:master / read:master |
 
@@ -158,7 +164,7 @@ public:
     void set_cue_spin(void){_cue_spin = true;}
     void set_cue_line(void){_cue_spin = false;}
     bool cue_stop;           // <-write:master, slave / read:slave | true: Spur_stop中 / false: 通常
-    //        bool cue_free;               // <-write:master, slave / read:slave | true: Spur_free中 / false: 通常
+    bool cue_free;               // <-write:master, slave / read:slave | true: Spur_free中 / false: 通常
 
     int avoiding_pahse;         // <-write:slave, (master) / read:master | 回避動作のどの段階にるか
     int foward_target_phase;    // <-write:slave, (master) / read:master | 探索対象に近づく動作のどの段階にいるか
@@ -205,59 +211,6 @@ int main( int argc, char* argv[] )
     // <--- declaration
 
 
-//    // ---> target-recognizer debug
-//    cerr << "target-recognizer debug\n";
-//    cv::Mat src, out;
-//    src = cv::imread( "target.jpg", 1 );
-//    if( !src.data )
-//    {
-//        fprintf(stderr, "ERROR : No Image Data\n");
-//        return -1;
-//    }
-//    out = src.clone();
-
-//    ysd::_rect target_pos;
-//    target_pos.set(5.0, 0.0, 8.0, 3.5, 8.0, 2.0);
-//    double camera_pan = 0.0;
-
-//    //    target_recognizer::target_recognize(src, &out, camera_pan, &target_pos);
-
-//    double x, y;
-//    calc_subgoal_pos(0.0, 0.0, 0.0, 2.0, 1.0, 1.0, &x, &y);
-//    cerr << "x " << x << "y " << y << "\n";
-//    printf("(x, y): ( %lf, %lf)\n", x, y);
-
-//    vector<ysd::_rect> cluster_;
-//    ysd::_rect buff_;
-//    buff_.set(0, 0, 0, 0, 0, 0);
-//    cluster_.push_back(buff_);
-//    buff_.set(6, 0, 0, 0, 0, 0);
-//    cluster_.push_back(buff_);
-//    buff_.set(2, 0, 0, 0, 0, 0);
-//    cluster_.push_back(buff_);
-
-//    sort(cluster_.begin(), cluster_.end(), compare_cluster_pos);
-
-//    for(unsigned int i = 0; i < cluster_.size(); ++i)
-//    {
-//        cerr << i << " " << cluster_[i].x_g << "\n";
-//    }
-
-//    //    return 0;
-
-
-//    // <--- target-recognizer debug
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -282,6 +235,15 @@ int main( int argc, char* argv[] )
         fprintf(stderr, "ERROR : cannot read route file : %s\n", conf.route_data_path.value);
         return -1;
     }
+
+    if(conf.run_only_mode.value == true)
+    {
+        for(unsigned int i = 0; i < keiro.size(); ++i)
+        {
+            keiro[i].wp_type = 'A';
+        }
+    }
+
 
     cerr << keiro.size() << " waypoints" << "\n";
     for(unsigned int i = 0; i < keiro.size(); ++i)
@@ -313,6 +275,7 @@ int main( int argc, char* argv[] )
     //-----------------------
     human_detector_start_cue.create("human_detector_start_cue", 0, 10.0, 1.0);
     ptz_move_start_cue.create("ptz_move_start_cue", 0, 10.0, 1.0);
+    ssm_initpos.create("init-pos", 0, 1, 0.05);
 
     //-----------------------
     //SSM open data
@@ -406,7 +369,6 @@ int main( int argc, char* argv[] )
     gcui.set_command(cui_cmd, sizeof(cui_cmd) / sizeof(cui_cmd[0]));
 
 
-
     //-----------------------
     //set Signal handler
     //-----------------------
@@ -417,10 +379,6 @@ int main( int argc, char* argv[] )
     //robot_status の更新（！現在地を通常のwpとする！）
     //-----------------------
     robot_status.dest_wp_num = conf.start_waypoint.value;
-    if(robot_status.dest_wp_num > 0)    //途中実行の場合、initil_posをssmに流す
-    {
-
-    }
 
     robot_status.dest_wp_num++;
 
@@ -443,6 +401,7 @@ int main( int argc, char* argv[] )
 
     robot_status.set_cue_spin();    //spin->line->spin->line...の順番になる
     robot_status.cue_stop = false;
+    robot_status.cue_free = false;
 
     robot_status.avoiding_pahse = 0;
     robot_status.foward_target_phase = 0;
@@ -454,7 +413,7 @@ int main( int argc, char* argv[] )
     buff.x = keiro[robot_status.dest_wp_num].x;
     buff.y = keiro[robot_status.dest_wp_num].y;
     buff.th = line2angle( keiro[robot_status.dest_wp_num-1].x, keiro[robot_status.dest_wp_num-1].y,
-            keiro[robot_status.dest_wp_num].x, keiro[robot_status.dest_wp_num-1].y );
+            keiro[robot_status.dest_wp_num].x, keiro[robot_status.dest_wp_num].y );
     robot_status.dest_pos.push_back(buff);
 
     //-----------------------
@@ -466,8 +425,8 @@ int main( int argc, char* argv[] )
     {
         robot_status.over_line_mergin =   keiro[robot_status.dest_wp_num-1].velocity
                 / ( conf.ypspur_max_ang_vel.value * tan(0.5 * (M_PI - th_b2ls(keiro[robot_status.dest_wp_num-1].x, keiro[robot_status.dest_wp_num-1].y,
-                                                        keiro[robot_status.dest_wp_num].x, keiro[robot_status.dest_wp_num].y,
-                keiro[robot_status.dest_wp_num+1].x, keiro[robot_status.dest_wp_num+1].y) ) ) );
+                                                                              keiro[robot_status.dest_wp_num].x, keiro[robot_status.dest_wp_num].y,
+                                                                              keiro[robot_status.dest_wp_num+1].x, keiro[robot_status.dest_wp_num+1].y) ) ) );
         // ---> debug
         cerr << "mergin " << robot_status.over_line_mergin << "\n";
         cerr << "th_bl2 "
@@ -495,6 +454,17 @@ int main( int argc, char* argv[] )
 
     //ypspur_vel 更新
     Spur_set_vel(keiro[robot_status.dest_wp_num-1].velocity);
+
+    //init_pos initialize
+    ssm_initpos.data.x = keiro[robot_status.dest_wp_num-1].x;
+    ssm_initpos.data.y = keiro[robot_status.dest_wp_num-1].y;
+    ssm_initpos.data.theta = robot_status.dest_pos[robot_status.dest_pos_num].th;
+    ssm_initpos.data.v = 0;
+    ssm_initpos.data.w = 0;
+    ssm_initpos.write();
+
+    fprintf(stderr, "initpos: (%lf, %lf, %lf pi)\n", ssm_initpos.data.x, ssm_initpos.data.y, ssm_initpos.data.theta / M_PI);
+
 
     printf("Initialize Finished.\n");
     // <--- initialize
@@ -549,26 +519,35 @@ int main( int argc, char* argv[] )
                 case 'F':   //go to free
                     cerr << "pressed 'F'\n";
                     //free フラグを立てる
+                    cerr << "Free Mode\n";
+                    Spur_free();
+                    robot_status.cue_free = true;
                     break;
 
                 case 'S':   //run restart
                     cerr << "pressed 'S'\n";
+                    cerr << "Restart\n";
                     //restartフラグをたてる
+                    robot_status.cue_free = false;
                     show_st = true;
                     break;
 
-                case 's':   //run restart
+                case 's':   //show status
                     cerr << "pressed 's'\n";
+                    cerr << "show status\n";
                     show_st = true;
                     break;
 
                 case 'h':
                     cerr << "pressed 'h'\n";
+                    cerr << "help\n";
                     gcui.show(stderr, "   ");
                     break;
 
                 case 'Q':
                     cerr << "pressed 'Q'\n";
+                    cerr << "QUit\n";
+                    ysd::gShutOff = true;
                     //終了フラグをたてる
                     break;
 
@@ -605,6 +584,22 @@ int main( int argc, char* argv[] )
         sokuiki_fs.readLast();
         ssm_odom.readLast();
 
+//        if(robot_status.is_adhoc == true)
+//        {
+//            if(/*arrival*/)
+//            {
+//                robot_status.is_adhoc = false;
+//                robot_status.is_arrival = true;
+//            }
+
+//            // ---> adhoc navigation
+
+//            // <--- adhoc navigation
+
+//            continue;
+//        }
+
+
         if(robot_status.cue_line() == true)   //line中
         {
             if(is_safety() == true)   //pre_crash
@@ -637,6 +632,25 @@ int main( int argc, char* argv[] )
                     else    //dest_pos_arrayをみてまだ先があるならspinを実行
                     {
                         cerr << "go to spin at over line\n";    //debug
+
+                        fprintf(stderr, "ssm_odom(%lf, %lf, %lf)\n", ssm_odom.data.x, ssm_odom.data.y, ssm_odom.data.theta);
+                        fprintf(stderr, "dest_pos(%lf, %lf, %lf)\n", robot_status.dest_pos[robot_status.dest_pos_num].x, robot_status.dest_pos[robot_status.dest_pos_num].y, robot_status.dest_pos[robot_status.dest_pos_num].th);
+
+                        if(robot_status.is_foward_target == true)   //targetに近づいたらとまる
+                        {
+                            if(robot_status.dest_pos_num % 3 == 1)
+                            {
+                                //音鳴らして〜
+                                my_stop();
+                                sleepSSM(5.0);
+                            }
+                        }
+                        else
+                        {
+                            Spur_stop();
+                            sleepSSM(1.0);
+                        }
+
                         robot_status.dest_pos_num++;
 
                         robot_status.set_over_line_pos(robot_status.dest_pos_num);
@@ -676,10 +690,10 @@ int main( int argc, char* argv[] )
         if(robot_status.is_precrash_stopping == true)   //ぷりクラッシュで停止してる場合
         {
             robot_status.cue_stop = true;
-            if(timer_console.clock())
-            {
+//            if(timer_console.clock())
+//            {
                 cerr << "pre_crash!!!!!!!!!!!!!!!!!!!!!!!\n";   //debug
-            }
+//            }
             //is_safety()を絶えずチェック
             if(is_safety() == false)    //安全が確認さえｒた場合
             {
@@ -729,75 +743,163 @@ int main( int argc, char* argv[] )
             //else ifでもよい?
             if(robot_status.is_foward_target == true)
             {
+                cerr << "foward target\n";
                 //探索対象に向かってる
                 //foward_target_phaseにしたがってしょりをかえる
 
+                robot_status.is_foward_target = false;
             }
             else
             {
                 //wp到着
+                cerr << "waypoint 到着\n";
 
                 //wp更新 <---ここか？ここか
                 ++robot_status.dest_wp_num;
                 robot_status.is_searching = keiro[robot_status.dest_wp_num-1].isSearchPoint();
 
+                if (keiro[robot_status.dest_wp_num-1].isAdhocNavigation() == true)
+                {
+                    robot_status.is_adhoc = true;
+
+//                    いろんなフラグをいろいろ調整しておく
+
+                }
+
+
+
                 if(robot_status.is_searching == true)
                 {
                     my_stop();  //完全に止まる
+
+//                    次のwpを向くまで回てんする
+
+
+
 
                     ssm_odom.readLast();
                     fprintf(stderr, "ssm_odom(%lf, %lf, %lf)\n", ssm_odom.data.x, ssm_odom.data.y, ssm_odom.data.theta);
                     cerr << "探索開始！\n";
                     //探索開始
                     //human-detectorに命令を送る
-                    human_detector_start_cue.data = keiro[robot_status.dest_wp_num-1].detection_radius;
+                    //けいろ番号を与える?
+//                    human_detector_start_cue.data = keiro[robot_status.dest_wp_num-1].detection_radius;
                     human_detector_start_cue.write();
+
                     //ptz-handlerに命令を送る
                     ptz_move_start_cue.data = true;
                     ptz_move_start_cue.write();
 
                     //ptz-handlerから終わった報告があるまで待つ
                     //ssm-clusterが更新されたことを確認
-                    sleep(10.0);    // <-- config?
+                    sleep(conf.target_detection_stop_time.value);    // <-- config?
 
 
                     cluster.readLast();
                     if(cluster.data.num_clusters() > 0)    //クラスタがあった場合
+//                    if(0)   //かくかくするけど近づかない
                     {
-
-                        //clusterそれぞれにたいして、target-recognize
                         ssm_odom.readLast();    //ここでいいのか？
                         vector<int> target_num;
+                        vector<int> target_num_bfore_sort;
                         vector<ysd::_rect> cluster_from_camera;     //いらない?
 
+                        double area_length = sqrt(  (keiro[robot_status.dest_wp_num].x-keiro[robot_status.dest_wp_num-1].x)*(keiro[robot_status.dest_wp_num].x-keiro[robot_status.dest_wp_num-1].x)
+                                                  + (keiro[robot_status.dest_wp_num].y-keiro[robot_status.dest_wp_num-1].y)*(keiro[robot_status.dest_wp_num].y-keiro[robot_status.dest_wp_num-1].y)
+                                                 );
+
                         for(unsigned int i = 0; i < cluster.data.num_clusters(); ++i)
-                        {
+                        { // ---> for each cluster
                             fprintf(stderr, "cluster[%d] G(%lf, %lf)\n", i, cluster.data.rect[i].x_g, cluster.data.rect[i].y_g);
 
                             //clusterの位置をかカメラ座標系に変換
                             ysd::_rect target_cluster_pos_c;
                             pos_GL2camera(&cluster.data.rect[i], &target_cluster_pos_c, &ssm_odom.data);
-                            cluster_from_camera.push_back(target_cluster_pos_c);    //いあらない?
 
-                            //(x_g, y_g)と角度が最も近い画像をもってくる
+                            //clusterそれぞれに、たいして、探索エリア内にいるかどうかの判定
+                            if(  target_cluster_pos_c.y_g < (keiro[robot_status.dest_wp_num-1].run_area_left_width + conf.detect_area_y_mergin.value)
+                                 && target_cluster_pos_c.y_g > -1.0*(keiro[robot_status.dest_wp_num-1].run_area_right_width + conf.detect_area_y_mergin.value)
+                                 && (target_cluster_pos_c.x_g - 0.1) > 0.0
+                                 && (target_cluster_pos_c.x_g - 0.1) < area_length + keiro[robot_status.dest_wp_num].run_area_extention_length )
+                            {   // ---> クラスタが探索エリアないにいる場合
+                                // ---> (x_g, y_g)と角度が最も近い画像をもってくる
+                                //kakukaku_angs作成   //ホントはここじゃない
+                                int split = 8;
+                                double pan_min_fs = -82.0;
+                                double pan_max_fs = 82.0;
+                                vector<double> kakukaku_angs;
+                                kakukaku_angs.resize(split+1);
+                                kakukaku_angs[0] = pan_min_fs;
+                                for(unsigned int i = 0; i < kakukaku_angs.size(); ++i)
+                                {
+                                    kakukaku_angs[i] = fabs( rad2deg( atan2(target_cluster_pos_c.y_g, target_cluster_pos_c.x_g))  - (pan_min_fs + (double)i*(pan_max_fs-pan_min_fs)/split) );
+                                    cerr << "pan: " << pan_min_fs + (double)i*(pan_max_fs-pan_min_fs)/split << "\n";
+                                    cerr << "atan2: " << atan2(target_cluster_pos_c.y_g, target_cluster_pos_c.x_g) << "\n";
+                                    cerr << i << " " << kakukaku_angs[i] << "\n";   //debug
+                                }
+
+                                int min_ang_num = 0;
+                                for(unsigned int i = 0; i < kakukaku_angs.size(); i++)
+                                {
+                                    if(kakukaku_angs[min_ang_num] > kakukaku_angs[i] )
+                                    {
+                                        min_ang_num = i;
+                                    }
+                                }
+                                fprintf(stderr, "[%d] pos_c( %lf, %lf ) diff_ang = %lf\n",
+                                        min_ang_num, target_cluster_pos_c.x_g, target_cluster_pos_c.y_g, kakukaku_angs[min_ang_num]);   //debug
+                                char img_name[512];
+                                sprintf(img_name, "/dev/shm/test-%d.jpg", min_ang_num);
+
+                                cv::Mat src, out;
+                                src = cv::imread(img_name);
+                                out = src.clone();
+                                //                            cv::imshow(img_name, src);  //debug
+                                //                            cv::waitKey(0);             //debug
+                                // <--- (x_g, y_g)と角度が最も近い画像をもってくる
 
 
-                            //target-recognize
-                            //                        if( target_recognizer::target_recognize() == true)
-                            //                        {
-                                                        target_num.push_back(i);
-                            //                        }
+                                //target-recognize
+                                if( target_recognizer::target_recognize(src, &out, deg2rad(pan_min_fs + (double)i*(pan_max_fs-pan_min_fs)/split), &target_cluster_pos_c ) == true)
+                                {
+                                    target_num_bfore_sort.push_back(i);
+                                    target_num.push_back(i);
+                                    cluster_from_camera.push_back(target_cluster_pos_c);    //いあらない?
+                                }
+                            }   // <--- クラスタが探索エリアないにいる場合
+                            else
+                            {   //クラスタが探索エリア外の場合
+                            }
+                        }// <--- for each cluster
 
+                        //そーとする---バブルソート
+                        for(unsigned int i = 0; i < target_num.size()-1; ++i)
+                        {
+                            for(unsigned int j = target_num.size()-1; j > i; j--)
+                            {
+                                if(cluster_from_camera[target_num[j-1]].x_g > cluster_from_camera[target_num[j]].x_g)
+                                {
+                                    int temp = target_num[j-1];
+                                    target_num[j-1] = target_num[j];
+                                    target_num[j] = temp;
+                                }
+                            }
                         }
+                        for(unsigned int i = 0; i < target_num.size(); i++)
+                        {
+                            fprintf(stderr, "[%d]: [%d]( %lf, %lf )\n", i, target_num[i], cluster_from_camera[target_num[i]].x_g, cluster_from_camera[target_num[i]].y_g);
+                        }
+
 
                         //探索対象に向かう経路を計画
                         robot_status.dest_pos.clear();
                         main_controler::pos pos_;
 
-//                        sort(cluster_from_camera.begin(), cluster_from_camera.end(), compare_cluster_pos);  //ちがう
 
                         for(unsigned int i = 0; i < target_num.size(); ++i)
                         {
+//                            unsigned int i = 0;     //最も近いターゲットのみ近づく
+
                             //サブゴールを計算
                             double sub_x, sub_y;
                             calc_subgoal_pos(ssm_odom.data.x, ssm_odom.data.y,
@@ -808,20 +910,37 @@ int main( int argc, char* argv[] )
                             //サブゴールをdest_posに登録
                             pos_.x = sub_x;
                             pos_.y = sub_y;
-                            pos_.th = line2angle(ssm_odom.data.x, ssm_odom.data.y, pos_.x, pos_.th);
+                            pos_.th = line2angle(ssm_odom.data.x, ssm_odom.data.y, pos_.x, pos_.y);
                             robot_status.dest_pos.push_back(pos_);
 
                             //ターゲットの近くをdest_posに登録
-                            double target_approach_mergin = 0.7;    //<--configにしろし
-                            pos_.th = line2angle(pos_.x, pos_.th, cluster_from_camera[target_num[i]].x_g, cluster_from_camera[target_num[i]].y_g);
-                            pos_.x = cluster_from_camera[i].x_g - target_approach_mergin*cos(pos_.th);
-                            pos_.y = cluster_from_camera[i].y_g - target_approach_mergin*sin(pos_.th);
+                            double target_approach_mergin = conf.target_approach_mergin.value;
+                            //ここで探索エリア・走行エリア判定
+                            if(cluster_from_camera[i].y_g >= 0.0)
+                            {   //run_area_left_width
+                                if( cluster_from_camera[i].y_g > keiro[robot_status.dest_wp_num-1].run_area_left_width )
+                                {
+                                    target_approach_mergin = fabs(cluster_from_camera[i].y_g - keiro[robot_status.dest_wp_num-1].run_area_left_width);
+                                    cerr << "とりあえずいけるところまで行くわ。左に\n";
+                                }
+                            }
+                            else
+                            {   //run_area_right_width
+                                if( cluster_from_camera[i].y_g < keiro[robot_status.dest_wp_num-1].run_area_right_width )
+                                {
+                                    target_approach_mergin = fabs(cluster_from_camera[i].y_g - keiro[robot_status.dest_wp_num-1].run_area_right_width);
+                                    cerr << "とりあえずいけるところまで行くわ。右に\n";
+                                }
+                            }
+                            pos_.th = line2angle(pos_.x, pos_.y, cluster.data.rect[target_num[i]].x_g, cluster.data.rect[target_num[i]].y_g);
+                            pos_.x = cluster.data.rect[target_num[i]].x_g - target_approach_mergin*cos(pos_.th);
+                            pos_.y = cluster.data.rect[target_num[i]].y_g - target_approach_mergin*sin(pos_.th);
                             robot_status.dest_pos.push_back(pos_);
 
                             //経路に還ってくるサブゴールを登録
                             pos_.x = sub_x;
                             pos_.y = sub_y;
-                            pos_.th = line2angle(cluster_from_camera[target_num[i]].x_g, cluster_from_camera[target_num[i]].y_g, pos_.x, pos_.th);
+                            pos_.th = line2angle(cluster.data.rect[target_num[i]].x_g, cluster.data.rect[target_num[i]].y_g, pos_.x, pos_.y);
                             robot_status.dest_pos.push_back(pos_);
 
                         }
@@ -865,7 +984,7 @@ int main( int argc, char* argv[] )
                         }
                         // <--- 表示
 
-                        wait_restart_key();
+//                        wait_restart_key();
 
 
                     }
@@ -908,17 +1027,19 @@ int main( int argc, char* argv[] )
                     robot_status.dest_pos_num = 0;
                     if(robot_status.enable_seemless == true)
                     {
-                        robot_status.over_line_mergin =   keiro[robot_status.dest_wp_num-1].velocity
+                        robot_status.over_line_mergin =   2.0 * keiro[robot_status.dest_wp_num-1].velocity
                                 / ( conf.ypspur_max_ang_vel.value * tan(0.5 * (M_PI - th_b2ls(keiro[robot_status.dest_wp_num-1].x, keiro[robot_status.dest_wp_num-1].y,
                                                                         keiro[robot_status.dest_wp_num].x, keiro[robot_status.dest_wp_num].y,
                                 keiro[robot_status.dest_wp_num+1].x, keiro[robot_status.dest_wp_num+1].y) ) ) );
+                        if( robot_status.over_line_mergin < 0.3 ) robot_status.over_line_mergin = 0.3;
+
                         // ---> debug
                         cerr << "mergin " << robot_status.over_line_mergin << "\n";
                         cerr << "th_bl2 "
                              << rad2deg(M_PI - th_b2ls(keiro[robot_status.dest_wp_num-1].x, keiro[robot_status.dest_wp_num-1].y,
                                 keiro[robot_status.dest_wp_num].x, keiro[robot_status.dest_wp_num].y,
                                 keiro[robot_status.dest_wp_num+1].x, keiro[robot_status.dest_wp_num+1].y) )
-                                << "\n";
+                             << "\n";
                         // <--- debug
                     }
                     else
@@ -944,6 +1065,7 @@ int main( int argc, char* argv[] )
                         robot_status.set_cue_spin();
                     }
                     robot_status.cue_stop = false;
+                    robot_status.cue_free = false;
 
                     robot_status.avoiding_pahse = 0;
                     robot_status.foward_target_phase = 0;
@@ -968,12 +1090,16 @@ int main( int argc, char* argv[] )
 
 
 
-
-
         //-----------------------
         //動作実行
         //slave。状態取得とリンクしてる
-        if(robot_status.cue_stop == true || robot_status.is_precrash_stopping == true)   //
+        if(robot_status.cue_free == true)
+        {
+//            cerr << "free\n";
+            Spur_free();
+            continue;
+        }
+        else if(robot_status.cue_stop == true || robot_status.is_precrash_stopping == true)   //
         {
             Spur_stop();
         }
@@ -984,7 +1110,7 @@ int main( int argc, char* argv[] )
 
 //                if( timer_console.clock() )
 //                {
-//                    //                    cerr << "line\n"; //debug
+//                                        cerr << "line\n"; //debug
 //                    fprintf(stderr, "line (%lf, %lf, %lf)\n", robot_status.dest_pos[robot_status.dest_pos_num].x,
 //                            robot_status.dest_pos[robot_status.dest_pos_num].y,
 //                            robot_status.dest_pos[robot_status.dest_pos_num].th );
@@ -997,7 +1123,7 @@ int main( int argc, char* argv[] )
             {
 //                if( timer_console.clock() )
 //                {
-//                    //                    cerr << "spin\n"; //debug]
+//                                        cerr << "spin\n"; //debug]
 //                    fprintf(stderr, "spin (%lf)", robot_status.dest_pos[robot_status.dest_pos_num].th);
 //                }
 

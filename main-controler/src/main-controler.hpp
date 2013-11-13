@@ -20,7 +20,7 @@ namespace  main_controler
     static const unsigned char bitflag_way = 0x01;
     static const unsigned char bitflag_search = 0x02;
     static const unsigned char bitflag_goal = 0x04;
-    static const unsigned char bitflag_change_speed = 0x08;
+    static const unsigned char bitflag_adhoc_navigation = 0x08;
     //ただの通過地点 A
     //探索地点 C
     //ゴール E
@@ -43,7 +43,12 @@ x y wp_type detection_radius
         double x;
         double y;
         unsigned char wp_type;
-        double detection_radius;
+
+//        double detection_radius;
+        double run_area_right_width;
+        double run_area_left_width;
+        double run_area_extention_length;
+
         double velocity;
 
 //    public:
@@ -54,29 +59,44 @@ x y wp_type detection_radius
             this->x = obj.x;
             this->y = obj.y;
             this->wp_type = obj.wp_type;
-            this->detection_radius = obj.detection_radius;
+
+//            this->detection_radius = obj.detection_radius;
+            this->run_area_right_width = obj.run_area_right_width;
+            this->run_area_left_width = obj.run_area_left_width;
+            this->run_area_extention_length = obj.run_area_extention_length;
+
             this->velocity = obj.velocity;
         }
 
-        waypoint(double x, double y, unsigned char wp_type, double detection_radius/*, double velocity*/)
+        waypoint(double x, double y, unsigned char wp_type, /*double detection_radius*/
+                 double run_area_right_width, double run_area_left_width, double run_area_extention_length,
+                 double velocity)
         {
             this->x = x;
             this->y = y;
             this->wp_type = wp_type;
-            this->detection_radius = detection_radius;
+//            this->detection_radius = detection_radius;
+            this->run_area_right_width = run_area_right_width;
+            this->run_area_left_width = run_area_left_width;
+            this->run_area_extention_length = run_area_extention_length;
             this->velocity = velocity;
         }
 
         void print()
         {
-            fprintf(stdout, "( %+10.3f, %+10.3f ) way: %d, search: %d, goal: %d, r: %.3lf, vel: %.3lf",
-                    this->x, this->y, isWayPoint(), isSearchPoint(), isGoalPoint(), this->detection_radius, this->velocity);
+            fprintf(stdout, "( %+10.3f, %+10.3f ) way: %d, search: %d, goal: %d, detectin area:( %.3lf, %.3lf, %.3lf ), vel: %.3lf",
+                    this->x, this->y, isWayPoint(), isSearchPoint(), isGoalPoint(),
+//                    this->detection_radius,
+                    this->run_area_right_width,
+                    this->run_area_left_width,
+                    this->run_area_extention_length,
+                    this->velocity);
         }
 
-        bool isWayPoint(){          return (wp_type & main_controler::bitflag_way);}
-        bool isSearchPoint(){       return (wp_type & main_controler::bitflag_search);}
-        bool isGoalPoint(){         return (wp_type & main_controler::bitflag_goal);}
-//        bool isChangeSpeedPoint(){  return (wp_type & main_controler::bitflag_change_speed);}
+        bool isWayPoint(){        return (wp_type & main_controler::bitflag_way); }
+        bool isSearchPoint(){     return (wp_type & main_controler::bitflag_search); }
+        bool isGoalPoint(){       return (wp_type & main_controler::bitflag_goal); }
+        bool isAdhocNavigation(){ return (wp_type & main_controler::bitflag_adhoc_navigation); }
 
     };
 
@@ -101,7 +121,13 @@ namespace  main_controler
             int ret;
             while(1)
             {
-                ret = fscanf(fp, "%c %lf %lf %lf %lf\n", &buff.wp_type, &buff.x, &buff.y, &buff.detection_radius, &buff.velocity);
+                ret = fscanf(fp, "%c %lf %lf %lf %lf %lf %lf\n",
+                             &buff.wp_type, &buff.x, &buff.y,
+//                             &buff.detection_radius,
+                             &buff.run_area_right_width,
+                             &buff.run_area_left_width,
+                             &buff.run_area_extention_length,
+                             &buff.velocity);
 
                 if(ret == EOF)
                 {		//次の通過点がない(ゴール)であるかの判定
@@ -167,15 +193,15 @@ void pos_GL2camera(const ysd::_rect *cluster_GL, ysd::_rect *cluster_camera, con
 {
     double sin_th = sin(robot_pos->theta);
     double cos_th = cos(robot_pos->theta);
-    double x_offset = 0.20;    //カメラ位置
+    double x_offset = -0.10;    //カメラ位置
 
-    cluster_camera->x1 = cos_th*(cluster_GL->x1 - robot_pos->x) + sin_th*(cluster_GL->y1 - robot_pos->y) - x_offset;
+    cluster_camera->x1 = cos_th*(cluster_GL->x1 - robot_pos->x) + sin_th*(cluster_GL->y1 - robot_pos->y) + x_offset;
     cluster_camera->y1 = -1.0*sin_th*(cluster_GL->x1 - robot_pos->x) + cos_th*(cluster_GL->y1 - robot_pos->y);
 
-    cluster_camera->x2 = cos_th*(cluster_GL->x2 - robot_pos->x) + sin_th*(cluster_GL->y2 - robot_pos->y) - x_offset;
+    cluster_camera->x2 = cos_th*(cluster_GL->x2 - robot_pos->x) + sin_th*(cluster_GL->y2 - robot_pos->y) + x_offset;
     cluster_camera->y2 = -1.0*sin_th*(cluster_GL->x2 - robot_pos->x) + cos_th*(cluster_GL->y2 - robot_pos->y);
 
-    cluster_camera->x_g = cos_th*(cluster_GL->x_g - robot_pos->x) + sin_th*(cluster_GL->y_g - robot_pos->y) - x_offset;
+    cluster_camera->x_g = cos_th*(cluster_GL->x_g - robot_pos->x) + sin_th*(cluster_GL->y_g - robot_pos->y) + x_offset;
     cluster_camera->y_g = -1.0*sin_th*(cluster_GL->x_g - robot_pos->x) + cos_th*(cluster_GL->y_g - robot_pos->y);
 }
 

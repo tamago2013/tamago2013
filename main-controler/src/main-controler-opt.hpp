@@ -12,7 +12,7 @@ namespace main_controler
 {
 
     const char ConfFile[] = "main-controler.conf";
-    const char ShortOpt[] = "hg:G:s:o:f:t:";
+    const char ShortOpt[] = "hg:G:S:o:f:t:";
     const struct option LongOpt[] =
     {
         { "help" , no_argument , 0 , 'h' },
@@ -98,6 +98,12 @@ namespace main_controler
                 break;
             }
 
+            case 'S':
+            {
+                conf->run_only_mode.value = true;
+                break;
+            }
+
             //ヘルプの表示
             case 'h':
             {
@@ -125,6 +131,9 @@ namespace main_controler
                           << "\n"
                           << "\t\033[1m -t \033[0m ( \033[1m "<< ConfIni_StartWayPoint.item << " \033[0m ) <waypoint number>\n"
                           << "\t\t set start waypoint\n"
+                          << "\n"
+                          << "\t\033[1m -S \033[0m ( \033[1m "
+                          << "\t\t run only mode\n"
                           << "\n";
                 return 1;
             }
