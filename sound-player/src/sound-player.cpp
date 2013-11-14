@@ -23,6 +23,8 @@
 
 #include "ssm-sound.hpp"
 
+#define SOUND_ARRAY_LENGTH 14
+
 //===================================================
 // ssm-data / finalize
 //===================================================
@@ -96,7 +98,7 @@ int main(int argc, char **argv)
 
     //-------------------------------------
     // Mix_Chunkの初期化
-    std::vector<Mix_Chunk *> sounds(14);
+    Mix_Chunk* sounds[ SOUND_ARRAY_LENGTH ];
     sounds[0] = Mix_LoadWAV("sounds/janjan.wav");
     sounds[1] = Mix_LoadWAV("sounds/buinn.wav");
     sounds[2] = Mix_LoadWAV("sounds/car_stop.wav");
@@ -144,14 +146,14 @@ int main(int argc, char **argv)
             for( unsigned int i=0; i<count; ++i )
             {
                 Mix_PlayChannel( 0 , sounds[ 7 ] , 0 );
-                sleepSSM(0.1);
+                sleepSSM(0.05);
             }
 
             clock_talk.begin( CLOCK_REALTIME , 20.0 , -1.0 );
             continue;
         }
 
-        if( ssm_sound.data >= (int)sounds.size() )
+        if( ssm_sound.data >= SOUND_ARRAY_LENGTH )
         {
             clock_talk.begin( CLOCK_REALTIME , 20.0 , -1.0 );
             continue;
@@ -165,7 +167,7 @@ int main(int argc, char **argv)
 
     //-------------------------------------
     // 終了処理
-    for(size_t i=0; i<sounds.size(); i++)
+    for(size_t i=0; i<SOUND_ARRAY_LENGTH; i++)
     {
         Mix_FreeChunk(sounds[i]);
     }
