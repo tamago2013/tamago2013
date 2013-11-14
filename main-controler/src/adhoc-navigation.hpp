@@ -45,6 +45,8 @@ namespace adhoc_navigation
     const float pylon_angle_error = 20.0 * M_PI / 180.0;   //許容するパイロンを結ぶ線分の角度誤差[rad]。オドメトリのthetaからプラマイこの角度分ずれていても許容する。
     //シュプールライン推定
     const float spur_line_max_error_angle = 30.0 * M_PI / 180.0; //進行方向をこの角度以上に修正するものは無視する
+    //シュプール発行
+    const float robot_speed = 0.3; //ロボットのスピード[s]
 
     //-----------------------------------
     // データ
@@ -98,9 +100,14 @@ namespace adhoc_navigation
 
             if( diff_x * diff_x + diff_y * diff_y >= running_distance * running_distance )
             {
+                std::cerr << "adhoc-navigation finished!\n";
                 return true;
             }
         }
+
+        //目標追従直線に合わせてラインコマンド発行
+        Spur_set_vel( robot_speed );
+        Spur_line_BS( target_line_basepoint.x , target_line_basepoint.y , target_line_angle );
 
         //パイロン推定距離に達したらパイロン推定
         {
@@ -148,6 +155,8 @@ namespace adhoc_navigation
         {
             return;
         }
+
+        std::cerr << "adhoc-navigation started!\n";
 
         //初期オドメトリを記憶
         first_odometry = ssm_odometry.data;
