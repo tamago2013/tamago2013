@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         std::cerr << SDL_GetError() << "\n";
         return 1;
     }
-    if( Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT,2,1024) < 0 )
+    if( Mix_OpenAudio(48000,MIX_DEFAULT_FORMAT,2,1024) < 0 )
     {
         std::cerr << "[\033[31mERROR\033[39m]: failed to open audio!!\n";
         SDL_Quit();
@@ -144,9 +144,8 @@ int main(int argc, char **argv)
 
         size_t sound_index = (size_t)ssm_sound.data;
 
-        Mix_PlayChannel( 0 , sounds[ sound_index ] , 0 );
+        Mix_PlayChannel( 1 , sounds[ sound_index ] , 0 );
         std::cerr << "sound = " << sound_index << "\n";
-        sleepSSM(0.5);
     }
 
     //-------------------------------------
