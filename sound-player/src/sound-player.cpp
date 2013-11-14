@@ -137,14 +137,29 @@ int main(int argc, char **argv)
             continue;
         }
 
-        if( ssm_sound.data < 0 || ssm_sound.data >= (int)sounds.size() )
+        if( ssm_sound.data < 0 ) //隠しオプション：0以下だとサウンドNo.7をその回数連打
         {
+            unsigned int count = abs( ssm_sound.data );
+
+            for( unsigned int i=0; i<count; ++i )
+            {
+                Mix_PlayChannel( 0 , sounds[ 7 ] , 0 );
+                sleepSSM(0.1);
+            }
+
+            clock_talk.begin( CLOCK_REALTIME , 20.0 , -1.0 );
+            continue;
+        }
+
+        if( ssm_sound.data >= (int)sounds.size() )
+        {
+            clock_talk.begin( CLOCK_REALTIME , 20.0 , -1.0 );
             continue;
         }
 
         size_t sound_index = (size_t)ssm_sound.data;
 
-        Mix_PlayChannel( 1 , sounds[ sound_index ] , 0 );
+        Mix_PlayChannel( 0 , sounds[ sound_index ] , 0 );
         std::cerr << "sound = " << sound_index << "\n";
     }
 
