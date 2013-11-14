@@ -99,7 +99,7 @@ int main(int argc, char **argv)
     //-------------------------------------
     // Mix_Chunkの初期化
     Mix_Chunk* sounds[ SOUND_ARRAY_LENGTH ];
-    sounds[0] = Mix_LoadWAV("sounds/janjan.wav");
+    sounds[0] = Mix_LoadWAV("sounds/pi__.wav");
     sounds[1] = Mix_LoadWAV("sounds/buinn.wav");
     sounds[2] = Mix_LoadWAV("sounds/car_stop.wav");
     sounds[3] = Mix_LoadWAV("sounds/goal.wav");
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
     {
         usleepSSM(5000);
 
-        if( !ssm_sound.isOpen() || !ssm_sound.readNew() )
+        if( !ssm_sound.isOpen() || ( ssm_sound.isOpen() && !ssm_sound.readNew() ) )
         {
             if( clock_talk.clock() )
             {
@@ -146,7 +146,8 @@ int main(int argc, char **argv)
             for( unsigned int i=0; i<count; ++i )
             {
                 Mix_PlayChannel( 0 , sounds[ 7 ] , 0 );
-                sleepSSM(0.05);
+
+                sleepSSM(0.1);
             }
 
             clock_talk.begin( CLOCK_REALTIME , 20.0 , -1.0 );
