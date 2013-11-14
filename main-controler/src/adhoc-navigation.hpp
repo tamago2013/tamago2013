@@ -34,7 +34,7 @@ namespace adhoc_navigation
     const float pylon_estimation_area_width  = 4.0;        //パイロン推定の際に見る範囲のロボット左右方向の幅[m]
     const float pylon_estimation_area_offset = 0.0;        //パイロン推定の際に見る範囲のロボット前方方向のオフセット[m]
     const float pylon_estimation_area_length = 6.0;        //パイロン推定の際に見る範囲のロボット前方方向の長さ[m]
-    const float pylon_estimation_distance_interval = -1.0; //パイロン推定を行う距離間隔[m](ゼロまたは負の値で常にパイロン推定)
+    const float pylon_estimation_distance_interval = 0.3;  //パイロン推定を行う距離間隔[m](ゼロで常にパイロン推定)
     const float running_distance = 36.0;                   //アドホックで走行する距離[m] この距離を超えると終了とみなす。
     //パイロン推定
     const float pylon_radius = 0.07;                       //推定するパイロンの半径[m]
@@ -44,6 +44,7 @@ namespace adhoc_navigation
     const float max_pylon_distance = 6.0;                  //蓄積したパイロン位置がこの値[m]以上遠かったら捨てる
     //パイロンライン推定
     const float pylon_interval = 2.2;                      //パイロンの基本間隔[m]
+    //const float pylon_interval = 1.2;                      //パイロンの基本間隔(室内実験用)[m]
     const float pylon_interval_error = 0.5;                //許容するパイロン間隔誤差[m]
     const float pylon_angle_error = 20.0 * M_PI / 180.0;   //許容するパイロンを結ぶ線分の角度誤差[rad]。オドメトリのthetaからプラマイこの角度分ずれていても許容する。
     //シュプールライン推定

@@ -374,7 +374,7 @@ int main( int argc, char* argv[] )
     }
 
     std::cerr << "initializing ssm-data " << SNAME_SOUND << "... "; //2013-11-14 MTM追加
-    if( !ssm_odom.create( SNAME_SOUND, SID_SOUND, 1.0 , 0.2 ) )
+    if( !ssm_sound.create( SNAME_SOUND, SID_SOUND, 1.0 , 0.2 ) )
     {
         fprintf(stderr, "ERROR : SSM create sound : %s : ID %d\n", SNAME_SOUND, SID_SOUND);
         return -1;
