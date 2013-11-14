@@ -13,6 +13,7 @@
 
 #include<vector>
 #include<set>
+#include<fstream>
 
 #include<yp-spur.h>
 #include<ssmtype/spur-odometry.h>
@@ -21,6 +22,8 @@
 #include"ssm-laser.hpp"
 #include"gnd-coord-tree.hpp"
 #include"gnd-timer.hpp"
+
+#include "main-controler-config.hpp"
 
 namespace adhoc_navigation
 {
@@ -47,6 +50,29 @@ namespace adhoc_navigation
     const float spur_line_max_error_angle = 30.0 * M_PI / 180.0; //進行方向をこの角度以上に修正するものは無視する
     //シュプール発行
     const float robot_speed = 0.3; //ロボットのスピード[s]
+    const float pre_crash_offest_x = 0.24; //これより近いとpre-crashが働かない[m]
+    const float pre_crash_area_x = 0.7;    //pre-crashが働くx座標距離[m]
+    const float pre_crash_area_y = 0.3;    //pre-crashが働くy座標距離[m]
+
+    //-----------------------------------
+    // pre-crash-safety関数
+    bool detect_pre_crash( SSMSOKUIKIData3D& sokuiki_fs )
+    {
+        for(size_t i=0; i < sokuiki_fs.property.numPoints; i++)
+        {
+            if(sokuiki_fs.data[i].status == ssm::laser::STATUS_NO_REFLECTION) continue ;
+            if(
+                    sokuiki_fs.data[i].isWarning() == false
+                    && sokuiki_fs.data[i].reflect.x > pre_crash_offest_x
+                    && sokuiki_fs.data[i].reflect.x < pre_crash_area_x
+                    && fabs(sokuiki_fs.data[i].reflect.y) < pre_crash_area_y
+              )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
     //-----------------------------------
     // データ
@@ -106,8 +132,16 @@ namespace adhoc_navigation
         }
 
         //目標追従直線に合わせてラインコマンド発行
-        Spur_set_vel( robot_speed );
-        Spur_line_BS( target_line_basepoint.x , target_line_basepoint.y , target_line_angle );
+        if( detect_pre_crash( ssm_sokuiki ) )
+        {
+            Spur_stop();
+        }
+        else
+        {
+            Spur_set_vel( robot_speed );
+            Spur_line_BS( target_line_basepoint.x , target_line_basepoint.y , target_line_angle );
+        }
+
 
         //パイロン推定距離に達したらパイロン推定
         {

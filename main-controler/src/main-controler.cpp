@@ -321,7 +321,7 @@ int main( int argc, char* argv[] )
     }
 
     std::cerr << "initializing ssm-data " << "spur_odometry" << "... "; //2013-11-14 MTM追加
-    if( !ssm_odom.openWait("spur_odometry", 0, 0.0, SSM_READ) )
+    if( !ssm_odom_bs.openWait("spur_odometry", 0, 0.0, SSM_READ) )
     {
         fprintf(stderr, "ERROR : SSM open odometry : %s : ID %d\n", "spur_odometry", 0);
         return -1;
