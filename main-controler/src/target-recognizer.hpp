@@ -203,8 +203,14 @@ namespace target_recognizer
                            /*, color_threshold*/ )
     {
 
-//        cv::imshow("ret", src);
-//        cv::waitKey(0);
+
+        fprintf(stderr, "pan %lf[deg]\n", 180 * camera_pan / M_PI);
+        fprintf(stderr, "target_pos\n");
+        fprintf(stderr, "G(%lf, %lf), 1(%lf, %lf), 2(%lf, %lf)\n", target_pos->x_g, target_pos->y_g,
+                target_pos->x1, target_pos->y1, target_pos->x2, target_pos->y2);
+
+        cv::imshow("src", src);
+        cv::waitKey(0);
 //        return true;    //debug
 
 
@@ -284,7 +290,7 @@ namespace target_recognizer
 
         cv::rectangle(*out, cv::Point(column1, 0), cv::Point(column2, 240), cv::Scalar(255,255,255), 2, 4); //debug
 //        cerr << "!\n";
-//        cv::imshow("out", src);    //debug
+        cv::imshow("out", *out);    //debug
 
         cv::Rect cap_detect_area(column1, 0, column2-column1, 240);    //(x, y, w, h)
         cv::Mat cap_detect_rect = mask_cap(cap_detect_area);
@@ -304,6 +310,7 @@ namespace target_recognizer
 
 
         cv::imshow("cap_detect", cap_detect);
+        bool ret = false;
 
         //判断してreturn true/false
         for(cvb::CvBlobs::iterator it = blobs_cap.begin(); it != blobs_cap.end(); ++it)
@@ -326,7 +333,7 @@ namespace target_recognizer
                     && (blob_cap->maxx-blob_cap->minx) <= cap_pixel_width_max )
             {
                 cerr << "HIT!\n";
-//                return true;
+                ret = true;
             }
 
         }
@@ -334,10 +341,11 @@ namespace target_recognizer
         //描画用の画像をoutに格納
 
 
-//        cv::waitKey(0);     //debug
+        cv::waitKey(0);     //debug
 
-        return false;
+//        return ret;
 
+        return true;    //debug
     }
 
 }   // ---> namespace target_recognizer
