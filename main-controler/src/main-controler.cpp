@@ -24,6 +24,7 @@
 #include"ssm-laser.hpp"
 #include"ssm-cluster.hpp"
 #include"ssm-ptz.hpp"
+#include"ssm-sound.hpp"
 
 //ysdlib
 //#include "ysd-color-detector.hpp"
@@ -34,12 +35,12 @@
 #include "gnd-timer.hpp"
 #include"gnd-cui.hpp"
 
-
 //headers
 #include "main-controler-config.hpp"
 #include "main-controler-opt.hpp"
 #include "main-controler.hpp"
 #include "target-recognizer.hpp"
+#include "adhoc-navigation.hpp" // 2013-11-14 MTM追加
 
 using namespace std;
 
@@ -58,17 +59,32 @@ vector<main_controler::waypoint> keiro;
 //-----------------------
 bool ssm_isopen = false;
 SSMApi<Spur_Odometry> ssm_odom; //odometry
+SSMApi<Spur_Odometry> ssm_odom_bs; //odometry(adjustされないやつ) 2013-11-14 MTM追加
 SSMSOKUIKIData3D sokuiki_fs;
 SSMApi<ysd::cluster> cluster;
 SSMApi<ysd::PTZ> ptz;
+SSMApi<SoundType> ssm_sound; //サウンドプレイヤに渡すやつ 2013-11-14 MTM追加
 
 SSMApi<double> human_detector_start_cue;    //dataはdetectin radius
 SSMApi<bool> ptz_move_start_cue;
 SSMApi<Spur_Odometry>	ssm_initpos;	// start poisition
 
+
 inline void finalize_ssm()
 {
     std::cerr << "\n";
+
+    if( ssm_odom_bs.isOpen() )
+    {
+        ssm_odom_bs.close();
+        std::cerr << "ssm-data " << ssm_odom_bs.getStreamName() << " closed.\n";
+    }
+
+    if( ssm_sound.isOpen() )
+    {
+        ssm_sound.release();
+        std::cerr << "ssm-data " << ssm_sound.release() << " released.\n";
+    }
 
     if( ssm_odom.isOpen() )
     {
@@ -304,6 +320,17 @@ int main( int argc, char* argv[] )
         std::cerr << "OK.\n";
     }
 
+    std::cerr << "initializing ssm-data " << "spur_odometry" << "... "; //2013-11-14 MTM追加
+    if( !ssm_odom.openWait("spur_odometry", 0, 0.0, SSM_READ) )
+    {
+        fprintf(stderr, "ERROR : SSM open odometry : %s : ID %d\n", "spur_odometry", 0);
+        return -1;
+    }
+    else
+    {
+        std::cerr << "OK.\n";
+    }
+
     std::cerr << "initializing ssm-data " << conf.sokuiki_fs_name.value << "... ";
     if( !sokuiki_fs.openWait(conf.sokuiki_fs_name.value, conf.sokuiki_fs_id.value, 0.0, SSM_READ) )
     {
@@ -339,6 +366,17 @@ int main( int argc, char* argv[] )
     {
         //        fprintf(stderr, "ERROR : SSM cluster : %s : ID %d\n", conf.odometry_name.value, conf.odometry_id.value);
         fprintf(stderr, "ERROR : SSM ptz \n");
+        return -1;
+    }
+    else
+    {
+        std::cerr << "OK.\n";
+    }
+
+    std::cerr << "initializing ssm-data " << SNAME_SOUND << "... "; //2013-11-14 MTM追加
+    if( !ssm_odom.create( SNAME_SOUND, SID_SOUND, 1.0 , 0.2 ) )
+    {
+        fprintf(stderr, "ERROR : SSM create sound : %s : ID %d\n", SNAME_SOUND, SID_SOUND);
         return -1;
     }
     else
@@ -596,21 +634,19 @@ int main( int argc, char* argv[] )
         //slave。動作実行とリンクしてる
         sokuiki_fs.readLast();
         ssm_odom.readLast();
+        ssm_odom_bs.readTime( sokuiki_fs.time );
 
-//        if(robot_status.is_adhoc == true)
-//        {
-//            if(/*arrival*/)
-//            {
-//                robot_status.is_adhoc = false;
-//                robot_status.is_arrival = true;
-//            }
+        if(robot_status.is_adhoc == true)
+        {
 
-//            // ---> adhoc navigation
+            if( adhoc_navigation::run( ssm_odom_bs , sokuiki_fs , ssm_sound ) )
+            {
+                robot_status.is_adhoc = false;
+                robot_status.is_arrival = true;
+            }
 
-//            // <--- adhoc navigation
-
-//            continue;
-//        }
+            continue;
+        }
 
 
         if(robot_status.cue_line() == true)   //line中
