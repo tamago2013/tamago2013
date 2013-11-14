@@ -69,9 +69,10 @@ int main(int argc, char **argv)
 
     //-------------------------------------
     // SDL Mixerの初期化
-    if( (SDL_Init( SDL_INIT_AUDIO ) == -1) )
+    if( SDL_Init( SDL_INIT_AUDIO ) == -1 )
     {
         std::cerr << "[\033[31mERROR\033[39m]: failed to initialize SDL-Mixer!!\n";
+        std::cerr << SDL_GetError() << "\n";
         return 1;
     }
     if( Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT,2,1024) < 0 )
@@ -96,22 +97,22 @@ int main(int argc, char **argv)
     //-------------------------------------
     // Mix_Chunkの初期化
     std::vector<Mix_Chunk *> sounds(14);
-    sounds[0] = Mix_LoadWAV("../sounds/janjan.wav");
-    sounds[1] = Mix_LoadWAV("../sounds/buinn.wav");
-    sounds[2] = Mix_LoadWAV("../sounds/car_stop.wav");
-    sounds[3] = Mix_LoadWAV("../sounds/goal.wav");
-    sounds[4] = Mix_LoadWAV("../sounds/jann.wav");
-    sounds[5] = Mix_LoadWAV("../sounds/kin.wav");
-    sounds[6] = Mix_LoadWAV("../sounds/kyodaika.wav");
-    sounds[7] = Mix_LoadWAV("../sounds/pi__.wav");
-    sounds[8] = Mix_LoadWAV("../sounds/pin__.wav");
-    sounds[9] = Mix_LoadWAV("../sounds/pinpon.wav");
-    sounds[10] = Mix_LoadWAV("../sounds/pinpon_2.wav");
-    sounds[11] = Mix_LoadWAV("../sounds/pinpon_3.wav");
-    sounds[12] = Mix_LoadWAV("../sounds/piroriro.wav");
-    sounds[13] = Mix_LoadWAV("../sounds/piroon.wav");
+    sounds[0] = Mix_LoadWAV("sounds/janjan.wav");
+    sounds[1] = Mix_LoadWAV("sounds/buinn.wav");
+    sounds[2] = Mix_LoadWAV("sounds/car_stop.wav");
+    sounds[3] = Mix_LoadWAV("sounds/goal.wav");
+    sounds[4] = Mix_LoadWAV("sounds/jann.wav");
+    sounds[5] = Mix_LoadWAV("sounds/kin.wav");
+    sounds[6] = Mix_LoadWAV("sounds/kyodaika.wav");
+    sounds[7] = Mix_LoadWAV("sounds/pi__.wav");
+    sounds[8] = Mix_LoadWAV("sounds/pin__.wav");
+    sounds[9] = Mix_LoadWAV("sounds/pinpon.wav");
+    sounds[10] = Mix_LoadWAV("sounds/pinpon_2.wav");
+    sounds[11] = Mix_LoadWAV("sounds/pinpon_3.wav");
+    sounds[12] = Mix_LoadWAV("sounds/piroriro.wav");
+    sounds[13] = Mix_LoadWAV("sounds/piroon.wav");
 
-    Mix_Chunk* default_sound = Mix_LoadWAV("../sounds/talk.wav"); //readNew出来なかったときに一定間隔で読むやつ
+    Mix_Chunk* default_sound = Mix_LoadWAV("sounds/talk.wav"); //readNew出来なかったときに一定間隔で読むやつ
 
     //-------------------------------------
     // タイマの設定
