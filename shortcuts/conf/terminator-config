@@ -241,7 +241,7 @@
       order = 0
       parent = child1 
       title = sound-player
-      command = cd ${tamago_home}/sound; echo "*****************************"; echo "効果音：OpenJTalk"; echo "*****************************"; cvlc --loop talk.wav silence-10sec.wav > /dev/null 2>&1; echo ""; echo "-----"; echo "cvlc --loop talk.wav silence-10sec.wav > /dev/null 2>&1"; echo "-----"; bash;
+      command = sleep 1; cd ${tamago_home}/sound-player; ./launcher; echo "-----"; echo "./launcher"; echo "-----"; bash;
 
 #=================================================
 # multi-logger / multi-loggerの立ち上げ
