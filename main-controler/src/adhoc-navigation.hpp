@@ -164,16 +164,18 @@ namespace adhoc_navigation
                 if( pylon_line_bs.size() == 1 )
                 {
                     ssm_sound.data = -1;
+                    ssm_sound.write();
                 }
                 if( pylon_line_bs.size() == 2 )
                 {
                     ssm_sound.data = -2;
+                    ssm_sound.write();
                 }
                 if( pylon_line_bs.size() >= 3 )
                 {
                     ssm_sound.data = -3;
+                    ssm_sound.write();
                 }
-                ssm_sound.write();
             }
         }
 
