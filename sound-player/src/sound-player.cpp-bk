@@ -1,0 +1,180 @@
+/*
+
+  卵掛け御飯2012で使っていたsound playerを2013に移植
+
+  2013-11-13 MTM
+
+ */
+
+//===================================================
+// include
+//===================================================
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <vector>
+#include <csignal>
+#include <ssm.hpp>
+
+#include "SDL/SDL.h"
+#include "SDL/SDL_mixer.h"
+
+#include "gnd-timer.hpp"
+
+#include "ssm-sound.hpp"
+
+//===================================================
+// ssm-data / finalize
+//===================================================
+SSMApi< SoundType > ssm_sound;
+
+void finalizeSSM()
+{
+    if( ssm_sound.isOpen() )
+    {
+        ssm_sound.close();
+        std::cout << ssm_sound.getStreamName() << " closed.\n";
+    }
+
+    endSSM();
+    std::cout << "ssm closed.\n";
+}
+
+//===================================================
+// ctrl-c
+//===================================================
+bool is_shutting_down = false;
+void ctrl_c(int aStatus)
+{
+    is_shutting_down = true;
+    finalizeSSM();
+    signal(SIGINT, NULL);
+}
+
+
+//===================================================
+// main
+//===================================================
+int main(int argc, char **argv)
+{
+
+    signal( SIGINT , ctrl_c );
+
+    std::cout << "++++++++++++++++++++++++++++++++++++++\n"
+              << "効果音:魔王魂\n"
+              << "http://maoudamashii.jokersounds.com/\n"
+              << "音声:Open J Talk\n"
+              << "http://open-jtalk.sp.nitech.ac.jp/\n"
+              << "++++++++++++++++++++++++++++++++++++++\n";
+
+    //-------------------------------------
+    // SDL Mixerの初期化
+    if( SDL_Init( SDL_INIT_AUDIO ) == -1 )
+    {
+        std::cerr << "[\033[31mERROR\033[39m]: failed to initialize SDL-Mixer!!\n";
+        std::cerr << SDL_GetError() << "\n";
+        return 1;
+    }
+    if( Mix_OpenAudio(48000,MIX_DEFAULT_FORMAT,2,1024) < 0 )
+    {
+        std::cerr << "[\033[31mERROR\033[39m]: failed to open audio!!\n";
+        SDL_Quit();
+        return 1;
+    }
+
+    //-------------------------------------
+    // SSMの初期化
+    if( !initSSM() )
+    {
+        std::cerr << "[\033[31mERROR\033[39m]: failed to initialize SSM!!\n";
+        return 1;
+    }
+    if( !ssm_sound.open( SNAME_SOUND , SID_SOUND , SSM_READ ) )
+    {
+        std::cerr << "[\033[31mWARNING\033[39m]: failed to open \"" << ssm_sound.getStreamName() << "\"!!( run with talking mode )\n";
+    }
+
+    //-------------------------------------
+    // Mix_Chunkの初期化
+    Mix_Chunk* sounds[ SOUND_ARRAY_LENGTH ];
+    sounds[0] = Mix_LoadWAV("sounds/pi__.wav");
+    sounds[1] = Mix_LoadWAV("sounds/buinn.wav");    //used
+    sounds[2] = Mix_LoadWAV("sounds/start_detection_chunk.wav");    //used
+    sounds[3] = Mix_LoadWAV("sounds/not_found_chunk.wav");  //used
+    sounds[4] = Mix_LoadWAV("sounds/found_chunk.wav");  //used
+    sounds[5] = Mix_LoadWAV("sounds/arrival_target.wav");   //used
+    sounds[6] = Mix_LoadWAV("sounds/system_ready.wav"); //used
+    sounds[7] = Mix_LoadWAV("sounds/pi__.wav");         //used
+    sounds[8] = Mix_LoadWAV("sounds/goal.wav");         //used
+    sounds[9] = Mix_LoadWAV("sounds/pinpon.wav");       //used
+    sounds[10] = Mix_LoadWAV("sounds/pinpon_2.wav");
+    sounds[11] = Mix_LoadWAV("sounds/pinpon_3.wav");
+    sounds[12] = Mix_LoadWAV("sounds/piroriro.wav");
+    sounds[13] = Mix_LoadWAV("sounds/piroon.wav");      //used
+
+    Mix_Chunk* default_sound = Mix_LoadWAV("sounds/talk.wav"); //readNew出来なかったときに一定間隔で読むやつ
+
+    //-------------------------------------
+    // タイマの設定
+    gnd::inttimer clock_talk;
+    clock_talk.begin( CLOCK_REALTIME , 20.0 , -1.0 );
+
+    //-------------------------------------
+    // メインループ
+    std::cout << "mainloop started.\n";
+    while( !is_shutting_down )
+    {
+        usleepSSM(5000);
+
+        if( !ssm_sound.isOpen() || ( ssm_sound.isOpen() && !ssm_sound.readNew() ) )
+        {
+            if( clock_talk.clock() )
+            {
+                Mix_PlayChannel( 0 , default_sound , 0 );
+                std::cerr << "sound = talk(default)\n";
+            }
+
+            continue;
+        }
+
+        if( ssm_sound.data < 0 ) //隠しオプション：0以下だとサウンドNo.7をその回数連打
+        {
+            unsigned int count = abs( ssm_sound.data );
+
+            for( unsigned int i=0; i<count; ++i )
+            {
+                Mix_PlayChannel( 0 , sounds[ 7 ] , 0 );
+                sleepSSM(0.1);
+            }
+
+            clock_talk.begin( CLOCK_REALTIME , 20.0 , -1.0 );
+            continue;
+        }
+
+        if( ssm_sound.data >= SOUND_ARRAY_LENGTH )
+        {
+            clock_talk.begin( CLOCK_REALTIME , 20.0 , -1.0 );
+            continue;
+        }
+
+        size_t sound_index = (size_t)ssm_sound.data;
+
+        Mix_PlayChannel( 0 , sounds[ sound_index ] , 0 );
+        std::cerr << "sound = " << sound_index << "\n";
+    }
+
+    //-------------------------------------
+    // 終了処理
+    for(size_t i=0; i<SOUND_ARRAY_LENGTH; i++)
+    {
+        Mix_FreeChunk(sounds[i]);
+    }
+
+    Mix_CloseAudio();
+    SDL_Quit();
+    std::cout << "SDL finalized.\n";
+
+    finalizeSSM();
+
+    return 0;
+}
