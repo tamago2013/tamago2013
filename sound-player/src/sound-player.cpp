@@ -23,7 +23,7 @@
 
 #include "ssm-sound.hpp"
 
-#define SOUND_ARRAY_LENGTH 14
+#define SOUND_ARRAY_LENGTH 15
 
 //===================================================
 // ssm-data / finalize
@@ -113,6 +113,7 @@ int main(int argc, char **argv)
     sounds[11] = Mix_LoadWAV("sounds/pinpon_3.wav");
     sounds[12] = Mix_LoadWAV("sounds/piroriro.wav");
     sounds[13] = Mix_LoadWAV("sounds/piroon.wav");      //used
+    sounds[14] = Mix_LoadWAV("sounds/kyodaika.wav");    //used
 
     Mix_Chunk* default_sound = Mix_LoadWAV("sounds/talk.wav"); //readNew出来なかったときに一定間隔で読むやつ
 
