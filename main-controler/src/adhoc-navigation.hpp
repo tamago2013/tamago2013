@@ -46,9 +46,9 @@ namespace adhoc_navigation
     const float pylon_interval = 2.3;                      //パイロンの基本間隔[m]
     //const float pylon_interval = 1.2;                      //パイロンの基本間隔(室内実験用)[m]
     const float pylon_interval_error = 0.05;                //許容するパイロン間隔誤差[m]
-    const float pylon_angle_error = 2.0 * M_PI / 180.0;   //許容するパイロンを結ぶ線分の角度誤差[rad]。オドメトリのthetaからプラマイこの角度分ずれていても許容する。
+    const float pylon_angle_error = 5.0 * M_PI / 180.0;   //許容するパイロンを結ぶ線分の角度誤差[rad]。オドメトリのthetaからプラマイこの角度分ずれていても許容する。
     //シュプールライン推定
-    const float spur_line_max_error_angle = 5.0 * M_PI / 180.0; //進行方向をこの角度以上に修正するものは無視する
+    const float spur_line_max_error_angle = 2.0 * M_PI / 180.0; //進行方向をこの角度以上に修正するものは無視する
     //シュプール発行
     const float robot_speed = 0.3; //ロボットのスピード[s]
     const float pre_crash_offest_x = 0.24; //これより近いとpre-crashが働かない[m]
