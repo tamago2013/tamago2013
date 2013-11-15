@@ -100,19 +100,19 @@ int main(int argc, char **argv)
     // Mix_Chunkの初期化
     Mix_Chunk* sounds[ SOUND_ARRAY_LENGTH ];
     sounds[0] = Mix_LoadWAV("sounds/pi__.wav");
-    sounds[1] = Mix_LoadWAV("sounds/buinn.wav");    //used
-    sounds[2] = Mix_LoadWAV("sounds/start_detection_chunk.wav");    //used
-    sounds[3] = Mix_LoadWAV("sounds/not_found_chunk.wav");  //used
-    sounds[4] = Mix_LoadWAV("sounds/found_chunk.wav");  //used
-    sounds[5] = Mix_LoadWAV("sounds/arrival_target.wav");   //used
-    sounds[6] = Mix_LoadWAV("sounds/system_ready.wav"); //used
-    sounds[7] = Mix_LoadWAV("sounds/pi__.wav");         //used
-    sounds[8] = Mix_LoadWAV("sounds/goal.wav");         //used
-    sounds[9] = Mix_LoadWAV("sounds/pinpon.wav");       //used
+    sounds[1] = Mix_LoadWAV("sounds/buinn.wav");
+    sounds[2] = Mix_LoadWAV("sounds/car_stop.wav");
+    sounds[3] = Mix_LoadWAV("sounds/goal.wav");
+    sounds[4] = Mix_LoadWAV("sounds/jann.wav");
+    sounds[5] = Mix_LoadWAV("sounds/kin.wav");
+    sounds[6] = Mix_LoadWAV("sounds/kyodaika.wav");
+    sounds[7] = Mix_LoadWAV("sounds/pi__.wav");
+    sounds[8] = Mix_LoadWAV("sounds/pin__.wav");
+    sounds[9] = Mix_LoadWAV("sounds/pinpon.wav");
     sounds[10] = Mix_LoadWAV("sounds/pinpon_2.wav");
     sounds[11] = Mix_LoadWAV("sounds/pinpon_3.wav");
     sounds[12] = Mix_LoadWAV("sounds/piroriro.wav");
-    sounds[13] = Mix_LoadWAV("sounds/piroon.wav");      //used
+    sounds[13] = Mix_LoadWAV("sounds/piroon.wav");
 
     Mix_Chunk* default_sound = Mix_LoadWAV("sounds/talk.wav"); //readNew出来なかったときに一定間隔で読むやつ
 
@@ -146,6 +146,7 @@ int main(int argc, char **argv)
             for( unsigned int i=0; i<count; ++i )
             {
                 Mix_PlayChannel( 0 , sounds[ 7 ] , 0 );
+
                 sleepSSM(0.1);
             }
 
