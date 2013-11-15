@@ -46,9 +46,9 @@ namespace adhoc_navigation
     const float pylon_interval = 2.3;                      //パイロンの基本間隔[m]
     //const float pylon_interval = 1.2;                      //パイロンの基本間隔(室内実験用)[m]
     const float pylon_interval_error = 0.05;                //許容するパイロン間隔誤差[m]
-    const float pylon_angle_error = 10.0 * M_PI / 180.0;   //許容するパイロンを結ぶ線分の角度誤差[rad]。オドメトリのthetaからプラマイこの角度分ずれていても許容する。
+    const float pylon_angle_error = 2.0 * M_PI / 180.0;   //許容するパイロンを結ぶ線分の角度誤差[rad]。オドメトリのthetaからプラマイこの角度分ずれていても許容する。
     //シュプールライン推定
-    const float spur_line_max_error_angle = 20.0 * M_PI / 180.0; //進行方向をこの角度以上に修正するものは無視する
+    const float spur_line_max_error_angle = 5.0 * M_PI / 180.0; //進行方向をこの角度以上に修正するものは無視する
     //シュプール発行
     const float robot_speed = 0.3; //ロボットのスピード[s]
     const float pre_crash_offest_x = 0.24; //これより近いとpre-crashが働かない[m]
@@ -101,9 +101,32 @@ namespace adhoc_navigation
     double target_line_angle;                                         //YP-Spurで追従させる直線の傾き
 
     //-----------------------------------
+    // coordinate-convert関数
+    void coordinate_convert_to_FS( Point2D& input_point_coordinate_X , Point2D& output_point_coordinate_FS , Spur_Odometry& robot_pos_coordinate_X )
+    {
+        double diff_x = input_point_coordinate_X.x - robot_pos_coordinate_X.x;
+        double diff_y = input_point_coordinate_X.y - robot_pos_coordinate_X.y;
+
+        double r = sqrt( diff_x * diff_x + diff_y * diff_y );
+        double t = atan2( diff_y , diff_x ) - robot_pos_coordinate_X.theta;
+
+        output_point_coordinate_FS.x = r * cos( t );
+        output_point_coordinate_FS.y = r * sin( t );
+    }
+
+    void coordinate_convert_from_FS( Point2D& output_point_coordinate_X , Point2D& input_point_coordinate_FS , Spur_Odometry& robot_pos_coordinate_X )
+    {
+        double r = sqrt( input_point_coordinate_FS.x * input_point_coordinate_FS.x + input_point_coordinate_FS.y * input_point_coordinate_FS.y );
+        double t = atan2( input_point_coordinate_FS.y , input_point_coordinate_FS.x ) + robot_pos_coordinate_X.theta;
+
+        output_point_coordinate_X.x = r * cos( t ) + robot_pos_coordinate_X.x;
+        output_point_coordinate_X.y = r * sin( t ) + robot_pos_coordinate_X.y;
+    }
+
+    //-----------------------------------
     // 関数の宣言
     bool run( SSMApi< Spur_Odometry >& ssm_odometry , SSMSOKUIKIData3D& ssm_sokuiki , SSMApi< SoundType >& ssm_sound );
-    void initialize( SSMApi< Spur_Odometry >& ssm_odometry );
+    void initialize( SSMApi< Spur_Odometry >& ssm_odometry , SSMApi< Spur_Odometry >& ssm_odometry_gl , Line2D& initial_target_line_gl );
     void updatePylon( SSMApi< Spur_Odometry >& ssm_odometry , SSMSOKUIKIData3D& ssm_sokuiki );
     void updatePylonLine( SSMApi< Spur_Odometry >& ssm_odometry );
     void updateTargetLine( SSMApi< Spur_Odometry >& ssm_odometry );
@@ -112,12 +135,17 @@ namespace adhoc_navigation
     // 関数の定義 [ 関数本体 ]
     // この関数がmain-controllerから呼び出される。実際に制御を行う関数。
     // 戻り値：移動距離が終了条件に達していればtrue、そうでなければfalse
-    bool run( SSMApi< Spur_Odometry >& ssm_odometry , SSMSOKUIKIData3D& ssm_sokuiki , SSMApi< SoundType >& ssm_sound )
+    bool run( SSMApi< Spur_Odometry >& ssm_odometry , SSMApi< Spur_Odometry >& ssm_odometry_gl , SSMSOKUIKIData3D& ssm_sokuiki , SSMApi< SoundType >& ssm_sound , float start_x , float start_y , float finish_x , float finish_y )
     {
         //初期化されていなかったら、初期化
         if( !initialized )
         {
-            initialize( ssm_odometry );
+            Line2D line;
+            line.start.x = start_x;
+            line.start.y = start_y;
+            line.finish.x = finish_x;
+            line.finish.y = finish_y;
+            initialize( ssm_odometry , ssm_odometry_gl , line );
         }
 
         //走行距離が終了値以上だったら終了判定
@@ -185,7 +213,7 @@ namespace adhoc_navigation
     //-----------------------------------
     // 関数の定義 [ 初期化関数 ]
     // 開始時点でのオドメトリを記録しておく
-    void initialize( SSMApi< Spur_Odometry >& ssm_odometry )
+    void initialize( SSMApi< Spur_Odometry >& ssm_odometry , SSMApi< Spur_Odometry >& ssm_odometry_gl , Line2D& initial_target_line_gl )
     {
         //すでに初期化されていたら何もしない
         if( initialized )
@@ -199,10 +227,15 @@ namespace adhoc_navigation
         first_odometry = ssm_odometry.data;
         past_odometry = ssm_odometry.data;
 
-        //初期目標直線→今のオドメトリでまっすぐ
-        target_line_basepoint.x = ssm_odometry.data.x;
-        target_line_basepoint.y = ssm_odometry.data.y;
-        target_line_angle = ssm_odometry.data.theta;
+        //初期目標直線→本来の目標地点に行く
+        Line2D initial_target_line_bs;
+        Line2D initial_target_line_fs;
+        coordinate_convert_to_FS( initial_target_line_gl.start , initial_target_line_fs.start , ssm_odometry_gl.data );
+        coordinate_convert_to_FS( initial_target_line_gl.finish , initial_target_line_fs.finish , ssm_odometry_gl.data );
+        coordinate_convert_from_FS( initial_target_line_bs.start , initial_target_line_fs.start , ssm_odometry.data );
+        coordinate_convert_from_FS( initial_target_line_bs.finish , initial_target_line_fs.finish , ssm_odometry.data );
+        target_line_basepoint = initial_target_line_bs.start;
+        target_line_angle = atan2( initial_target_line_bs.finish.y - initial_target_line_bs.start.y , initial_target_line_bs.finish.x - initial_target_line_bs.start.x );
 
         //パイロン位置初期化
         pylon_bs.clear();
@@ -390,18 +423,28 @@ namespace adhoc_navigation
         if( pylon_line_bs.size() < 1 )
         {
             //パイロンラインが1本もないとき：オドメトリでまっすぐ進む
+            /*
             target_line_basepoint.x = ssm_odometry.data.x;
             target_line_basepoint.y = ssm_odometry.data.y;
             target_line_angle = ssm_odometry.data.theta;
-
+            */
             return;
         }
         else if( pylon_line_bs.size() == 1 )
         {
+            //パイロンラインが１本のとき：捨てる
+            /*
+            target_line_basepoint.x = ssm_odometry.data.x;
+            target_line_basepoint.y = ssm_odometry.data.y;
+            target_line_angle = ssm_odometry.data.theta;
+            */
+            /*
             //パイロンラインが１本のとき：その中点から、そのラインに垂直に伸びる線分
             target_line_basepoint.x = ( pylon_line_bs[0].start.x +  pylon_line_bs[0].finish.x ) / 2;
             target_line_basepoint.y = ( pylon_line_bs[0].start.y +  pylon_line_bs[0].finish.y ) / 2;
             target_line_angle = atan2( pylon_line_bs[0].finish.y - pylon_line_bs[0].start.y , pylon_line_bs[0].finish.x - pylon_line_bs[0].start.x ) + M_PI / 2;
+            */
+            return;
         }
         else if( pylon_line_bs.size() == 2 )
         {
@@ -413,6 +456,10 @@ namespace adhoc_navigation
             target_finish.y = ( pylon_line_bs[1].start.y +  pylon_line_bs[1].finish.y ) / 2;
             target_line_angle = atan2( target_finish.y - target_line_basepoint.y , target_finish.x - target_line_basepoint.x );
 
+            //修正角度を減らす
+            float ang_diff = target_line_angle - ssm_odometry.data.theta;
+            ang_diff = 0.3 * ang_diff;
+            target_line_angle = ang_diff + ssm_odometry.data.theta;
         }
         else
         {
@@ -448,6 +495,11 @@ namespace adhoc_navigation
             target_finish.x = ( pylon_line_bs[ best_index_start ].start.x +  pylon_line_bs[ best_index_start ].finish.x ) / 2;
             target_finish.y = ( pylon_line_bs[ best_index_start ].start.y +  pylon_line_bs[ best_index_start ].finish.y ) / 2;
             target_line_angle = atan2( target_finish.y - target_line_basepoint.y , target_finish.x - target_line_basepoint.x );
+
+            //修正角度を減らす
+            float ang_diff = target_line_angle - ssm_odometry.data.theta;
+            ang_diff = 0.3 * ang_diff;
+            target_line_angle = ang_diff + ssm_odometry.data.theta;
         }
 
         //オドメトリと角度が反対にならないように調整

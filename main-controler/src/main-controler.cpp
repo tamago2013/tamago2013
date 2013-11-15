@@ -656,7 +656,7 @@ int main( int argc, char* argv[] )
         if(robot_status.is_adhoc == true)
         {
 
-            if( adhoc_navigation::run( ssm_odom_bs , sokuiki_fs , ssm_sound ) )
+            if( adhoc_navigation::run( ssm_odom_bs , ssm_odom , sokuiki_fs , ssm_sound , keiro[robot_status.dest_wp_num-1].x , keiro[robot_status.dest_wp_num-1].y , keiro[robot_status.dest_wp_num].x , keiro[robot_status.dest_wp_num].y ) )
             {
                 robot_status.is_adhoc = false;
                 robot_status.is_arrival = true;
