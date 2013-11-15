@@ -103,9 +103,21 @@ inline void calc_axis(cvb::CvBlob *blob, double *major_axis, double *minor_axis)
                             - sqrt((blob->n20 - blob->m01)*(blob->n20 - blob->m01) + 4.0*blob->n11*blob->n11)));
 }
 
+void pos_GL2camera(const ysd::_rect *cluster_GL, ysd::_rect *cluster_camera, const Spur_Odometry *robot_pos)
+{
+    double sin_th = sin(robot_pos->theta);
+    double cos_th = cos(robot_pos->theta);
+    double x_offset = -0.10;    //カメラ位置
 
+    cluster_camera->x1 = cos_th*(cluster_GL->x1 - robot_pos->x) + sin_th*(cluster_GL->y1 - robot_pos->y) + x_offset;
+    cluster_camera->y1 = -1.0*sin_th*(cluster_GL->x1 - robot_pos->x) + cos_th*(cluster_GL->y1 - robot_pos->y);
 
+    cluster_camera->x2 = cos_th*(cluster_GL->x2 - robot_pos->x) + sin_th*(cluster_GL->y2 - robot_pos->y) + x_offset;
+    cluster_camera->y2 = -1.0*sin_th*(cluster_GL->x2 - robot_pos->x) + cos_th*(cluster_GL->y2 - robot_pos->y);
 
+    cluster_camera->x_g = cos_th*(cluster_GL->x_g - robot_pos->x) + sin_th*(cluster_GL->y_g - robot_pos->y) + x_offset;
+    cluster_camera->y_g = -1.0*sin_th*(cluster_GL->x_g - robot_pos->x) + cos_th*(cluster_GL->y_g - robot_pos->y);
+}
 
 
 int main( int argc, char* argv[] )
@@ -119,21 +131,39 @@ int main( int argc, char* argv[] )
 
     SSMApi<double> human_detector_start_cue;
 
+    double operation_interval = 1.0;
 
     double acm_term = 5.0;      //[sec]
-    double acm_interval = 0.1;  //[sec]
-    int acm_threshold = 5;
+    double acm_interval = 0.05;  //[sec]
+
+    int acm_threshold = 30;
+
+    double cel_size_row = 0.20;     //[m]
+    double distance;         //[m]
+    double cluster_size_max = 1.5;  //[m]
+    double cluster_size_min = 0.4;  //[m]
+
+//    double acm_term = 100.0;      //[sec] debug
+//    double acm_interval = 0.025;  //[sec]    debug
+//    double cel_size_row = 0.025;     //[m]  debug
+
+
+    //小さくするほど遠くが消える
+    // 20:0.045 13:0.03 16:0.035
+    double noize_reduction_threshold = 0.05;
+
+    double debug_distance = 20.0;
+
+
+    double cel_size_column = cel_size_row;  //[m]
 
     int diff_thresh = 50;   //いらん
 
+
     double row_size = 10.0;         //[m]
     double column_size = 10.0;      //[m]
-    double cel_size_row = 0.05;     //[m]
-    double cel_size_column = 0.05;  //[m]
-
-    double distance = 15.0;
-
     double start_time;
+
 
 
     /*  //1005は差分とらない
@@ -161,7 +191,7 @@ int main( int argc, char* argv[] )
         return -1;
     }
 
-    int ret = ssm_odom.openWait(SNAME_GLOBAL /*SNAME_ADJUST*/, 0, 0.0, SSM_READ);
+    int ret = ssm_odom.openWait(/*SNAME_ODOMETRY*/ SNAME_ADJUST, 0, 0.0, SSM_READ);
     if( ret != 1 )
     {
         fprintf(stderr, "open ssm_odom failure\n");
@@ -176,6 +206,9 @@ int main( int argc, char* argv[] )
     }
 
     cluster.create(SNAME_CLUSTER, 0, 20.0, 1);
+    cluster.data.set_num_clusters(0);
+    cluster.write();
+
 
     ret = human_detector_start_cue.openWait("human_detector_start_cue", 0, 0.0, SSM_READ);
     if( ret != 1 )
@@ -229,19 +262,19 @@ int main( int argc, char* argv[] )
     while( !ysd::gShutOff)
     {   // ---> main loop
 
-        ysd::time::interval_timerSSM(0.5);
-
-
+        ysd::time::interval_timerSSM(operation_interval);
 
 //        cout << "sっておして" << endl;
 //        char in;
 //        cin >> in;
 //        if(in == 's')
-//        if(human_detector_start_cue.readNew() == true)
+
+        if(human_detector_start_cue.readNew() == true)
         {
-            cerr << "\n\nhuman detection start!\n";
+//            cerr << "\n\nhuman detection start!\n";
+            cerr << "\n";
             distance = human_detector_start_cue.data;
-            distance = 5;
+            distance = debug_distance;
 
             // ---> make gridmap
             gnd::gridmap::gridplane<cell> grid_map;
@@ -276,7 +309,27 @@ int main( int argc, char* argv[] )
                 {
                     if(fs.data[step].isWarning() == false)
                     {
+
+                        // ---> noize reduction
+                        //左右と孤立（一定距離以上離れている）している点は除去
+//                        cerr << "!\n";
+                        if(step == 0 || step == fs.property.numPoints)
+                        {
+                        }
+                        else
+                        {
+
+                            if( noize_reduction_threshold < sqrt((fs.data[step].reflect.x - fs.data[step-1].reflect.x)*(fs.data[step].reflect.x - fs.data[step-1].reflect.x) + (fs.data[step].reflect.y - fs.data[step-1].reflect.y)*(fs.data[step].reflect.y - fs.data[step-1].reflect.y))
+                                    && noize_reduction_threshold < sqrt((fs.data[step].reflect.x - fs.data[step+1].reflect.x)*(fs.data[step].reflect.x - fs.data[step+1].reflect.x) + (fs.data[step].reflect.y - fs.data[step+1].reflect.y)*(fs.data[step].reflect.y - fs.data[step+1].reflect.y))
+                                    )
+                            {
+//                                cerr << "noize!\n";
+                            }
+                        else{
+
+                        // ---> 指定領域内の点群のみしょりする
                         //一定距離以内をとってくる
+                        // ===> 矩形範囲に変更 ===>構わずクラスタリングしてmain-controllerでエリア
                         if( (distance*distance) > ((fs.data[step].reflect.x*fs.data[step].reflect.x) + (fs.data[step].reflect.y*fs.data[step].reflect.y)) )
                         {
                             double scan_point_gl_x = fs.data[step].reflect.x*cos_theta - fs.data[step].reflect.y*sin_theta + ssm_odom.data.x;
@@ -294,6 +347,10 @@ int main( int argc, char* argv[] )
                                 p->isacm = true;
                             }
                         }
+                        // <--- 指定領域内の点群のみしょりする
+                            }
+                        }
+
                     }
                 }
                 for(int c=0; c<(signed)grid_map.column(); c++)
@@ -308,9 +365,26 @@ int main( int argc, char* argv[] )
             }// <--- acm
 
 
+            //デバッグ用履きだっ数
+//                for(int c=0; c<(signed)grid_map.column(); c++)
+//                {
+//                    for(int r=0; r<(signed)grid_map.row(); r++)
+//                    {
+//                        if( grid_map.value(r, c).acm >= 50 )
+//                        {
+//                            double x, y;
+//                            grid_map.pget_pos_core(r, c, &x, &y);
+//                            printf("[scan_acm] %lf %lf %d\n", x, y, grid_map.value(r, c).acm);
+//                            fflush(stdout);
+//                        }
+//                    }
+//                }
+//                return 0;
+
+
             double tstart = ysd::time::gettimeofday_sec();
 
-            fprintf(stderr, "動物体取り除く\n");
+//            fprintf(stderr, "動物体取り除く\n");
             // ---> remove moving object
             for(int c = 0; c < grid_map.column(); c++)
             {
@@ -385,8 +459,8 @@ int main( int argc, char* argv[] )
             //クラスタの大きさでフィルタをかける
             //min < bolb < max
             //
-            //        cvb::cvFilterByArea(blobs, 5, 100000);
-            for(int num = 5; blobs.size() > 32; ++num)
+                    cvb::cvFilterByArea(blobs, 1, 100000);
+            for(int num = 1; blobs.size() > 32; ++num)
             {
                 cvb::cvFilterByArea(blobs, num, 100000);
                 printf("cluster reduction\n");
@@ -416,17 +490,31 @@ int main( int argc, char* argv[] )
                 grid_map.pget_pos_core(blob->centroid.y, blob->centroid.x, &cent_x, &cent_y);
 
                 double cluster_size = sqrt((max_x - min_x)*(max_x - min_x) + (max_y - min_y)*(max_y - min_y));
-                printf("[%d] pos : max(%lf, %lf) min(%lf, %lf) centroid(%lf, %lf) cluster size : %lf",
-                       cluster_num, max_x, max_y, min_x, min_y, cent_x, cent_y, cluster_size);
-                if(0.1 < cluster_size && cluster_size < 2.0)    //これをcondfigにしろし
+//                printf("[%d] pos : max(%lf, %lf) min(%lf, %lf) centroid(%lf, %lf) area: %d size : %lf",
+//                       cluster_num, max_x, max_y, min_x, min_y, cent_x, cent_y, blob->area, cluster_size);
+                if(cluster_size_min < cluster_size && cluster_size < cluster_size_max)    //これをcondfigにしろし
                 {
-//                    printf("[%d] pos : max(%lf, %lf) min(%lf, %lf) centroid(%lf, %lf) cluster size : %lf\n",
-//                           cluster_num, max_x, max_y, min_x, min_y, cent_x, cent_y, cluster_size);
-                    fprintf(stdout, " ===> HIT!");
+                    printf("[%d] pos : max(%lf, %lf) min(%lf, %lf) centroid(%lf, %lf) area: %d, size : %lf\n",
+                           cluster_num, max_x, max_y, min_x, min_y, cent_x, cent_y, blob->area, cluster_size);
+//                    fprintf(stdout, " ===> HIT!");
                     cluster.data.rect[cluster_num].set(cent_x, cent_y, min_x, min_y, max_x, max_y);
                     ++cluster_num;
+
+                    ysd::_rect target_cluster_pos_GL;
+                    target_cluster_pos_GL.set(cent_x, cent_y, min_x, min_y, max_x, max_y);
+
+                    ysd::_rect target_cluster_pos_c;
+                    pos_GL2camera(&target_cluster_pos_GL, &target_cluster_pos_c, &ssm_odom.data);
+
+                    fprintf(stderr, "%lf, %lf, %lf, %lf, %lf, %lf\n", target_cluster_pos_c.x_g, target_cluster_pos_c.y_g,
+                                                                      target_cluster_pos_c.x1, target_cluster_pos_c.y1,
+                                                                      target_cluster_pos_c.x2, target_cluster_pos_c.y2);
+
+
+
+
                 }
-                fprintf(stdout, "\n");
+//                fprintf(stdout, "\n");
             }
             cluster.data.set_num_clusters(cluster_num);
             //        cluster.write(start_time);

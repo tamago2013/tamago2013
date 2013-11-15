@@ -344,6 +344,7 @@ namespace target_recognizer
         cv::waitKey(0);     //debug
 
         return ret;
+//        return true;
     }
 
 }   // ---> namespace target_recognizer

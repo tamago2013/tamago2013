@@ -740,16 +740,15 @@ int main( int argc, char* argv[] )
                         {
                             if(robot_status.dest_pos_num % 3 == 1)
                             {
-                                Spur_set_vel(0.5);
+                                Spur_set_vel(0.4);
+                                fprintf(stderr, "vel: %lf\n", 0.4);
                             }
                             else
                             {
-                                Spur_set_vel(keiro[robot_status.dest_wp_num].velocity);
+                                Spur_set_vel(keiro[robot_status.dest_wp_num-1].velocity);
+                                fprintf(stderr, "vel: %lf\n", keiro[robot_status.dest_wp_num-1].velocity);
                             }
                         }
-
-
-
 
 
                         if(robot_status.enable_seemless == true)
@@ -1183,7 +1182,7 @@ int main( int argc, char* argv[] )
 
                             //ypspur_vel 更新
                             Spur_set_vel(keiro[robot_status.dest_wp_num-1].velocity);
-
+                            fprintf(stderr, "vel: %lf\n", keiro[robot_status.dest_wp_num-1].velocity);
                             // ---> 表示
                             cerr << "dest_pos\n";
                             for (unsigned int i = robot_status.dest_pos_num; i < robot_status.dest_pos.size(); ++i)
