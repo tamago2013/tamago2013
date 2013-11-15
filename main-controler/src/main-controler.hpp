@@ -11,6 +11,19 @@
 
 #include"gnd-cui.hpp"
 
+#include"ssm-cluster.hpp"
+
+#define sound_wp 13
+#define sound_EM_stop 9
+#define sound_restart 1
+#define sound_start_detection 2
+#define sound_not_found 3
+#define sound_found 4
+#define sound_arrival_target 5
+#define sound_system_ready 6
+#define sound_goal 8
+
+
 
 using namespace std;
 
@@ -204,6 +217,40 @@ void pos_GL2camera(const ysd::_rect *cluster_GL, ysd::_rect *cluster_camera, con
     cluster_camera->x_g = cos_th*(cluster_GL->x_g - robot_pos->x) + sin_th*(cluster_GL->y_g - robot_pos->y) + x_offset;
     cluster_camera->y_g = -1.0*sin_th*(cluster_GL->x_g - robot_pos->x) + cos_th*(cluster_GL->y_g - robot_pos->y);
 }
+
+void pos_GL2wp(const ysd::_rect *cluster_GL, ysd::_rect *cluster_wp, double wp_x_gl, double wp_y_gl, double l_th)
+{
+    double sin_th = sin(l_th);
+    double cos_th = cos(l_th);
+//    double x_offset = -0.10;    //カメラ位置
+
+    cluster_wp->x1 = cos_th*(cluster_GL->x1 - wp_x_gl) + sin_th*(cluster_GL->y1 - wp_y_gl);
+    cluster_wp->y1 = -1.0*sin_th*(cluster_GL->x1 - wp_x_gl) + cos_th*(cluster_GL->y1 - wp_y_gl);
+
+    cluster_wp->x2 = cos_th*(cluster_GL->x2 - wp_x_gl) + sin_th*(cluster_GL->y2 - wp_y_gl);
+    cluster_wp->y2 = -1.0*sin_th*(cluster_GL->x2 - wp_x_gl) + cos_th*(cluster_GL->y2 - wp_y_gl);
+
+    cluster_wp->x_g = cos_th*(cluster_GL->x_g - wp_x_gl) + sin_th*(cluster_GL->y_g - wp_y_gl);
+    cluster_wp->y_g = -1.0*sin_th*(cluster_GL->x_g - wp_x_gl) + cos_th*(cluster_GL->y_g - wp_y_gl);
+}
+
+void pos_wp2Gl(const ysd::_rect *cluster_wp, ysd::_rect *cluster_GL, double wp_x_gl, double wp_y_gl, double l_th)
+{
+    double sin_th = sin(l_th);
+    double cos_th = cos(l_th);
+
+    cluster_GL->x1 = cluster_wp->x1*cos_th - cluster_wp->y1*sin_th + wp_x_gl;
+    cluster_GL->y1 = cluster_wp->x1*sin_th + cluster_wp->y1*cos_th + wp_y_gl;
+
+    cluster_GL->x2 = cluster_wp->x2*cos_th - cluster_wp->y2*sin_th + wp_x_gl;
+    cluster_GL->y2 = cluster_wp->x2*sin_th + cluster_wp->y2*cos_th + wp_y_gl;
+
+    cluster_GL->x_g = cluster_wp->x_g*cos_th - cluster_wp->y_g*sin_th + wp_x_gl;
+    cluster_GL->y_g = cluster_wp->x_g*sin_th + cluster_wp->y_g*cos_th + wp_y_gl;
+
+}
+
+
 
 
 void calc_subgoal_pos(double start_x, double start_y,

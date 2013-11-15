@@ -209,8 +209,8 @@ namespace target_recognizer
         fprintf(stderr, "G(%lf, %lf), 1(%lf, %lf), 2(%lf, %lf)\n", target_pos->x_g, target_pos->y_g,
                 target_pos->x1, target_pos->y1, target_pos->x2, target_pos->y2);
 
-        cv::imshow("src", src);
-        cv::waitKey(0);
+//        cv::imshow("src", src);
+//        cv::waitKey(0);
 //        return true;    //debug
 
 
@@ -218,7 +218,10 @@ namespace target_recognizer
 //        ysd::color_detector::threshold_HSV threshold_cap(17.000, 177.000, 190.000, 63.000, 255.000, 235.000);
 //        ysd::color_detector::threshold_HSV threshold_cap(41, 157, 255, 42, 255, 66); //全て含む
 
-        ysd::color_detector::threshold_HSV threshold_cap(13.000, 157.000, 255.000, 50.000, 255.000, 66.000); //2
+        ysd::color_detector::threshold_HSV threshold_cap(13.000, 170.000, 255.000, 96.000, 255.000, 130.000); //test/7.jpg
+
+
+//        ysd::color_detector::threshold_HSV threshold_cap(13.000, 157.000, 255.000, 50.000, 255.000, 66.000); //2
 //        ysd::color_detector::threshold_HSV threshold_cap(120.000, 82.000, 157.000, 0.000, 217.000, 65.000); //blue
 
 
@@ -308,7 +311,6 @@ namespace target_recognizer
 
         cvb::cvFilterByArea(blobs_cap, 5, 100000);
 
-
         cv::imshow("cap_detect", cap_detect);
         bool ret = false;
 
@@ -335,17 +337,13 @@ namespace target_recognizer
                 cerr << "HIT!\n";
                 ret = true;
             }
-
         }
 
         //描画用の画像をoutに格納
 
-
         cv::waitKey(0);     //debug
 
-//        return ret;
-
-        return true;    //debug
+        return ret;
     }
 
 }   // ---> namespace target_recognizer
