@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <QTableWidget>
+#include <QColor>
+#include <QMessageBox>
 
 std::vector<tkg::Point3> RouteEdit::inner_box(int i)
 {
@@ -99,6 +101,17 @@ void RouteEdit::loadReference()
 
 void RouteEdit::save()
 {
+    for(int i=0; i<node.size(); i++)
+    {
+        if(node[i].spd < 0.3)
+        {
+            QMessageBox msgBox(NULL);
+            msgBox.setText("設定速度が0.3未満のウェイポイントが存在します");
+            msgBox.exec();
+            break;
+        }
+    }
+
     std::ofstream fout(file.c_str());
     if( !fout ) return;
 
@@ -135,8 +148,11 @@ void RouteEdit::drawTable(QTableWidget *table)
         table->setItem(i, 5, new QTableWidgetItem(tkg::strf("%+.2f", node[i].left ).c_str()));
         table->setItem(i, 6, new QTableWidgetItem(tkg::strf("%+.2f", node[i].ex   ).c_str()));
         table->setItem(i, 7, new QTableWidgetItem(tkg::strf("%+.2f", node[i].spd  ).c_str()));
+        if(node[i].spd < 0.3)
+        {
+            table->item(i,7)->setBackgroundColor( QColor(255,0,0) );
+        }
     }
-
 }
 
 void RouteEdit::readTable(QTableWidget *table)
@@ -194,12 +210,15 @@ void RouteEdit::readTable(QTableWidget *table)
             if(old_str[j] != new_str[j])
             {
                 if(j != 0) changed = true;
-                table->setItem(i, j, new QTableWidgetItem(QString(new_str[j])));
+
+                /*table->setItem(i, j, new QTableWidgetItem(QString(new_str[j])));*/
             }
         }
 
         if(changed)
         {
+            update = true;
+
             tmplog.type   = MOVE;
             tmplog.pos    = w;
             tmplog.select = i;
