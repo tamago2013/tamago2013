@@ -42,8 +42,8 @@ namespace adhoc_navigation
     const float search_distance = 10.0; //直線評価に用いる探索半径[m]
     const float direction_width = 10.0 * M_PI / 180.0; //評価直線をつくる角度幅[rad]
     const float direction_step  = 1.0 * M_PI / 180.0;  //評価直線の角度間隔[rad]
-    //const float direction_evaluate_width = 1.7; //直線の幅[m]
-    const float direction_evaluate_width = 0.3; //直線の幅[m] ※屋内用
+    const float direction_evaluate_width = 1.7; //直線の幅[m]
+    //const float direction_evaluate_width = 0.3; //直線の幅[m] ※屋内用
 
     //-----------------------------------
     // データ
