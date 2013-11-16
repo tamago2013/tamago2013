@@ -1,3 +1,7 @@
+#ifndef YSD_SIGNAL_HPP_
+#define YSD_SIGNAL_HPP_
+
+
 #include <signal.h>
 //#include <stdlib.h>
 
@@ -22,3 +26,5 @@ inline void setSigInt()
 
 
 }
+
+#endif
