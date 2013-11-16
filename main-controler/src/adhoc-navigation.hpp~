@@ -442,6 +442,7 @@ namespace adhoc_navigation
             //パイロンラインが１本のとき：その中点から角度の線分
             target_line_basepoint.x = ( pylon_line_bs[0].start.x +  pylon_line_bs[0].finish.x ) / 2;
             target_line_basepoint.y = ( pylon_line_bs[0].start.y +  pylon_line_bs[0].finish.y ) / 2;
+            target_line_angle = ssm_odometry.data.theta;
             
             return;
         }

@@ -202,8 +202,6 @@ namespace target_recognizer
                            const ysd::_rect *target_pos    //target_の位置 <~~ camera座標系
                            /*, color_threshold*/ )
     {
-
-
         fprintf(stderr, "pan %lf[deg]\n", 180 * camera_pan / M_PI);
         fprintf(stderr, "target_pos\n");
         fprintf(stderr, "G(%lf, %lf), 1(%lf, %lf), 2(%lf, %lf)\n", target_pos->x_g, target_pos->y_g,
@@ -218,12 +216,10 @@ namespace target_recognizer
 //        ysd::color_detector::threshold_HSV threshold_cap(17.000, 177.000, 190.000, 63.000, 255.000, 235.000);
 //        ysd::color_detector::threshold_HSV threshold_cap(41, 157, 255, 42, 255, 66); //全て含む
 
-        ysd::color_detector::threshold_HSV threshold_cap(13.000, 170.000, 255.000, 96.000, 255.000, 130.000); //test/7.jpg
-
+        ysd::color_detector::threshold_HSV threshold_cap(35.000, 170.000, 255.000, 19.000, 255.000, 19.000); //test/7.jpg
 
 //        ysd::color_detector::threshold_HSV threshold_cap(13.000, 157.000, 255.000, 50.000, 255.000, 66.000); //2
 //        ysd::color_detector::threshold_HSV threshold_cap(120.000, 82.000, 157.000, 0.000, 217.000, 65.000); //blue
-
 
 
         double cap_real_width_min = 0.15;
@@ -231,7 +227,6 @@ namespace target_recognizer
         double distance = sqrt( (target_pos->x_g*target_pos->x_g)+(target_pos->y_g*target_pos->y_g) );
         double cap_pixel_width_min = calc_pixel_width(distance, cap_real_width_min);
         double cap_pixel_width_max = calc_pixel_width(distance, cap_real_width_max);
-
 
         cv::Mat mask_cap;
 //        ysd::color_detector::color_detct(src, mask_cap, threshold_cap);
@@ -293,7 +288,7 @@ namespace target_recognizer
 
         cv::rectangle(*out, cv::Point(column1, 0), cv::Point(column2, 240), cv::Scalar(255,255,255), 2, 4); //debug
 //        cerr << "!\n";
-        cv::imshow("out", *out);    //debug
+//        cv::imshow("out", *out);    //debug
 
         cv::Rect cap_detect_area(column1, 0, column2-column1, 240);    //(x, y, w, h)
         cv::Mat cap_detect_rect = mask_cap(cap_detect_area);
@@ -341,7 +336,7 @@ namespace target_recognizer
 
         //描画用の画像をoutに格納
 
-        cv::waitKey(0);     //debug
+//        cv::waitKey(0);     //debug
 
         return ret;
 //        return true;
